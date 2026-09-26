@@ -5,7 +5,8 @@ import '../models/borrowing_transaction.dart';
 class StatusBadge extends StatelessWidget {
   final String label;
   final Color color;
-  const StatusBadge({super.key, required this.label, required this.color});
+  final bool filled;
+  const StatusBadge({super.key, required this.label, required this.color, this.filled = false});
 
   factory StatusBadge.forRequest(RequestStatus status) {
     switch (status) {
@@ -51,12 +52,19 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        color: filled ? color : color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+        maxLines: 1,
+        overflow: TextOverflow.fade,
+        style: TextStyle(
+          color: filled ? Colors.white : color,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.1,
+        ),
       ),
     );
   }

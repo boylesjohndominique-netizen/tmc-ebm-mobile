@@ -38,7 +38,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password updated successfully.')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Password updated successfully.')));
     Navigator.of(context).pop();
   }
 
@@ -65,25 +66,28 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: AppBar(title: const Text('Change Password')),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Current Password', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('Current Password', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
-                _field(_currentController, 'Enter current password', _o1, () => setState(() => _o1 = !_o1),
+                _field(_currentController, 'Enter current password', _o1,
+                    () => setState(() => _o1 = !_o1),
                     (v) => (v == null || v.isEmpty) ? 'Current password is required' : null),
                 const SizedBox(height: 16),
-                const Text('New Password', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('New Password', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 _field(_newController, 'Enter new password', _o2, () => setState(() => _o2 = !_o2),
                     (v) => (v == null || v.length < 6) ? 'Minimum 6 characters' : null),
                 const SizedBox(height: 16),
-                const Text('Confirm New Password', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('Confirm New Password', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
-                _field(_confirmController, 'Re-enter new password', _o3, () => setState(() => _o3 = !_o3),
+                _field(_confirmController, 'Re-enter new password', _o3,
+                    () => setState(() => _o3 = !_o3),
                     (v) => (v != _newController.text) ? 'Passwords do not match' : null),
                 const SizedBox(height: 24),
                 CustomButton(label: 'Update Password', onPressed: _submit, loading: _loading),

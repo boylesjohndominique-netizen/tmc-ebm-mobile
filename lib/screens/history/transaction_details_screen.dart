@@ -32,14 +32,16 @@ class TransactionDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(txn.transactionId)),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 StatusBadge.forRequest(txn.status),
-                const SizedBox(width: 8),
                 StatusBadge.forReturn(txn.returnStatus),
               ],
             ),
@@ -59,7 +61,8 @@ class TransactionDetailsScreen extends StatelessWidget {
               rows: {
                 'Borrowing Date': dateFormat.format(txn.borrowingDate),
                 'Expected Return': dateFormat.format(txn.returnDate),
-                'Actual Return': txn.actualReturnDate != null ? dateFormat.format(txn.actualReturnDate!) : '—',
+                'Actual Return':
+                    txn.actualReturnDate != null ? dateFormat.format(txn.actualReturnDate!) : '—',
                 'Purpose': txn.purpose,
                 if (txn.notes.isNotEmpty) 'Notes': txn.notes,
               },
@@ -69,7 +72,8 @@ class TransactionDetailsScreen extends StatelessWidget {
               title: 'Timeline',
               rows: {
                 'Request Date': dateFormat.format(txn.requestDate),
-                'Approval Date': txn.approvalDate != null ? dateFormat.format(txn.approvalDate!) : 'Pending review',
+                'Approval Date':
+                    txn.approvalDate != null ? dateFormat.format(txn.approvalDate!) : 'Pending review',
               },
             ),
           ],
@@ -91,8 +95,9 @@ class _Section extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
+        boxShadow: AppShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,16 +109,26 @@ class _Section extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 130,
-                  child: Text(entries[i].key, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  width: 120,
+                  child: Text(
+                    entries[i].key,
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
                 ),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(entries[i].value,
-                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
+                  child: Text(
+                    entries[i].value,
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                  ),
                 ),
               ],
             ),
-            if (i != entries.length - 1) const Padding(padding: EdgeInsets.symmetric(vertical: 7), child: Divider(height: 1)),
+            if (i != entries.length - 1)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 7),
+                child: Divider(height: 1),
+              ),
           ],
         ],
       ),

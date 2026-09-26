@@ -21,10 +21,11 @@ class BorrowedEquipmentScreen extends StatelessWidget {
       body: borrowed.isEmpty
           ? const EmptyState(
               icon: Icons.inventory_2_outlined,
-              title: 'No equipment currently borrowed.',
+              title: 'Nothing borrowed yet',
               subtitle: 'Items you borrow will appear here for tracking.',
             )
           : ListView.separated(
+              physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
               itemCount: borrowed.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -52,43 +53,66 @@ class BorrowedEquipmentScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: overdue ? AppColors.danger.withValues(alpha: 0.4) : AppColors.divider),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(
+                      color: overdue
+                          ? AppColors.danger.withValues(alpha: 0.4)
+                          : AppColors.divider.withValues(alpha: 0.6),
+                    ),
+                    boxShadow: AppShadows.soft,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text('${txn.equipmentName} × ${txn.quantity}',
-                                style: Theme.of(context).textTheme.titleMedium),
+                            child: Text(
+                              '${txn.equipmentName} × ${txn.quantity}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: dueColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(AppRadius.pill),
                             ),
-                            child: Text(dueLabel,
-                                style: TextStyle(color: dueColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                            child: Text(
+                              dueLabel,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: dueColor,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text('Borrowed: ${dateFormat.format(txn.borrowingDate)}',
-                          style: Theme.of(context).textTheme.bodyMedium),
-                      Text('Expected return: ${dateFormat.format(txn.returnDate)}',
-                          style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        'Borrowed: ${dateFormat.format(txn.borrowingDate)}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Expected return: ${dateFormat.format(txn.returnDate)}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          StatusBadge.forReturn(txn.returnStatus),
-                          const Spacer(),
+                          Expanded(child: StatusBadge.forReturn(txn.returnStatus)),
+                          const SizedBox(width: 8),
                           if (txn.returnStatus == ReturnStatus.notReturned)
                             ElevatedButton.icon(
-                              onPressed: () => _confirmReturn(context, txn.transactionId, txn.equipmentName),
+                              onPressed: () =>
+                                  _confirmReturn(context, txn.transactionId, txn.equipmentName),
                               icon: const Icon(Icons.assignment_return_rounded, size: 16),
                               label: const Text('Submit Return'),
                               style: ElevatedButton.styleFrom(
@@ -110,7 +134,6 @@ class BorrowedEquipmentScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Submit Return Request?'),
         content: Text('Confirm that you are returning "$equipmentName" to the Equipment Office.'),
         actions: [
@@ -119,8 +142,8 @@ class BorrowedEquipmentScreen extends StatelessWidget {
             onPressed: () {
               context.read<AppState>().submitReturnRequest(transactionId);
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text('Return request submitted successfully.')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Return request submitted successfully.')));
             },
             child: const Text('Confirm'),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../state/app_state.dart';
+import '../../widgets/floating_nav_bar.dart';
 import '../borrowing/my_requests_screen.dart';
 import '../equipment/equipment_list_screen.dart';
 import '../notifications/notifications_screen.dart';
@@ -32,25 +33,11 @@ class _MainNavScreenState extends State<MainNavScreen> {
     final unread = context.watch<AppState>().unreadCount;
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: FloatingNavBar(
         currentIndex: _index,
         onTap: goToTab,
-        items: [
-          const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-          const BottomNavigationBarItem(icon: Icon(Icons.inventory_2_rounded), label: 'Equipment'),
-          const BottomNavigationBarItem(icon: Icon(Icons.assignment_rounded), label: 'Borrowing'),
-          BottomNavigationBarItem(
-            icon: Badge(
-              isLabelVisible: unread > 0,
-              label: Text('$unread'),
-              child: const Icon(Icons.notifications_rounded),
-            ),
-            label: 'Alerts',
-          ),
-          const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
-        ],
+        unreadCount: unread,
       ),
     );
   }
 }
-

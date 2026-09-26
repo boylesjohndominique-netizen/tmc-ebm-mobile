@@ -16,7 +16,7 @@ class TmcebmsApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         initialRoute: AppRoutes.splash,
-        routes: AppRoutes.map,
+        onGenerateRoute: AppRoutes.onGenerateRoute,
       ),
     );
   }

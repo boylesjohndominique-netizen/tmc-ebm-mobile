@@ -44,14 +44,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final appState = context.read<AppState>();
     await Future.delayed(const Duration(milliseconds: 600));
     final error = appState.register(
-          fullName: _fullNameController.text.trim(),
-          idNumber: _idNumberController.text.trim(),
-          email: _emailController.text.trim(),
-          username: _usernameController.text.trim(),
-          contactNumber: _contactController.text.trim(),
-          userType: _userType,
-          password: _passwordController.text,
-        );
+      fullName: _fullNameController.text.trim(),
+      idNumber: _idNumberController.text.trim(),
+      email: _emailController.text.trim(),
+      username: _usernameController.text.trim(),
+      contactNumber: _contactController.text.trim(),
+      userType: _userType,
+      password: _passwordController.text,
+    );
     if (!mounted) return;
     setState(() => _loading = false);
     if (error != null) {
@@ -61,15 +61,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
             Icon(Icons.check_circle_rounded, color: AppColors.success),
             SizedBox(width: 8),
-            Text('Registration Successful'),
+            Expanded(child: Text('Registration Successful')),
           ],
         ),
-        content: const Text('Your account has been created. You can now log in using your credentials.'),
+        content: const Text(
+            'Your account has been created. You can now log in using your credentials.'),
         actions: [
           TextButton(
             onPressed: () {
@@ -92,7 +92,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(title: const Text('Create Account')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -100,18 +101,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Text('Join TMCEBMS', style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 4),
-                Text('Fill in your details to get started', style: Theme.of(context).textTheme.bodyLarge),
+                Text('Fill in your details to get started',
+                    style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _fullNameController,
                   decoration: _dec('Full Name', Icons.badge_outlined),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
                   controller: _idNumberController,
                   decoration: _dec('Student / Employee ID', Icons.confirmation_number_outlined),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'ID number is required' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'ID number is required' : null,
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
@@ -129,7 +133,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _usernameController,
                   decoration: _dec('Username', Icons.alternate_email_rounded),
-                  validator: (v) => (v == null || v.trim().length < 4) ? 'Minimum 4 characters' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().length < 4) ? 'Minimum 4 characters' : null,
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
@@ -144,10 +149,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 14),
-                Text('User Type', style: Theme.of(context).textTheme.titleMedium),
+                Text('User Type', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
+                  runSpacing: 8,
                   children: UserType.values.map((t) {
                     final selected = _userType == t;
                     return ChoiceChip(
@@ -165,7 +171,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline_rounded),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscure1 ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+                      icon: Icon(
+                          _obscure1 ? Icons.visibility_off_rounded : Icons.visibility_rounded),
                       onPressed: () => setState(() => _obscure1 = !_obscure1),
                     ),
                   ),
@@ -179,11 +186,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'Confirm Password',
                     prefixIcon: const Icon(Icons.lock_outline_rounded),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscure2 ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+                      icon: Icon(
+                          _obscure2 ? Icons.visibility_off_rounded : Icons.visibility_rounded),
                       onPressed: () => setState(() => _obscure2 = !_obscure2),
                     ),
                   ),
-                  validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
+                  validator: (v) =>
+                      (v != _passwordController.text) ? 'Passwords do not match' : null,
                 ),
                 const SizedBox(height: 24),
                 CustomButton(label: 'Create Account', onPressed: _submit, loading: _loading),

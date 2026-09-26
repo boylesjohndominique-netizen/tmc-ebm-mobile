@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../app/motion.dart';
 import '../app/theme.dart';
 import '../models/notification_item.dart';
+import 'pressable.dart';
 
 class NotificationCard extends StatelessWidget {
   final AppNotification notification;
@@ -41,6 +43,7 @@ class NotificationCard extends StatelessWidget {
 
   String get _timeAgo {
     final diff = DateTime.now().difference(notification.date);
+    if (diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
@@ -49,15 +52,19 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return Pressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: AppMotion.emphasized,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: notification.isRead ? AppColors.surface : AppColors.lightBlue.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
+          color: notification.isRead ? AppColors.surface : AppColors.primarySoft.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: notification.isRead ? AppColors.divider.withValues(alpha: 0.6) : AppColors.primary.withValues(alpha: 0.25),
+          ),
+          boxShadow: notification.isRead ? null : AppShadows.soft,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,23 +82,30 @@ class NotificationCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(notification.title,
-                            style: Theme.of(context).textTheme.titleMedium),
+                        child: Text(
+                          notification.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                       ),
                       if (!notification.isRead)
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                              color: AppColors.gold, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
                         ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(notification.message, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    notification.message,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const SizedBox(height: 6),
-                  Text(_timeAgo,
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(_timeAgo, style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),

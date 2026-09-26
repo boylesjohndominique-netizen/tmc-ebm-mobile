@@ -37,7 +37,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Forgot Password')),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(24),
           child: _sent ? _buildSuccess(context) : _buildForm(context),
         ),
@@ -54,21 +55,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Container(
             width: 64,
             height: 64,
-            decoration: BoxDecoration(color: AppColors.lightBlue, borderRadius: BorderRadius.circular(18)),
-            child: const Icon(Icons.lock_reset_rounded, color: AppColors.primaryBlue, size: 32),
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppShadows.primaryGlow,
+            ),
+            child: const Icon(Icons.lock_reset_rounded, color: Colors.white, size: 30),
           ),
           const SizedBox(height: 20),
           Text('Reset your password', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 6),
           Text(
             'Enter your registered email address and we\'ll send you a link to reset your password.',
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(hintText: 'Email Address', prefixIcon: Icon(Icons.email_outlined)),
+            decoration:
+                const InputDecoration(hintText: 'Email Address', prefixIcon: Icon(Icons.email_outlined)),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Email is required';
               final regex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
@@ -90,16 +96,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Container(
           width: 88,
           height: 88,
-          decoration: const BoxDecoration(color: AppColors.lightBlue, shape: BoxShape.circle),
-          child: const Icon(Icons.mark_email_read_rounded, color: AppColors.primaryBlue, size: 44),
+          decoration: const BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
+          child: const Icon(Icons.mark_email_read_rounded, color: AppColors.primary, size: 44),
         ),
         const SizedBox(height: 24),
-        Text('Check your email', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
+        Text('Check your email',
+            style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
         const SizedBox(height: 10),
         Text(
           'A password recovery link has been sent to ${_emailController.text.trim()}.',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 28),
         CustomButton(label: 'Back to Login', onPressed: () => Navigator.of(context).pop()),

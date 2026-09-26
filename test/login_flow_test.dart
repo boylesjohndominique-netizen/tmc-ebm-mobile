@@ -19,6 +19,10 @@ Widget _wrap(Widget child) {
 
 void main() {
   testWidgets('login with demo credentials navigates to dashboard', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(_wrap(const LoginScreen()));
 
     // Fill credentials using the demo account helper chip.
@@ -37,8 +41,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Dashboard should now be visible.
-    expect(find.text('TMCEBMS'), findsOneWidget);
-    expect(find.textContaining('Good'), findsOneWidget);
+    expect(find.text('TMCEBMS'), findsNothing); // not used as an AppBar title anymore
+    expect(find.textContaining('Welcome back to TMCEBMS'), findsOneWidget);
     expect(find.text('Total Borrowed'), findsOneWidget);
   });
 

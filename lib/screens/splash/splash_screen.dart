@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app/motion.dart';
 import '../../app/theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,8 +18,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _scale = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
-    _fade = CurvedAnimation(parent: _controller, curve: const Interval(0.3, 1.0, curve: Curves.easeIn));
+    _scale = CurvedAnimation(parent: _controller, curve: AppMotion.springy);
+    _fade = CurvedAnimation(parent: _controller, curve: const Interval(0.25, 1.0, curve: Curves.easeOut));
     _controller.forward();
 
     Future.delayed(const Duration(milliseconds: 2200), () {
@@ -35,69 +36,83 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBlue,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ScaleTransition(
-              scale: _scale,
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 24, offset: const Offset(0, 10)),
-                  ],
-                ),
-                child: const Icon(Icons.inventory_2_rounded, size: 64, color: AppColors.primaryBlue),
-              ),
-            ),
-            const SizedBox(height: 28),
-            FadeTransition(
-              opacity: _fade,
-              child: Column(
-                children: [
-                  const Text(
-                    'TMCEBMS',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Trinidad Municipal College',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 14),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        child: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ScaleTransition(
+                  scale: _scale,
+                  child: Container(
+                    width: 108,
+                    height: 108,
                     decoration: BoxDecoration(
-                      color: AppColors.gold,
-                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.18),
+                          blurRadius: 30,
+                          offset: const Offset(0, 14),
+                        ),
+                      ],
                     ),
-                    child: const Text(
-                      'Smart Equipment Borrowing & Tracking',
-                      style: TextStyle(color: AppColors.deepBlue, fontWeight: FontWeight.w600, fontSize: 12),
-                    ),
+                    child: const Icon(Icons.inventory_2_rounded, size: 54, color: AppColors.primary),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 30),
+                FadeTransition(
+                  opacity: _fade,
+                  child: Column(
+                    children: [
+                      const Text(
+                        'TMCEBMS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Trinidad Municipal College',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 14),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                        ),
+                        child: const Text(
+                          'Smart Equipment Borrowing & Tracking',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 56),
+                FadeTransition(
+                  opacity: _fade,
+                  child: const SizedBox(
+                    width: 26,
+                    height: 26,
+                    child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 56),
-            FadeTransition(
-              opacity: _fade,
-              child: const SizedBox(
-                width: 28,
-                height: 28,
-                child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

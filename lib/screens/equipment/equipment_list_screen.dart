@@ -5,7 +5,7 @@ import '../../models/equipment.dart';
 import '../../state/app_state.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/equipment_card.dart';
-import 'equipment_details_screen.dart';
+import '../equipment/equipment_details_screen.dart';
 
 class EquipmentListScreen extends StatefulWidget {
   const EquipmentListScreen({super.key});
@@ -52,7 +52,10 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
@@ -60,8 +63,7 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
               padding: EdgeInsets.only(
                 left: 20,
                 right: 20,
-                top: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -81,47 +83,60 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text('Category', style: Theme.of(ctx).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: categories.map((c) {
-                      return FilterChip(
-                        label: Text(c),
-                        selected: category == c,
-                        onSelected: (sel) => setSheetState(() => category = sel ? c : null),
-                      );
-                    }).toList(),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Category', style: Theme.of(ctx).textTheme.titleSmall),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: categories.map((c) {
+                              return FilterChip(
+                                label: Text(c),
+                                selected: category == c,
+                                onSelected: (sel) => setSheetState(() => category = sel ? c : null),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                          Text('Availability', style: Theme.of(ctx).textTheme.titleSmall),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: ['Available', 'Limited', 'Unavailable'].map((a) {
+                              return FilterChip(
+                                label: Text(a),
+                                selected: availability == a,
+                                onSelected: (sel) =>
+                                    setSheetState(() => availability = sel ? a : null),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                          Text('Condition', style: Theme.of(ctx).textTheme.titleSmall),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: EquipmentCondition.values.map((c) {
+                              return FilterChip(
+                                label: Text(c.label),
+                                selected: condition == c,
+                                onSelected: (sel) =>
+                                    setSheetState(() => condition = sel ? c : null),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text('Availability', style: Theme.of(ctx).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: ['Available', 'Limited', 'Unavailable'].map((a) {
-                      return FilterChip(
-                        label: Text(a),
-                        selected: availability == a,
-                        onSelected: (sel) => setSheetState(() => availability = sel ? a : null),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Condition', style: Theme.of(ctx).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: EquipmentCondition.values.map((c) {
-                      return FilterChip(
-                        label: Text(c.label),
-                        selected: condition == c,
-                        onSelected: (sel) => setSheetState(() => condition = sel ? c : null),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -151,12 +166,26 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
     final filtered = _applyFilters(appState.equipment);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Equipment')),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-        child: Column(
-          children: [
-            Row(
+      appBar: AppBar(
+        title: const Text('Equipment'),
+        actions: [
+          if (_hasActiveFilters)
+            TextButton(
+              onPressed: () => setState(() {
+                _categoryFilter = null;
+                _availabilityFilter = null;
+                _conditionFilter = null;
+              }),
+              child: const Text('Clear'),
+            ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+            child: Row(
               children: [
                 Expanded(
                   child: TextField(
@@ -178,50 +207,72 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Stack(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _hasActiveFilters ? AppColors.primaryBlue : AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _hasActiveFilters ? AppColors.primaryBlue : AppColors.divider),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.tune_rounded,
-                            color: _hasActiveFilters ? Colors.white : AppColors.textPrimary),
-                        onPressed: () => _openFilterSheet(appState.categories),
-                      ),
-                    ),
-                  ],
+                _FilterButton(
+                  active: _hasActiveFilters,
+                  onTap: () => _openFilterSheet(appState.categories),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: filtered.isEmpty
-                  ? const SingleChildScrollView(
-                      child: EmptyState(
-                        icon: Icons.search_off_rounded,
-                        title: 'No equipment found.',
-                        subtitle: 'No equipment matches your search.',
-                      ),
-                    )
-                  : ListView.separated(
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      padding: const EdgeInsets.only(bottom: 20),
-                      itemBuilder: (context, i) {
-                        final e = filtered[i];
-                        return EquipmentCard(
-                          equipment: e,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => EquipmentDetailsScreen(equipmentId: e.id)),
-                          ),
-                        );
-                      },
-                    ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: filtered.isEmpty
+                ? const EmptyState(
+                    icon: Icons.search_off_rounded,
+                    title: 'No equipment found',
+                    subtitle: 'No equipment matches your search or filters. Try adjusting them.',
+                  )
+                : ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    // Extra bottom padding so cards are never hidden behind the floating nav.
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                    itemBuilder: (context, i) {
+                      final e = filtered[i];
+                      return EquipmentCard(
+                        equipment: e,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => EquipmentDetailsScreen(equipmentId: e.id)),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterButton extends StatelessWidget {
+  final bool active;
+  final VoidCallback onTap;
+  const _FilterButton({required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: active ? AppColors.primary : AppColors.surface,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: active ? AppColors.primary : AppColors.divider,
             ),
-          ],
+          ),
+          child: Icon(
+            Icons.tune_rounded,
+            color: active ? Colors.white : AppColors.textPrimary,
+            size: 22,
+          ),
         ),
       ),
     );

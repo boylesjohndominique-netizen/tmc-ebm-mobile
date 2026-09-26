@@ -23,43 +23,58 @@ class EquipmentDetailsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(equipment.name)),
+      appBar: AppBar(title: const Text('Equipment Details')),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(color: AppColors.lightBlue, borderRadius: BorderRadius.circular(28)),
-                child: Icon(equipment.icon, size: 68, color: AppColors.primaryBlue),
+                width: 136,
+                height: 136,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primarySoft,
+                      AppColors.primarySoft.withValues(alpha: 0.35),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+                ),
+                child: Icon(equipment.icon, size: 64, color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Text(equipment.name, style: Theme.of(context).textTheme.headlineSmall),
                 ),
-                StatusBadge.availability(equipment.availabilityStatus),
+                const SizedBox(width: 10),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: StatusBadge.availability(equipment.availabilityStatus),
+                ),
               ],
             ),
             const SizedBox(height: 4),
-            Text('Asset ID: ${equipment.assetId}', style: Theme.of(context).textTheme.bodyMedium),
+            Text('Asset ID: ${equipment.assetId}', style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
-            Text('Description', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 6),
             Text(equipment.description, style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.divider),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
+                boxShadow: AppShadows.soft,
               ),
               child: Column(
                 children: [
@@ -69,7 +84,8 @@ class EquipmentDetailsScreen extends StatelessWidget {
                   const Divider(height: 22),
                   _InfoRow(label: 'Total Quantity', value: '${equipment.totalQuantity}'),
                   const Divider(height: 22),
-                  _InfoRow(label: 'Available Quantity', value: '${equipment.availableQuantity}'),
+                  _InfoRow(
+                      label: 'Available Quantity', value: '${equipment.availableQuantity}'),
                 ],
               ),
             ),
@@ -77,12 +93,13 @@ class EquipmentDetailsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.lightBlue,
-                borderRadius: BorderRadius.circular(14),
+                color: AppColors.primarySoft.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.info_outline_rounded, color: AppColors.primaryBlue, size: 20),
+                  const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -97,12 +114,18 @@ class EquipmentDetailsScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      equipment.isAvailable ? AppColors.primary : AppColors.surfaceMuted,
+                  foregroundColor: equipment.isAvailable ? Colors.white : AppColors.textTertiary,
+                ),
                 onPressed: equipment.isAvailable
                     ? () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => RequestEquipmentScreen(equipmentId: equipment.id)),
+                          MaterialPageRoute(
+                              builder: (_) => RequestEquipmentScreen(equipmentId: equipment.id)),
                         )
                     : null,
-                icon: const Icon(Icons.add_circle_outline_rounded),
+                icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
                 label: Text(equipment.isAvailable ? 'Request Equipment' : 'Currently Unavailable'),
               ),
             ),
@@ -121,10 +144,19 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+        Expanded(
+          child: Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        ),
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          ),
+        ),
       ],
     );
   }

@@ -21,6 +21,7 @@ class NotificationsScreen extends StatelessWidget {
               onPressed: () => context.read<AppState>().markAllAsRead(),
               child: const Text('Mark all as read'),
             ),
+          const SizedBox(width: 8),
         ],
       ),
       body: notifications.isEmpty
@@ -30,7 +31,8 @@ class NotificationsScreen extends StatelessWidget {
               subtitle: 'New notifications will appear here.',
             )
           : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
               itemCount: notifications.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, i) {

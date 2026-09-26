@@ -45,7 +45,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           contactNumber: _contactController.text.trim(),
         );
     setState(() => _loading = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully.')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Profile updated successfully.')));
     Navigator.of(context).pop();
   }
 
@@ -55,21 +56,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(title: const Text('Edit Profile')),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Full Name', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('Full Name', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(prefixIcon: Icon(Icons.badge_outlined)),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
                 ),
                 const SizedBox(height: 16),
-                const Text('Email', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('Email', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailController,
@@ -83,13 +86,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Contact Number', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('Contact Number', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _contactController,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(prefixIcon: Icon(Icons.phone_outlined)),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Contact number is required' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Contact number is required' : null,
                 ),
                 const SizedBox(height: 24),
                 CustomButton(label: 'Save Changes', onPressed: _save, loading: _loading),

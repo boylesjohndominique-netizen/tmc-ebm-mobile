@@ -65,11 +65,13 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
   Future<void> _submit(int available) async {
     if (!_formKey.currentState!.validate()) return;
     if (_borrowDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a borrowing date.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Select a borrowing date.')));
       return;
     }
     if (_returnDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a return date.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Select a return date.')));
       return;
     }
     if (_quantity > available) {
@@ -98,15 +100,15 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
             Icon(Icons.check_circle_rounded, color: AppColors.success),
             SizedBox(width: 8),
-            Text('Request Submitted'),
+            Expanded(child: Text('Request Submitted')),
           ],
         ),
-        content: const Text('Your borrowing request has been submitted successfully. Status: Pending'),
+        content: const Text(
+            'Your borrowing request has been submitted successfully. Status: Pending'),
         actions: [
           TextButton(
             onPressed: () {
@@ -136,7 +138,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
       appBar: AppBar(title: const Text('Request Equipment')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -146,23 +149,32 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.divider),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
+                    boxShadow: AppShadows.soft,
                   ),
                   child: Row(
                     children: [
                       Container(
                         width: 48,
                         height: 48,
-                        decoration: BoxDecoration(color: AppColors.lightBlue, borderRadius: BorderRadius.circular(12)),
-                        child: Icon(equipment.icon, color: AppColors.primaryBlue),
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySoft,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Icon(equipment.icon, color: AppColors.primary, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(equipment.name, style: Theme.of(context).textTheme.titleMedium),
+                            Text(
+                              equipment.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                             Text('${equipment.availableQuantity} available',
                                 style: Theme.of(context).textTheme.bodyMedium),
                           ],
@@ -172,53 +184,63 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text('Quantity to Borrow', style: Theme.of(context).textTheme.titleMedium),
+                Text('Quantity to Borrow', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    IconButton.filledTonal(
-                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                      icon: const Icon(Icons.remove_rounded),
+                    _StepperButton(
+                      icon: Icons.remove_rounded,
+                      onTap: _quantity > 1 ? () => setState(() => _quantity--) : null,
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Text('$_quantity', style: Theme.of(context).textTheme.titleLarge),
                     ),
-                    IconButton.filledTonal(
-                      onPressed: _quantity < equipment.availableQuantity ? () => setState(() => _quantity++) : null,
-                      icon: const Icon(Icons.add_rounded),
+                    _StepperButton(
+                      icon: Icons.add_rounded,
+                      onTap: _quantity < equipment.availableQuantity
+                          ? () => setState(() => _quantity++)
+                          : null,
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                Text('Borrowing Date', style: Theme.of(context).textTheme.titleMedium),
+                Text('Borrowing Date', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 _DateSelector(
-                  label: _borrowDate == null ? 'Select borrowing date' : _dateFormat.format(_borrowDate!),
+                  label: _borrowDate == null
+                      ? 'Select borrowing date'
+                      : _dateFormat.format(_borrowDate!),
+                  hasValue: _borrowDate != null,
                   onTap: () => _pickBorrowDate(DateTime.now()),
                 ),
                 const SizedBox(height: 16),
-                Text('Return Date', style: Theme.of(context).textTheme.titleMedium),
+                Text('Return Date', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 _DateSelector(
-                  label: _returnDate == null ? 'Select return date' : _dateFormat.format(_returnDate!),
+                  label:
+                      _returnDate == null ? 'Select return date' : _dateFormat.format(_returnDate!),
+                  hasValue: _returnDate != null,
                   onTap: _pickReturnDate,
                 ),
                 const SizedBox(height: 20),
-                Text('Purpose / Reason', style: Theme.of(context).textTheme.titleMedium),
+                Text('Purpose / Reason', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _purposeController,
                   maxLines: 2,
-                  decoration: const InputDecoration(hintText: 'e.g. Thesis presentation, org event...'),
+                  textInputAction: TextInputAction.newline,
+                  decoration: const InputDecoration(
+                      hintText: 'e.g. Thesis presentation, org event...'),
                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Purpose is required' : null,
                 ),
                 const SizedBox(height: 16),
-                Text('Additional Notes (optional)', style: Theme.of(context).textTheme.titleMedium),
+                Text('Additional Notes (optional)', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _notesController,
                   maxLines: 2,
+                  textInputAction: TextInputAction.newline,
                   decoration: const InputDecoration(hintText: 'Any additional information...'),
                 ),
                 const SizedBox(height: 20),
@@ -227,16 +249,25 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.lightBlue,
-                      borderRadius: BorderRadius.circular(14),
+                      color: AppColors.primarySoft.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Request Summary', style: Theme.of(context).textTheme.titleMedium),
+                        Text('Request Summary', style: Theme.of(context).textTheme.titleSmall),
                         const SizedBox(height: 8),
-                        Text('${equipment.name} × $_quantity'),
-                        Text('${_dateFormat.format(_borrowDate!)} → ${_dateFormat.format(_returnDate!)}'),
+                        Text(
+                          '${equipment.name} × $_quantity',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_dateFormat.format(_borrowDate!)} → ${_dateFormat.format(_returnDate!)}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ],
                     ),
                   ),
@@ -255,30 +286,77 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
   }
 }
 
-class _DateSelector extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  const _DateSelector({required this.label, required this.onTap});
+class _StepperButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  const _StepperButton({required this.icon, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.divider),
+    final enabled = onTap != null;
+    return Material(
+      color: enabled ? AppColors.primarySoft : AppColors.surfaceMuted,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(
+            icon,
+            size: 20,
+            color: enabled ? AppColors.primary : AppColors.textTertiary,
+          ),
         ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.primaryBlue),
-            const SizedBox(width: 10),
-            Text(label),
-          ],
+      ),
+    );
+  }
+}
+
+class _DateSelector extends StatelessWidget {
+  final String label;
+  final bool hasValue;
+  final VoidCallback onTap;
+  const _DateSelector({required this.label, required this.hasValue, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.calendar_today_rounded,
+                size: 18,
+                color: hasValue ? AppColors.primary : AppColors.textTertiary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: hasValue ? AppColors.textPrimary : AppColors.textTertiary,
+                  ),
+                ),
+              ),
+              const Icon(Icons.expand_more_rounded, size: 20, color: AppColors.textTertiary),
+            ],
+          ),
         ),
       ),
     );
