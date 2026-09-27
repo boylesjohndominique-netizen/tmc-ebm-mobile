@@ -50,8 +50,8 @@ class TransactionDetailsScreen extends StatelessWidget {
               title: 'Equipment Information',
               rows: {
                 'Equipment': txn.equipmentName,
-                'Asset ID': txn.assetId,
-                'Category': txn.category,
+                if (txn.assetId.isNotEmpty) 'Asset ID': txn.assetId,
+                if (txn.category.isNotEmpty) 'Category': txn.category,
                 'Quantity': '${txn.quantity}',
               },
             ),

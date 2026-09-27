@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../app/motion.dart';
 import '../../app/theme.dart';
+import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
 
 class _OnboardPage {
@@ -40,7 +42,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _index = 0;
 
-  void _finish() => Navigator.of(context).pushReplacementNamed('/login');
+  void _finish() {
+    context.read<AppState>().markOnboardingSeen();
+    Navigator.of(context).pushReplacementNamed('/login');
+  }
 
   @override
   void dispose() {

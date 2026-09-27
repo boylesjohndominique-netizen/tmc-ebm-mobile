@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
-import '../../data/mock_users.dart';
 import '../../models/borrowing_transaction.dart';
 import '../../state/app_state.dart';
 import '../../widgets/equipment_card.dart';
@@ -24,7 +23,10 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    final user = appState.currentUser ?? mockUsers.first;
+    final user = appState.currentUser;
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final totalBorrowed = appState.currentlyBorrowed.length;
     final pending = appState.transactions.where((t) => t.status == RequestStatus.pending).length;
     final approved = appState.transactions.where((t) => t.status == RequestStatus.approved).length;

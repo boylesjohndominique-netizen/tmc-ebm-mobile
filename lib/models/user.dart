@@ -16,26 +16,22 @@ extension UserTypeLabel on UserType {
   }
 }
 
+/// The signed-in user, mirrored from the backend `users` table.
+/// Passwords never live on the client — auth uses bearer tokens.
 class AppUser {
   final String id;
-  String fullName;
-  String idNumber;
-  String email;
-  String username;
-  String contactNumber;
-  UserType userType;
-  String password;
+  final String fullName;
+  final String idNumber;
+  final String email;
+  final String username;
+  final String contactNumber;
+  final UserType userType;
 
-  /// Local paths of the uploaded ID verification photos (front / back).
-  String? idFrontPath;
-  String? idBackPath;
+  /// Email verification (6-digit code) — gates login.
+  final bool emailVerified;
 
-  /// Current review state of the submitted ID photos.
-  IdVerificationStatus idVerificationStatus;
-
-  /// Reviewer note shown to the user when verification is rejected
-  /// (set from the admin website, displayed here).
-  String? verificationNote;
+  /// Admin verification lifecycle: Pending | Active | Banned.
+  final String accountStatus;
 
   AppUser({
     required this.id,
@@ -45,12 +41,13 @@ class AppUser {
     required this.username,
     required this.contactNumber,
     required this.userType,
-    required this.password,
-    this.idFrontPath,
-    this.idBackPath,
-    this.idVerificationStatus = IdVerificationStatus.notSubmitted,
-    this.verificationNote,
+    this.emailVerified = false,
+    this.accountStatus = 'Active',
   });
+
+  bool get isPending => accountStatus == 'Pending';
+  bool get isActive => accountStatus == 'Active';
+  bool get isBanned => accountStatus == 'Banned';
 
   String get initials {
     final parts = fullName.trim().split(RegExp(r'\s+'));

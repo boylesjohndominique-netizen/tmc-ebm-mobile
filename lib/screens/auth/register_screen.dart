@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/motion.dart';
 import '../../app/theme.dart';
-import '../../data/api_service.dart';
 import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../widgets/auth_surface.dart';
@@ -104,57 +103,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email = _emailController.text.trim();
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
-    final confirmPassword = _confirmController.text;
     final fullName = _fullNameController.text.trim();
-    final nameParts = fullName.split(RegExp(r'\s+'));
-    final firstName = nameParts.isNotEmpty ? nameParts.first : fullName;
-    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : 'Student';
     final contact = _contactController.text.trim();
 
-    // Call backend API (creates student account and sends 6-digit Gmail code)
-    final res = await ApiService.instance.register(
-      firstName: firstName,
-      lastName: lastName,
-      username: username,
+    // Register through the backend API — creates a Pending student account
+    // and emails a 6-digit verification code. No local fallback: the same
+    // database powers the admin website.
+    final appState = context.read<AppState>();
+    final error = await appState.register(
+      fullName: fullName,
+      idNumber: _idNumberController.text.trim(),
       email: email,
-      contactNumber: contact.isNotEmpty ? contact : null,
+      username: username,
+      contactNumber: contact,
+      userType: UserType.student,
       password: password,
-      passwordConfirmation: confirmPassword,
+      idFrontPath: _idFrontPath,
+      idBackPath: _idBackPath,
     );
 
     if (!mounted) return;
     setState(() => _loading = false);
 
-    if (res.success) {
-      // Also register in local appState for fallback/offline parity
-      final appState = context.read<AppState>();
-      appState.register(
-        fullName: fullName,
-        idNumber: _idNumberController.text.trim(),
-        email: email,
-        username: username,
-        contactNumber: contact,
-        userType: UserType.student,
-        password: password,
-        idFrontPath: _idFrontPath,
-        idBackPath: _idBackPath,
-      );
-
-      // Navigate to verification screen with email pre-filled
+    if (error == null) {
+      // Navigate to verification screen with email pre-filled.
       Navigator.of(context).pushReplacementNamed(
         '/verify-email',
         arguments: email,
       );
       return;
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res.message ?? 'Registration failed. Please check inputs.'),
-          backgroundColor: AppColors.danger,
-        ),
-      );
-      return;
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error),
+        backgroundColor: AppColors.danger,
+      ),
+    );
   }
 
   InputDecoration _dec(String hint, IconData icon) =>

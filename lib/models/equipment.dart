@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum EquipmentCondition { excellent, good, fair }
 
 extension EquipmentConditionLabel on EquipmentCondition {
@@ -15,27 +13,25 @@ extension EquipmentConditionLabel on EquipmentCondition {
   }
 }
 
+/// Equipment as served by the backend. The icon is derived from the
+/// category name at render time — no hardcoded IconData per item.
 class Equipment {
   final String id;
-  final String assetId;
   final String name;
   final String category;
   final String description;
   final EquipmentCondition condition;
   final int totalQuantity;
-  int availableQuantity;
-  final IconData icon;
+  final int availableQuantity;
 
   Equipment({
     required this.id,
-    required this.assetId,
     required this.name,
     required this.category,
     required this.description,
     required this.condition,
     required this.totalQuantity,
     required this.availableQuantity,
-    required this.icon,
   });
 
   String get availabilityStatus {

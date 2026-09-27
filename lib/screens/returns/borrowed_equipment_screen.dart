@@ -139,11 +139,17 @@ class BorrowedEquipmentScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Not Yet')),
           ElevatedButton(
-            onPressed: () {
-              context.read<AppState>().submitReturnRequest(transactionId);
+            onPressed: () async {
               Navigator.of(ctx).pop();
+              final error =
+                  await context.read<AppState>().submitReturnRequest(transactionId);
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Return request submitted successfully.')));
+                SnackBar(
+                  content: Text(error ?? 'Return request submitted successfully.'),
+                  backgroundColor: error != null ? AppColors.danger : null,
+                ),
+              );
             },
             child: const Text('Confirm'),
           ),

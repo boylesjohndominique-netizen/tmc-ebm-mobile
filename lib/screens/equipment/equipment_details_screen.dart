@@ -3,17 +3,32 @@ import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../models/equipment.dart';
 import '../../state/app_state.dart';
+import '../../widgets/equipment_icon.dart';
 import '../../widgets/status_badge.dart';
 import '../borrowing/request_equipment_screen.dart';
 
-class EquipmentDetailsScreen extends StatelessWidget {
+class EquipmentDetailsScreen extends StatefulWidget {
   final String equipmentId;
   const EquipmentDetailsScreen({super.key, required this.equipmentId});
 
   @override
+  State<EquipmentDetailsScreen> createState() => _EquipmentDetailsScreenState();
+}
+
+class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Keep stock counters fresh when arriving from the dashboard.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppState>().refreshEquipment();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    final equipment = appState.equipmentById(equipmentId);
+    final equipment = appState.equipmentById(widget.equipmentId);
 
     if (equipment == null) {
       return Scaffold(
@@ -46,7 +61,11 @@ class EquipmentDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
                 ),
-                child: Icon(equipment.icon, size: 64, color: AppColors.primary),
+                child: Icon(
+                  equipmentIcon('${equipment.category} ${equipment.name}'),
+                  size: 64,
+                  color: AppColors.primary,
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -64,7 +83,7 @@ class EquipmentDetailsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Text('Asset ID: ${equipment.assetId}', style: Theme.of(context).textTheme.bodySmall),
+            Text('Category: ${equipment.category}', style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
             Text(equipment.description, style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 20),

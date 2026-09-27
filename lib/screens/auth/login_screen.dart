@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
-import '../../data/api_service.dart';
 import '../../state/app_state.dart';
 import '../../widgets/auth_surface.dart';
 import '../../widgets/custom_button.dart';
@@ -55,52 +54,32 @@ class _LoginScreenState extends State<LoginScreen> {
     final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
 
-    // 1. Attempt login with backend API
-    final res = await ApiService.instance.login(
-      identifier: identifier,
-      password: password,
-    );
+    final appState = context.read<AppState>();
+    final error = await appState.login(identifier, password);
 
     if (!mounted) return;
+    setState(() => _loading = false);
 
-    if (res.requiresEmailVerification) {
-      setState(() => _loading = false);
+    if (error == null) {
+      appState.rememberMe = _rememberMe;
+      Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+      return;
+    }
+
+    // Backend asks for email verification — route to the verify screen.
+    if (error.startsWith('EMAIL_VERIFICATION_REQUIRED:')) {
+      final email = error.substring('EMAIL_VERIFICATION_REQUIRED:'.length);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res.message ?? 'Please verify your email address.'),
+        const SnackBar(
+          content: Text('Please verify your email address first.'),
           backgroundColor: AppColors.primary,
         ),
       );
-      Navigator.of(context).pushNamed(
-        '/verify-email',
-        arguments: res.unverifiedEmail ?? identifier,
-      );
+      Navigator.of(context).pushNamed('/verify-email', arguments: email);
       return;
     }
 
-    if (res.success) {
-      setState(() => _loading = false);
-      final appState = context.read<AppState>();
-      appState.rememberMe = _rememberMe;
-      // Sync or activate in AppState
-      appState.login(identifier, password);
-      Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
-      return;
-    }
-
-    // 2. Fallback to local mock login if backend is unavailable or for demo users
-    final appState = context.read<AppState>();
-    final localError = appState.login(identifier, password);
-    appState.rememberMe = _rememberMe;
-
-    setState(() => _loading = false);
-
-    if (localError == null) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
-      return;
-    }
-
-    setState(() => _error = res.message ?? localError);
+    setState(() => _error = error);
   }
 
   InputDecoration _dec(String hint, IconData icon) =>

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
-import '../../data/mock_users.dart';
 import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../widgets/pressable.dart';
@@ -14,7 +13,11 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    final user = appState.currentUser ?? mockUsers.first;
+    final user = appState.currentUser;
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
@@ -71,9 +74,9 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
                   ),
                 ),
-                // ID verification status chip.
+                // Account status chip (admin-verified lifecycle).
                 const SizedBox(height: 10),
-                _VerificationChip(status: user.idVerificationStatus),
+                _AccountStatusChip(status: user.accountStatus),
               ],
             ),
           ),
@@ -168,40 +171,6 @@ class ProfileScreen extends StatelessWidget {
             color: AppColors.danger,
             onTap: () => _confirmLogout(context),
           ),
-          if (user.idVerificationStatus == IdVerificationStatus.rejected &&
-              user.verificationNote != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.danger.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(color: AppColors.danger.withValues(alpha: 0.25)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.info_outline_rounded, color: AppColors.danger, size: 16),
-                      SizedBox(width: 6),
-                      Text('ID verification was rejected',
-                          style: TextStyle(
-                              color: AppColors.danger,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700)),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    user.verificationNote!,
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -230,30 +199,30 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-/// Small pill showing the user's ID verification state on the profile header.
-class _VerificationChip extends StatelessWidget {
-  final IdVerificationStatus status;
+/// Small pill showing the account's admin-verification lifecycle on the
+/// profile header: Pending → Active → Banned (mirrors the web admin).
+class _AccountStatusChip extends StatelessWidget {
+  final String status;
 
-  const _VerificationChip({required this.status});
+  const _AccountStatusChip({required this.status});
 
   @override
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (status) {
-      IdVerificationStatus.notSubmitted => ('ID not submitted', Colors.white70, null),
-      IdVerificationStatus.pending => (
-        'ID verification pending',
+      'Pending' => (
+        'Account pending admin verification',
         AppColors.gold,
         Icons.hourglass_top_rounded,
       ),
-      IdVerificationStatus.approved => (
-        'ID verified',
+      'Banned' => (
+        'Account banned',
+        const Color(0xFFFFB4AE),
+        Icons.block_rounded,
+      ),
+      _ => (
+        'Account verified',
         const Color(0xFF7FE0AE),
         Icons.verified_rounded,
-      ),
-      IdVerificationStatus.rejected => (
-        'ID rejected — resubmit required',
-        const Color(0xFFFFB4AE),
-        Icons.error_outline_rounded,
       ),
     };
 
@@ -267,10 +236,8 @@ class _VerificationChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 13, color: color),
-            const SizedBox(width: 5),
-          ],
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
           Text(
             label,
             style: TextStyle(

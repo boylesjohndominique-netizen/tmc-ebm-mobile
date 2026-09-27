@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../app/motion.dart';
 import '../app/theme.dart';
@@ -69,17 +71,19 @@ class _EntranceState extends State<Entrance> with SingleTickerProviderStateMixin
       CurvedAnimation(parent: _controller, curve: Curves.easeOut);
   late final Animation<double> _rise = Tween(begin: 18.0, end: 0.0)
       .animate(CurvedAnimation(parent: _controller, curve: AppMotion.emphasized));
+  Timer? _delayTimer;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(milliseconds: widget.delay), () {
+    _delayTimer = Timer(Duration(milliseconds: widget.delay), () {
       if (mounted) _controller.forward();
     });
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app/theme.dart';
 import '../models/equipment.dart';
+import 'equipment_icon.dart';
 import 'pressable.dart';
 import 'status_badge.dart';
 
@@ -31,7 +32,11 @@ class EquipmentCard extends StatelessWidget {
                 color: AppColors.primarySoft,
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: Icon(equipment.icon, color: AppColors.primary, size: 26),
+              child: Icon(
+                equipmentIcon('${equipment.category} ${equipment.name}'),
+                color: AppColors.primary,
+                size: 26,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(

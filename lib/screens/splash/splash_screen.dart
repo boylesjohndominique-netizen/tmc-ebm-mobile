@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../app/motion.dart';
 import '../../app/theme.dart';
+import '../../state/app_state.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -23,7 +25,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     _controller.forward();
 
     Future.delayed(const Duration(milliseconds: 2200), () {
-      if (mounted) Navigator.of(context).pushReplacementNamed('/onboarding');
+      if (!mounted) return;
+      final appState = context.read<AppState>();
+      appState.markOnboardingSeen();
+
+      // Session-aware routing: a restored login goes straight to the app,
+      // everyone else sees onboarding → login.
+      if (appState.isLoggedIn) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+      } else if (appState.onboardingSeen) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      } else {
+        Navigator.of(context).pushNamed('/onboarding');
+      }
     });
   }
 

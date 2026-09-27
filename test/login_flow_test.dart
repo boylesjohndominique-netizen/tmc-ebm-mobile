@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tmcebms/app/theme.dart';
 import 'package:tmcebms/screens/auth/login_screen.dart';
-import 'package:tmcebms/screens/dashboard/main_nav_screen.dart';
 import 'package:tmcebms/state/app_state.dart';
 
 Widget _wrap(Widget child) {
@@ -12,22 +12,26 @@ Widget _wrap(Widget child) {
     child: MaterialApp(
       theme: AppTheme.light,
       home: child,
-      routes: {'/main': (_) => const MainNavScreen()},
     ),
   );
 }
 
 void main() {
-  testWidgets('login with demo credentials navigates to dashboard', (tester) async {
+  setUp(() {
+    // AppState reads persisted prefs at construction.
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  testWidgets('login with unreachable backend shows a connection error', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(_wrap(const LoginScreen()));
+    await tester.pump();
 
-    // Fill credentials manually (demo chips were removed from the design).
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'e.g. student@tmc.edu'),
+      find.widgetWithText(TextFormField, 'e.g. student@gmail.com'),
       'student@tmc.edu',
     );
     await tester.enterText(
@@ -35,33 +39,27 @@ void main() {
       'password123',
     );
     await tester.tap(find.text('Login'));
-    await tester.pump(); // start the 500 ms simulated auth delay
 
-    // Advance past the artificial delay and let navigation settle.
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
+    // Let the (failing) HTTP request complete and the error render.
+    // Under the test binding, HTTP is intercepted and fails with 400, so
+    // any error surfaced by the login screen proves the async path ran.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
 
-    // Dashboard should now be visible.
-    expect(find.text('TMCEBMS'), findsNothing); // not used as an AppBar title anymore
-    expect(find.textContaining('Welcome back to TMCEBMS'), findsOneWidget);
-    expect(find.text('Total Borrowed'), findsOneWidget);
+    expect(
+      find.textContaining('Request failed'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('login with wrong password shows an error', (tester) async {
+  testWidgets('login validates empty fields before contacting the server', (tester) async {
     await tester.pumpWidget(_wrap(const LoginScreen()));
+    await tester.pump();
 
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'e.g. student@tmc.edu'),
-      'student@tmc.edu',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Enter your password'),
-      'wrong-password',
-    );
     await tester.tap(find.text('Login'));
     await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('Invalid username/email or password.'), findsOneWidget);
+    expect(find.text('This field is required'), findsOneWidget);
+    expect(find.text('Password is required'), findsOneWidget);
   });
 }

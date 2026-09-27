@@ -9,8 +9,15 @@ import '../../widgets/pressable.dart';
 import '../../widgets/status_badge.dart';
 import '../history/transaction_details_screen.dart';
 
-class MyRequestsScreen extends StatelessWidget {
+class MyRequestsScreen extends StatefulWidget {
   const MyRequestsScreen({super.key});
+
+  @override
+  State<MyRequestsScreen> createState() => _MyRequestsScreenState();
+}
+
+class _MyRequestsScreenState extends State<MyRequestsScreen> {
+  String? _cancellingId;
 
   @override
   Widget build(BuildContext context) {
@@ -78,8 +85,10 @@ class MyRequestsScreen extends StatelessWidget {
                           const SizedBox(height: 10),
                           Align(
                             alignment: Alignment.centerRight,
-                            child: OutlinedButton.icon(
-                              onPressed: () => _confirmCancel(context, txn.transactionId),
+                            child:                          OutlinedButton.icon(
+                              onPressed: _cancellingId == null
+                                  ? () => _confirmCancel(context, txn.transactionId)
+                                  : null,
                               icon: const Icon(Icons.close_rounded, size: 16),
                               label: const Text('Cancel Request'),
                               style: OutlinedButton.styleFrom(
@@ -111,11 +120,18 @@ class MyRequestsScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Keep Request')),
           TextButton(
-            onPressed: () {
-              context.read<AppState>().cancelRequest(transactionId);
+            onPressed: () async {
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text('Request cancelled successfully.')));
+              setState(() => _cancellingId = transactionId);
+              final error = await context.read<AppState>().cancelRequest(transactionId);
+              if (!mounted) return;
+              setState(() => _cancellingId = null);
+              ScaffoldMessenger.of(this.context).showSnackBar(
+                SnackBar(
+                  content: Text(error ?? 'Request cancelled successfully.'),
+                  backgroundColor: error != null ? AppColors.danger : null,
+                ),
+              );
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Cancel Request'),

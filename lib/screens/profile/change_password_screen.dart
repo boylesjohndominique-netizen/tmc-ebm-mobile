@@ -30,8 +30,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final appState = context.read<AppState>();
-    await Future.delayed(const Duration(milliseconds: 500));
-    final error = appState.changePassword(_currentController.text, _newController.text);
+    final error = await appState.changePassword(
+      _currentController.text,
+      _newController.text,
+    );
     if (!mounted) return;
     setState(() => _loading = false);
     if (error != null) {

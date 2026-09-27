@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/equipment_icon.dart';
 
 class RequestEquipmentScreen extends StatefulWidget {
   final String equipmentId;
@@ -81,12 +82,15 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     }
 
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
 
     final appState = context.read<AppState>();
-    final equipment = appState.equipmentById(widget.equipmentId)!;
-    appState.submitBorrowRequest(
+    final equipment = appState.equipmentById(widget.equipmentId);
+    if (equipment == null) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    final error = await appState.submitBorrowRequest(
       eq: equipment,
       quantity: _quantity,
       borrowingDate: _borrowDate!,
@@ -95,8 +99,17 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
       notes: _notesController.text.trim(),
     );
 
+    if (!mounted) return;
     setState(() => _loading = false);
 
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: AppColors.danger),
+      );
+      return;
+    }
+
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -162,7 +175,11 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                           color: AppColors.primarySoft,
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
-                        child: Icon(equipment.icon, color: AppColors.primary, size: 24),
+                        child: Icon(
+                          equipmentIcon('${equipment.category} ${equipment.name}'),
+                          color: AppColors.primary,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(

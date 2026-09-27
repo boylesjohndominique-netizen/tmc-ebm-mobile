@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../data/mock_users.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
 
@@ -21,7 +20,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = context.read<AppState>().currentUser ?? mockUsers.first;
+    final user = context.read<AppState>().currentUser;
+    if (user == null) {
+      _nameController = TextEditingController();
+      _emailController = TextEditingController();
+      _contactController = TextEditingController();
+      return;
+    }
     _nameController = TextEditingController(text: user.fullName);
     _emailController = TextEditingController(text: user.email);
     _contactController = TextEditingController(text: user.contactNumber);
@@ -38,17 +43,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
-    context.read<AppState>().updateProfile(
-          fullName: _nameController.text.trim(),
-          email: _emailController.text.trim(),
+
+    final nameParts = _nameController.text.trim().split(RegExp(r'\s+'));
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : firstName;
+
+    final error = await context.read<AppState>().updateProfile(
+          firstName: firstName,
+          lastName: lastName,
           contactNumber: _contactController.text.trim(),
         );
+
+    if (!mounted) return;
     setState(() => _loading = false);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Profile updated successfully.')));
-    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? 'Profile updated successfully.'),
+        backgroundColor: error != null ? Theme.of(context).colorScheme.error : null,
+      ),
+    );
+    if (error == null) Navigator.of(context).pop();
   }
 
   @override
