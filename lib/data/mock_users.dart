@@ -1,6 +1,9 @@
 import '../models/user.dart';
 
-/// Predefined demo accounts. Password for all demo accounts: password123
+/// Predefined demo accounts. Password for all demo accounts: password123.
+///
+/// This mobile app serves students only — faculty and staff accounts are
+/// provisioned through the admin website.
 final List<AppUser> mockUsers = [
   AppUser(
     id: 'u-001',
@@ -10,26 +13,6 @@ final List<AppUser> mockUsers = [
     username: 'juan.delacruz',
     contactNumber: '09171234567',
     userType: UserType.student,
-    password: 'password123',
-  ),
-  AppUser(
-    id: 'u-002',
-    fullName: 'Maria Santos',
-    idNumber: 'F-00045',
-    email: 'faculty@tmc.edu',
-    username: 'maria.santos',
-    contactNumber: '09181234567',
-    userType: UserType.faculty,
-    password: 'password123',
-  ),
-  AppUser(
-    id: 'u-003',
-    fullName: 'Pedro Ramirez',
-    idNumber: 'S-00078',
-    email: 'staff@tmc.edu',
-    username: 'pedro.ramirez',
-    contactNumber: '09191234567',
-    userType: UserType.staff,
     password: 'password123',
   ),
 ];

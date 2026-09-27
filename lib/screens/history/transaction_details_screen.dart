@@ -112,7 +112,7 @@ class _Section extends StatelessWidget {
                   width: 120,
                   child: Text(
                     entries[i].key,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                   ),
                 ),
                 const SizedBox(width: 12),

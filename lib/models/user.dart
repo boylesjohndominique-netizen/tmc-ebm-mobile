@@ -1,5 +1,8 @@
 enum UserType { student, faculty, staff }
 
+/// Lifecycle of the ID verification photos submitted at registration.
+enum IdVerificationStatus { notSubmitted, pending, approved, rejected }
+
 extension UserTypeLabel on UserType {
   String get label {
     switch (this) {
@@ -23,6 +26,17 @@ class AppUser {
   UserType userType;
   String password;
 
+  /// Local paths of the uploaded ID verification photos (front / back).
+  String? idFrontPath;
+  String? idBackPath;
+
+  /// Current review state of the submitted ID photos.
+  IdVerificationStatus idVerificationStatus;
+
+  /// Reviewer note shown to the user when verification is rejected
+  /// (set from the admin website, displayed here).
+  String? verificationNote;
+
   AppUser({
     required this.id,
     required this.fullName,
@@ -32,6 +46,10 @@ class AppUser {
     required this.contactNumber,
     required this.userType,
     required this.password,
+    this.idFrontPath,
+    this.idBackPath,
+    this.idVerificationStatus = IdVerificationStatus.notSubmitted,
+    this.verificationNote,
   });
 
   String get initials {

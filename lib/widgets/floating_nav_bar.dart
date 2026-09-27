@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' show ImageFilter;
+import '../app/motion.dart';
 import '../app/theme.dart';
 
 /// Floating iOS-style, icon-only bottom navigation.
@@ -48,9 +49,13 @@ class FloatingNavBar extends StatelessWidget {
             child: Container(
               height: 64,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.92),
+                color: AppColors.surface.withValues(alpha: AppColors.isDark ? 0.88 : 0.92),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
+                border: Border.all(
+                  color: AppColors.isDark
+                      ? AppColors.divider.withValues(alpha: 0.8)
+                      : Colors.white.withValues(alpha: 0.6),
+                ),
                 boxShadow: AppShadows.floating,
               ),
               child: Row(
@@ -94,13 +99,14 @@ class _NavButton extends StatelessWidget {
       onTap: onTap,
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: selected ? 1.0 : 0.0),
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutBack,
+        duration: const Duration(milliseconds: 260),
+        curve: selected ? Curves.easeOutBack : AppMotion.emphasized,
         builder: (context, t, child) {
-          final scale = 1.0 + 0.14 * (1.0 - (1.0 - t) * (1.0 - t));
+          final clampedT = t.clamp(0.0, 1.5);
+          final scale = 1.0 + 0.14 * (1.0 - (1.0 - clampedT) * (1.0 - clampedT));
           return Transform.scale(
             scale: scale,
-            child: Opacity(opacity: (0.55 + 0.45 * t).clamp(0.0, 1.0), child: child),
+            child: Opacity(opacity: (0.55 + 0.45 * clampedT).clamp(0.0, 1.0), child: child),
           );
         },
         child: Stack(
@@ -109,12 +115,13 @@ class _NavButton extends StatelessWidget {
           children: [
             // Animated background pill for the active tab.
             AnimatedContainer(
-              duration: const Duration(milliseconds: 320),
-              curve: Curves.easeOutBack,
+              duration: const Duration(milliseconds: 240),
+              curve: AppMotion.emphasized,
               width: selected ? 52 : 0,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: selected ? 0.13 : 0.0),
+                color: AppColors.primary
+                    .withValues(alpha: selected ? (AppColors.isDark ? 0.22 : 0.13) : 0.0),
                 borderRadius: BorderRadius.circular(18),
               ),
             ),
@@ -133,7 +140,7 @@ class _NavButton extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.danger,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
+                    border: Border.all(color: AppColors.surface, width: 1.5),
                   ),
                 ),
               ),

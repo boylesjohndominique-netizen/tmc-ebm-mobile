@@ -354,7 +354,7 @@ class _DateSelector extends StatelessWidget {
                   ),
                 ),
               ),
-              const Icon(Icons.expand_more_rounded, size: 20, color: AppColors.textTertiary),
+              Icon(Icons.expand_more_rounded, size: 20, color: AppColors.textTertiary),
             ],
           ),
         ),

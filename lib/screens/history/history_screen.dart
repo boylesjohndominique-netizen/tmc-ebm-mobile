@@ -18,15 +18,15 @@ class HistoryScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('History'),
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: AppColors.primary,
             unselectedLabelColor: AppColors.textTertiary,
             indicatorColor: AppColors.primary,
             indicatorSize: TabBarIndicatorSize.label,
             dividerColor: AppColors.divider,
-            labelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
-            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 13.5),
-            tabs: [
+            labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13.5),
+            tabs: const [
               Tab(text: 'Borrowing History'),
               Tab(text: 'Return History'),
             ],

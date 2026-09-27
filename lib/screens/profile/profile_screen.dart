@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
+import '../../data/mock_users.dart';
 import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../widgets/pressable.dart';
@@ -12,7 +13,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AppState>().currentUser!;
+    final appState = context.watch<AppState>();
+    final user = appState.currentUser ?? mockUsers.first;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
@@ -69,6 +71,9 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
                   ),
                 ),
+                // ID verification status chip.
+                const SizedBox(height: 10),
+                _VerificationChip(status: user.idVerificationStatus),
               ],
             ),
           ),
@@ -97,6 +102,52 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
+              boxShadow: AppShadows.soft,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (appState.isDarkMode ? AppColors.gold : AppColors.primary)
+                        .withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Icon(
+                    appState.isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                    color: appState.isDarkMode ? AppColors.gold : AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Dark Mode', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 2),
+                      Text(
+                        appState.isDarkMode ? 'Dark theme enabled' : 'Light theme enabled',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: appState.isDarkMode,
+                  onChanged: (_) => appState.toggleDarkMode(),
+                  activeTrackColor: AppColors.primary,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
           _MenuTile(
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
@@ -117,6 +168,40 @@ class ProfileScreen extends StatelessWidget {
             color: AppColors.danger,
             onTap: () => _confirmLogout(context),
           ),
+          if (user.idVerificationStatus == IdVerificationStatus.rejected &&
+              user.verificationNote != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.danger.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.danger.withValues(alpha: 0.25)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded, color: AppColors.danger, size: 16),
+                      SizedBox(width: 6),
+                      Text('ID verification was rejected',
+                          style: TextStyle(
+                              color: AppColors.danger,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    user.verificationNote!,
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -138,6 +223,62 @@ class ProfileScreen extends StatelessWidget {
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Small pill showing the user's ID verification state on the profile header.
+class _VerificationChip extends StatelessWidget {
+  final IdVerificationStatus status;
+
+  const _VerificationChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color, icon) = switch (status) {
+      IdVerificationStatus.notSubmitted => ('ID not submitted', Colors.white70, null),
+      IdVerificationStatus.pending => (
+        'ID verification pending',
+        AppColors.gold,
+        Icons.hourglass_top_rounded,
+      ),
+      IdVerificationStatus.approved => (
+        'ID verified',
+        const Color(0xFF7FE0AE),
+        Icons.verified_rounded,
+      ),
+      IdVerificationStatus.rejected => (
+        'ID rejected — resubmit required',
+        const Color(0xFFFFB4AE),
+        Icons.error_outline_rounded,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 5),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.1,
+            ),
           ),
         ],
       ),
@@ -189,7 +330,12 @@ class _MenuTile extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final Color? color;
-  const _MenuTile({required this.icon, required this.label, required this.onTap, this.color});
+  const _MenuTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../data/mock_users.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
 
@@ -20,7 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = context.read<AppState>().currentUser!;
+    final user = context.read<AppState>().currentUser ?? mockUsers.first;
     _nameController = TextEditingController(text: user.fullName);
     _emailController = TextEditingController(text: user.email);
     _contactController = TextEditingController(text: user.contactNumber);

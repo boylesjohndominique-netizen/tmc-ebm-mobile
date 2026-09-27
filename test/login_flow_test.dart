@@ -25,10 +25,11 @@ void main() {
 
     await tester.pumpWidget(_wrap(const LoginScreen()));
 
-    // Fill credentials using the demo account helper chip.
-    await tester.tap(find.text('Student'));
-    await tester.pump();
-
+    // Fill credentials manually (demo chips were removed from the design).
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'e.g. student@tmc.edu'),
+      'student@tmc.edu',
+    );
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Enter your password'),
       'password123',

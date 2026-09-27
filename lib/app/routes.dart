@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/verify_email_screen.dart';
 import '../screens/borrowing/my_requests_screen.dart';
 import '../screens/dashboard/main_nav_screen.dart';
 import '../screens/equipment/equipment_list_screen.dart';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const onboarding = '/onboarding';
   static const login = '/login';
   static const register = '/register';
+  static const verifyEmail = '/verify-email';
   static const forgotPassword = '/forgot-password';
   static const main = '/main';
   static const equipment = '/equipment';
@@ -37,6 +39,9 @@ class AppRoutes {
         return AppPageRoute(builder: (_) => const LoginScreen(), settings: settings);
       case register:
         return AppPageRoute(builder: (_) => const RegisterScreen(), settings: settings);
+      case verifyEmail:
+        final email = (settings.arguments is String) ? settings.arguments as String : '';
+        return AppPageRoute(builder: (_) => VerifyEmailScreen(email: email), settings: settings);
       case forgotPassword:
         return AppPageRoute(builder: (_) => const ForgotPasswordScreen(), settings: settings);
       case main:

@@ -11,12 +11,19 @@ class TmcebmsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AppState(),
-      child: MaterialApp(
-        title: 'TMCEBMS',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        initialRoute: AppRoutes.splash,
-        onGenerateRoute: AppRoutes.onGenerateRoute,
+      child: Consumer<AppState>(
+        builder: (context, appState, _) {
+          AppColors.isDark = appState.isDarkMode;
+          return MaterialApp(
+            title: 'TMCEBMS',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            initialRoute: AppRoutes.splash,
+            onGenerateRoute: AppRoutes.onGenerateRoute,
+          );
+        },
       ),
     );
   }

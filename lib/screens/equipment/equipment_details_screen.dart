@@ -147,7 +147,7 @@ class _InfoRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          child: Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         ),
         const SizedBox(width: 16),
         Flexible(

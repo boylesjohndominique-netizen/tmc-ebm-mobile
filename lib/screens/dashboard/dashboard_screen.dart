@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
+import '../../data/mock_users.dart';
 import '../../models/borrowing_transaction.dart';
 import '../../state/app_state.dart';
 import '../../widgets/equipment_card.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/statistic_card.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/theme_toggle_button.dart';
 import '../equipment/equipment_details_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -22,7 +24,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    final user = appState.currentUser!;
+    final user = appState.currentUser ?? mockUsers.first;
     final totalBorrowed = appState.currentlyBorrowed.length;
     final pending = appState.transactions.where((t) => t.status == RequestStatus.pending).length;
     final approved = appState.transactions.where((t) => t.status == RequestStatus.approved).length;
@@ -63,6 +65,8 @@ class DashboardScreen extends StatelessWidget {
                             child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 22),
                           ),
                           const Spacer(),
+                          const ThemeToggleButton(),
+                          const SizedBox(width: 8),
                           Stack(
                             children: [
                               _HeaderButton(
@@ -122,9 +126,9 @@ class DashboardScreen extends StatelessWidget {
             Transform.translate(
               offset: const Offset(0, -16),
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.background,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
                 child: Column(

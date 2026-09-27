@@ -13,11 +13,27 @@ class AppState extends ChangeNotifier {
     _equipment = buildMockEquipment();
     _transactions = buildMockTransactions();
     _notifications = buildMockNotifications();
+    currentUser = mockUsers.isNotEmpty ? mockUsers.first : null;
   }
 
   // ---------- Session ----------
   AppUser? currentUser;
   bool rememberMe = false;
+
+  // ---------- Theme Mode ----------
+  bool _isDarkMode = false;
+  bool get isDarkMode => _isDarkMode;
+
+  void toggleDarkMode() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
+  }
+
+  void setDarkMode(bool value) {
+    if (_isDarkMode == value) return;
+    _isDarkMode = value;
+    notifyListeners();
+  }
 
   bool get isLoggedIn => currentUser != null;
 
@@ -51,6 +67,8 @@ class AppState extends ChangeNotifier {
     required String contactNumber,
     required UserType userType,
     required String password,
+    String? idFrontPath,
+    String? idBackPath,
   }) {
     final emailTaken = mockUsers.any((u) => u.email.toLowerCase() == email.toLowerCase());
     final usernameTaken = mockUsers.any((u) => u.username.toLowerCase() == username.toLowerCase());
@@ -66,6 +84,9 @@ class AppState extends ChangeNotifier {
       contactNumber: contactNumber,
       userType: userType,
       password: password,
+      idFrontPath: idFrontPath,
+      idBackPath: idBackPath,
+      idVerificationStatus: IdVerificationStatus.pending,
     );
     mockUsers.add(newUser);
     notifyListeners();
