@@ -13,16 +13,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - Web (flutter run -d chrome): 127.0.0.1:8000.
 class ApiConfig {
   ApiConfig._();
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000/api',
-  );
+
+  /// Returns 127.0.0.1 on Web/Desktop, or 10.0.2.2 on Android emulator.
+  static String get baseUrl {
+    const fromEnv = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    if (kIsWeb) {
+      return 'http://127.0.0.1:8000/api';
+    }
+    return 'http://10.0.2.2:8000/api';
+  }
 
   /// Reverb WebSocket server (same machine as the API).
-  static const String reverbHost = String.fromEnvironment(
-    'REVERB_HOST',
-    defaultValue: '10.0.2.2',
-  );
+  static String get reverbHost {
+    const fromEnv = String.fromEnvironment('REVERB_HOST', defaultValue: '');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    if (kIsWeb) {
+      return '127.0.0.1';
+    }
+    return '10.0.2.2';
+  }
+
   static const int reverbPort = int.fromEnvironment('REVERB_PORT', defaultValue: 8080);
   static const String reverbAppKey = String.fromEnvironment(
     'REVERB_APP_KEY',
@@ -57,7 +68,7 @@ class ApiService {
   ApiService._();
   static final ApiService instance = ApiService._();
 
-  static const String baseUrl = ApiConfig.baseUrl;
+  static String get baseUrl => ApiConfig.baseUrl;
 
   String? _authToken;
   final StreamController<String?> _tokenController = StreamController<String?>.broadcast();

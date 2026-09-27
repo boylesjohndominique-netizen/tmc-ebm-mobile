@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../models/user.dart';
 import '../../state/app_state.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/id_upload_field.dart';
 import '../../widgets/pressable.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
@@ -105,6 +107,13 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+
+          // ID verification card — submit/review ID photos here instead of at
+          // registration.
+          _IdVerificationCard(status: appState.idVerificationStatus),
+
+          const SizedBox(height: 20),
+
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -245,6 +254,204 @@ class _AccountStatusChip extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ID verification card: shows the current verification label and, when not
+/// yet submitted, lets the user capture both sides of their ID in place.
+/// Approved/rejected states come from the backend once the ID endpoint lands.
+class _IdVerificationCard extends StatefulWidget {
+  final IdVerificationStatus status;
+
+  const _IdVerificationCard({required this.status});
+
+  @override
+  State<_IdVerificationCard> createState() => _IdVerificationCardState();
+}
+
+class _IdVerificationCardState extends State<_IdVerificationCard> {
+  String? _idFrontPath;
+  String? _idBackPath;
+  String? _error;
+  bool _loading = false;
+
+  Future<void> _submit() async {
+    if (_idFrontPath == null || _idBackPath == null) {
+      setState(
+          () => _error = 'Capture both sides of your ID to continue.');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    await context.read<AppState>().submitIdVerification(
+          idFrontPath: _idFrontPath!,
+          idBackPath: _idBackPath!,
+        );
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
+        boxShadow: AppShadows.soft,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.verified_user_outlined,
+                    size: 17, color: AppColors.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('ID Verification',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Prove your identity to unlock borrowing.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              _IdVerificationBadge(status: widget.status),
+            ],
+          ),
+
+          // Capture slots only appear while verification is not yet submitted.
+          if (widget.status == IdVerificationStatus.notSubmitted) ...[
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: IdPhotoField(
+                    label: 'ID Front',
+                    hint: 'Front side',
+                    imagePath: _idFrontPath,
+                    onChanged: (p) => setState(() {
+                      _idFrontPath = p;
+                      if (_idFrontPath != null && _idBackPath != null) _error = null;
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: IdPhotoField(
+                    label: 'ID Back',
+                    hint: 'Back side',
+                    imagePath: _idBackPath,
+                    onChanged: (p) => setState(() {
+                      _idBackPath = p;
+                      if (_idFrontPath != null && _idBackPath != null) _error = null;
+                    }),
+                  ),
+                ),
+              ],
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.error_outline_rounded,
+                      color: AppColors.danger, size: 15),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(_error!,
+                        style:
+                            const TextStyle(fontSize: 12, color: AppColors.danger)),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 12),
+            CustomButton(
+              label: 'Submit for Verification',
+              onPressed: _submit,
+              loading: _loading,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Pill label identifying whether the user's ID is verified or not.
+class _IdVerificationBadge extends StatelessWidget {
+  final IdVerificationStatus status;
+
+  const _IdVerificationBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color, icon) = switch (status) {
+      IdVerificationStatus.notSubmitted => (
+        'Not Verified',
+        AppColors.textTertiary,
+        Icons.radio_button_unchecked_rounded,
+      ),
+      IdVerificationStatus.pending => (
+        'Pending',
+        AppColors.warning,
+        Icons.hourglass_top_rounded,
+      ),
+      IdVerificationStatus.approved => (
+        'Verified',
+        AppColors.success,
+        Icons.verified_rounded,
+      ),
+      IdVerificationStatus.rejected => (
+        'Rejected',
+        AppColors.danger,
+        Icons.cancel_rounded,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
             ),
           ),
         ],

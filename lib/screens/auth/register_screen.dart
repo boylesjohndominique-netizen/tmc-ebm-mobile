@@ -6,7 +6,6 @@ import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../widgets/auth_surface.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/id_upload_field.dart';
 import '../../widgets/pressable.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -25,17 +24,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
-  final _idSectionKey = GlobalKey();
   // One key per text field, in tab order, used to scroll to the first error.
   final List<GlobalKey<FormFieldState<String>>> _fieldKeys =
       List.generate(7, (_) => GlobalKey<FormFieldState<String>>());
   bool _obscure1 = true;
   bool _obscure2 = true;
   bool _loading = false;
-  // ID verification photos (local camera capture paths).
-  String? _idFrontPath;
-  String? _idBackPath;
-  String? _idError;
 
   @override
   void dispose() {
@@ -65,24 +59,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     final formValid = _formKey.currentState!.validate();
-    final idError =
-        (_idFrontPath == null || _idBackPath == null) ? 'Both sides of your ID are required for verification.' : null;
 
-    if (!formValid || idError != null) {
-      setState(() => _idError = idError);
+    if (!formValid) {
       // Give the frame a beat to lay out validation errors, then reveal the
       // first problem area so users always know what to fix next.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        if (idError != null && _idSectionKey.currentContext != null) {
-          Scrollable.ensureVisible(
-            _idSectionKey.currentContext!,
-            duration: AppMotion.normal,
-            curve: AppMotion.emphasized,
-            alignment: 0.15,
-          );
-          return;
-        }
         for (final key in _fieldKeys) {
           final state = key.currentState;
           if (state != null && state.hasError) {
@@ -118,8 +100,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       contactNumber: contact,
       userType: UserType.student,
       password: password,
-      idFrontPath: _idFrontPath,
-      idBackPath: _idBackPath,
     );
 
     if (!mounted) return;
@@ -162,36 +142,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const Entrance(child: AmbientLogoHeader()),
                   const SizedBox(height: 28),
 
-                  // ── Headline with gradient ink + value proposition ────────
+                  // ── Headline with gradient ink ───────────────────────────
                   Entrance(
                     delay: 60,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [AppColors.primary, AppColors.primaryDeep],
-                          ).createShader(bounds),
-                          child: const Text(
-                            'Join TMCEBMS',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.9,
-                              height: 1.1,
-                              color: Colors.white,
-                            ),
-                          ),
+                    child: ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [AppColors.primary, AppColors.primaryDeep],
+                      ).createShader(bounds),
+                      child: const Text(
+                        'Join TMCEBMS',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.9,
+                          height: 1.1,
+                          color: Colors.white,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Student accounts only — borrow equipment\nin just a few taps.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontSize: 14,
-                                height: 1.5,
-                              ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -208,7 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           TextFormField(
                             key: _fieldKeys[0],
                             controller: _fullNameController,
-                            decoration: _dec('Juan Dela Cruz', Icons.badge_outlined),
+                            decoration: _dec('Enter your full name', Icons.badge_outlined),
                             validator: (v) =>
                                 (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
                           ),
@@ -219,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             key: _fieldKeys[1],
                             controller: _idNumberController,
                             decoration:
-                                _dec('e.g. 2022-04512', Icons.confirmation_number_outlined),
+                                _dec('Enter your ID number', Icons.confirmation_number_outlined),
                             validator: (v) =>
                                 (v == null || v.trim().isEmpty) ? 'ID number is required' : null,
                           ),
@@ -231,7 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             autofillHints: const [AutofillHints.email],
-                            decoration: _dec('you@tmc.edu', Icons.email_outlined),
+                            decoration: _dec('Enter your email', Icons.email_outlined),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Email is required';
                               final regex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
@@ -246,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             key: _fieldKeys[3],
                             controller: _usernameController,
                             autofillHints: const [AutofillHints.newUsername],
-                            decoration: _dec('Choose a username', Icons.alternate_email_rounded),
+                            decoration: _dec('Enter your username', Icons.alternate_email_rounded),
                             validator: (v) =>
                                 (v == null || v.trim().length < 4) ? 'Minimum 4 characters' : null,
                           ),
@@ -257,7 +224,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             key: _fieldKeys[4],
                             controller: _contactController,
                             keyboardType: TextInputType.phone,
-                            decoration: _dec('09XX XXX XXXX', Icons.phone_outlined),
+                            decoration: _dec('Enter your contact number', Icons.phone_outlined),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Contact number is required';
                               final regex = RegExp(r'^[0-9]{10,11}$');
@@ -275,7 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             autofillHints: const [AutofillHints.newPassword],
                             textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
-                              hintText: 'Minimum 6 characters',
+                              hintText: 'Enter your password',
                               prefixIcon: const Icon(Icons.lock_outline_rounded),
                               suffixIcon: IconButton(
                                 icon: Icon(_obscure1
@@ -317,99 +284,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             validator: (v) =>
                                 (v != _passwordController.text) ? 'Passwords do not match' : null,
                           ),
-                          const SizedBox(height: 20),
-
-                          // ── ID verification (required photos) ───────────
-                          Container(
-                            key: _idSectionKey,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(AppRadius.lg),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const FieldLabel('ID Verification'),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.goldSoft,
-                                        borderRadius:
-                                            BorderRadius.circular(AppRadius.pill),
-                                      ),
-                                      child: const Text(
-                                        'Required',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.3,
-                                          color: Color(0xFF8A5B00),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Capture a clear photo of both sides of your Student / Employee ID.',
-                                  style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: IdPhotoField(
-                                        label: 'ID Front',
-                                        hint: 'Front side',
-                                        imagePath: _idFrontPath,
-                                        onChanged: (p) => setState(() {
-                                          _idFrontPath = p;
-                                          if (_idFrontPath != null && _idBackPath != null) {
-                                            _idError = null;
-                                          }
-                                        }),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: IdPhotoField(
-                                        label: 'ID Back',
-                                        hint: 'Back side',
-                                        imagePath: _idBackPath,
-                                        onChanged: (p) => setState(() {
-                                          _idBackPath = p;
-                                          if (_idFrontPath != null && _idBackPath != null) {
-                                            _idError = null;
-                                          }
-                                        }),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (_idError != null) ...[
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.error_outline_rounded,
-                                          color: AppColors.danger, size: 15),
-                                      const SizedBox(width: 5),
-                                      Expanded(
-                                        child: Text(
-                                          _idError!,
-                                          style: const TextStyle(
-                                              fontSize: 12, color: AppColors.danger),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
                           const SizedBox(height: 24),
 
                           // ── Primary CTA ───────────────────────────────────
@@ -439,22 +313,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // ── Trust footer ────────────────────────────────────────────
-                  Entrance(
-                    delay: 200,
-                    child: Center(
-                      child: Text(
-                        'Your details and ID photos stay private and are only used for verification.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.1,
-                            ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -467,9 +325,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildStrengthMeter(String pw) {
     if (pw.isEmpty) return const SizedBox.shrink();
     final score = _passwordScore(pw);
+    final index = (score - 1).clamp(0, 3);
     const labels = ['Weak', 'Fair', 'Good', 'Strong'];
     const colors = [AppColors.danger, AppColors.warning, AppColors.success, AppColors.primary];
-    final color = colors[score - 1];
+    final color = colors[index];
+    final activeBars = score.clamp(1, 4);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,14 +345,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   height: 4,
                   margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
                   decoration: BoxDecoration(
-                    color: i < score ? color : AppColors.divider,
+                    color: i < activeBars ? color : AppColors.divider,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
             const SizedBox(width: 10),
             Text(
-              labels[score - 1],
+              labels[index],
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
@@ -502,13 +362,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ],
         ),
-        if (score < 3) ...[
-          const SizedBox(height: 6),
-          Text(
-            'Tip: use 10+ characters with upper & lowercase letters, numbers and symbols.',
-            style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
-          ),
-        ],
       ],
     );
   }

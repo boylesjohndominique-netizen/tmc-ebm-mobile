@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../app/motion.dart';
 import '../app/theme.dart';
-import 'theme_toggle_button.dart';
 
 /// Ambient backdrop shared by the auth screens: a soft radial brand wash with
 /// three slowly drifting color orbs for organic depth. Never distracts from
@@ -148,8 +147,6 @@ class AmbientLogoHeader extends StatelessWidget {
             color: AppColors.textPrimary,
           ),
         ),
-        const Spacer(),
-        const ThemeToggleButton(),
       ],
     );
   }

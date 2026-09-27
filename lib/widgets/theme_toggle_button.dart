@@ -38,7 +38,11 @@ class ThemeToggleButton extends StatelessWidget {
       child: Icon(
         isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
         key: ValueKey<bool>(isDark),
-        color: isDark ? AppColors.gold : Colors.white,
+        // On tinted headers (gradient) use white/gold; on plain surfaces use
+        // theme-aware ink so the icon stays visible in both modes.
+        color: isHeaderStyle
+            ? (isDark ? AppColors.gold : Colors.white)
+            : (isDark ? AppColors.gold : AppColors.textPrimary),
         size: 21,
       ),
     );

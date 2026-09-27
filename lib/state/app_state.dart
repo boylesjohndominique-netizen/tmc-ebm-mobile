@@ -97,6 +97,47 @@ class AppState extends ChangeNotifier {
   bool get isDarkMode => _isDarkMode;
   bool get onboardingSeen => _onboardingSeen;
 
+  // ---------------------------------------------------------------------
+  // ID verification (submitted from the profile screen)
+  // ---------------------------------------------------------------------
+  static const _idVerificationPrefix = 'tmc_id_verification_';
+  final Map<String, IdVerificationStatus> _idVerification = {};
+
+  /// ID-verification lifecycle for the signed-in user.
+  IdVerificationStatus get idVerificationStatus =>
+      _idVerification[currentUser?.id] ?? IdVerificationStatus.notSubmitted;
+
+  /// Records the submitted ID photos and flags the account as pending admin
+  /// review.
+  ///
+  /// The backend has no ID-photo endpoint yet, so photos stay on-device and
+  /// the pending/approved lifecycle is tracked locally until the API lands.
+  Future<void> submitIdVerification({
+    required String idFrontPath,
+    required String idBackPath,
+  }) async {
+    final id = currentUser?.id;
+    if (id == null) return;
+    _idVerification[id] = IdVerificationStatus.pending;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        _idVerificationPrefix + id, IdVerificationStatus.pending.name);
+    notifyListeners();
+  }
+
+  /// Restores the stored verification status for the current user.
+  Future<void> _loadIdVerification() async {
+    final id = currentUser?.id;
+    if (id == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_idVerificationPrefix + id);
+    if (stored == null) return;
+    _idVerification[id] = IdVerificationStatus.values.firstWhere(
+      (s) => s.name == stored,
+      orElse: () => IdVerificationStatus.notSubmitted,
+    );
+  }
+
   void toggleDarkMode() {
     _isDarkMode = !_isDarkMode;
     _persistPrefs();
@@ -140,6 +181,7 @@ class AppState extends ChangeNotifier {
       } catch (_) {
         currentUser = null;
       }
+      await _loadIdVerification();
     }
 
     _restoringSession = false;
@@ -197,6 +239,7 @@ class AppState extends ChangeNotifier {
     final user = res.data?['user'];
     if (user is Map<String, dynamic>) {
       currentUser = mapUser(user);
+      await _loadIdVerification();
       await _persistUser();
       _startRealtime();
       await refreshAll();
@@ -215,8 +258,6 @@ class AppState extends ChangeNotifier {
     required String contactNumber,
     required UserType userType,
     required String password,
-    String? idFrontPath,
-    String? idBackPath,
   }) async {
     final nameParts = fullName.trim().split(RegExp(r'\s+'));
     final firstName = nameParts.isNotEmpty ? nameParts.first : fullName;

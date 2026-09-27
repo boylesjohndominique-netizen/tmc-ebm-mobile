@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Your equipment, ready when you are.\nSign in to keep borrowing moving.',
+                            'Sign in to continue.',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontSize: 14,
                                   height: 1.5,
@@ -200,11 +200,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ],
                                         onFieldSubmitted: (_) =>
                                             FocusScope.of(context).requestFocus(_passwordFocus),
-                                        textInputAction: TextInputAction.next,
-                                        decoration: _dec(
-                                          'e.g. student@gmail.com',
-                                          Icons.person_outline_rounded,
-                                        ),
+                                        textInputAction: TextInputAction.next,                        decoration: _dec(
+                          'Enter your username or email',
+                          Icons.person_outline_rounded,
+                        ),
                                         validator: (v) => (v == null || v.trim().isEmpty)
                                             ? 'This field is required'
                                             : null,
@@ -346,7 +345,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       delay: 200,
                       child: Center(
                         child: Text(
-                          'Borrow smart · Return on time · Stay organized',
+                          'Borrow smart. Return on time.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 fontWeight: FontWeight.w500,

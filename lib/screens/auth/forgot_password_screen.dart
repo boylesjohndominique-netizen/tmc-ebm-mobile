@@ -249,7 +249,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                "Enter your registered Gmail address and we'll send you a 6-digit code to reset your password.",
+                "Enter your registered email to receive a reset code.",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
               ),
             ],
@@ -384,7 +384,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                "Enter the 6-digit reset code sent to ${_emailController.text.trim()} and choose a new password.",
+                "Enter the code sent to ${_emailController.text.trim()} and choose a new password.",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
               ),
             ],

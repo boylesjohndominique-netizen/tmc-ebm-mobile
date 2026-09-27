@@ -31,7 +31,7 @@ void main() {
     await tester.pump();
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'e.g. student@gmail.com'),
+      find.widgetWithText(TextFormField, 'Enter your username or email'),
       'student@tmc.edu',
     );
     await tester.enterText(
