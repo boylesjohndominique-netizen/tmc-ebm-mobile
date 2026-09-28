@@ -54,10 +54,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         child: SafeArea(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ScaleTransition(
+            // Scroll-safe: on very small screens the content scrolls instead
+            // of overflowing (RenderFlex vertical overflow).
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ScaleTransition(
                   scale: _scale,
                   child: Container(
                     width: 108,
@@ -124,7 +129,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

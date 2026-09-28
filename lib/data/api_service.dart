@@ -7,31 +7,36 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Base URL of the Laravel backend, configurable in one place.
 ///
-/// - Android emulator: 10.0.2.2 is the host machine's loopback alias.
-/// - Physical phone on the same Wi-Fi: replace with your PC's LAN IP,
-///   e.g. http://192.168.1.20:8000/api
+/// - Physical phone over USB: 127.0.0.1 works via `adb reverse`, which
+///   forwards the phone's localhost to the PC. Run once after connecting:
+///   `adb reverse tcp:8000 tcp:8000 && adb reverse tcp:8080 tcp:8080`
+/// - Android emulator without adb reverse: run with
+///   `--dart-define=API_BASE_URL=http://10.0.2.2:8000/api`
+///   (10.0.2.2 is the emulator's host-machine loopback alias).
 /// - Web (flutter run -d chrome): 127.0.0.1:8000.
 class ApiConfig {
   ApiConfig._();
 
-  /// Returns 127.0.0.1 on Web/Desktop, or 10.0.2.2 on Android emulator.
+  /// Returns 127.0.0.1 everywhere — on a physical Android device it reaches
+  /// the PC through `adb reverse` (see above); on Web/Desktop it is local.
   static String get baseUrl {
     const fromEnv = String.fromEnvironment('API_BASE_URL', defaultValue: '');
     if (fromEnv.isNotEmpty) return fromEnv;
     if (kIsWeb) {
       return 'http://127.0.0.1:8000/api';
     }
-    return 'http://10.0.2.2:8000/api';
+    return 'http://127.0.0.1:8000/api';
   }
 
-  /// Reverb WebSocket server (same machine as the API).
+  /// Reverb WebSocket server (same machine as the API). Reaches the PC via
+  /// `adb reverse tcp:8080 tcp:8080` on physical devices.
   static String get reverbHost {
     const fromEnv = String.fromEnvironment('REVERB_HOST', defaultValue: '');
     if (fromEnv.isNotEmpty) return fromEnv;
     if (kIsWeb) {
       return '127.0.0.1';
     }
-    return '10.0.2.2';
+    return '127.0.0.1';
   }
 
   static const int reverbPort = int.fromEnvironment('REVERB_PORT', defaultValue: 8080);

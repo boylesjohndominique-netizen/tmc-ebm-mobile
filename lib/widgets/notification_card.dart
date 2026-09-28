@@ -5,111 +5,205 @@ import '../app/theme.dart';
 import '../models/notification_item.dart';
 import 'pressable.dart';
 
-class NotificationCard extends StatelessWidget {
+/// Notification card — tinted icon box, title with unread dot, message preview
+/// and a meta row (category pill + relative time).
+///
+/// Tapping expands the card to reveal the full message and the absolute
+/// timestamp; the parent's [onTap] marks it read.
+class NotificationCard extends StatefulWidget {
   final AppNotification notification;
   final VoidCallback onTap;
 
   const NotificationCard({super.key, required this.notification, required this.onTap});
 
-  IconData get _icon {
-    switch (notification.type) {
-      case NotificationType.approval:
-        return Icons.check_circle_rounded;
-      case NotificationType.rejection:
-        return Icons.cancel_rounded;
-      case NotificationType.reminder:
-        return Icons.schedule_rounded;
-      case NotificationType.overdue:
-        return Icons.warning_rounded;
-      case NotificationType.system:
-        return Icons.campaign_rounded;
-    }
-  }
+  @override
+  State<NotificationCard> createState() => _NotificationCardState();
+}
 
-  Color get _color {
-    switch (notification.type) {
-      case NotificationType.approval:
-        return AppColors.success;
-      case NotificationType.rejection:
-        return AppColors.danger;
-      case NotificationType.reminder:
-        return AppColors.gold;
-      case NotificationType.overdue:
-        return AppColors.danger;
-      case NotificationType.system:
-        return AppColors.info;
-    }
-  }
+class _NotificationCardState extends State<NotificationCard> {
+  bool _expanded = false;
+
+  AppNotification get n => widget.notification;
+  bool get _unread => !n.isRead;
+
+  IconData get _icon => switch (n.type) {
+        NotificationType.approval => Icons.task_alt_rounded,
+        NotificationType.rejection => Icons.cancel_rounded,
+        NotificationType.reminder => Icons.schedule_rounded,
+        NotificationType.overdue => Icons.notification_important_rounded,
+        NotificationType.system => Icons.campaign_rounded,
+      };
+
+  Color get _color => switch (n.type) {
+        NotificationType.approval => AppColors.success,
+        NotificationType.rejection => AppColors.danger,
+        NotificationType.reminder => AppColors.primary,
+        NotificationType.overdue => AppColors.warning,
+        NotificationType.system => AppColors.textSecondary,
+      };
+
+  String get _category => switch (n.type) {
+        NotificationType.approval => 'Approved',
+        NotificationType.rejection => 'Rejected',
+        NotificationType.reminder => 'Reminder',
+        NotificationType.overdue => 'Overdue',
+        NotificationType.system => 'System',
+      };
 
   String get _timeAgo {
-    final diff = DateTime.now().difference(notification.date);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return DateFormat('MMM d').format(notification.date);
+    final diff = DateTime.now().difference(n.date);
+    if (diff.inMinutes < 1) return 'Now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    if (diff.inDays < 7) return '${diff.inDays}d';
+    return DateFormat('MMM d').format(n.date);
+  }
+
+  String get _fullDate {
+    final now = DateTime.now();
+    final sameYear = n.date.year == now.year;
+    return sameYear
+        ? DateFormat('MMM d · h:mm a').format(n.date)
+        : DateFormat('MMM d, yyyy · h:mm a').format(n.date);
   }
 
   @override
   Widget build(BuildContext context) {
     return Pressable(
-      onTap: onTap,
+      onTap: () {
+        setState(() => _expanded = !_expanded);
+        widget.onTap();
+      },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: AppMotion.normal,
         curve: AppMotion.emphasized,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: notification.isRead ? AppColors.surface : AppColors.primarySoft.withValues(alpha: 0.55),
+          color: _unread ? AppColors.primarySoft.withValues(alpha: 0.45) : AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: notification.isRead ? AppColors.divider.withValues(alpha: 0.6) : AppColors.primary.withValues(alpha: 0.25),
+            color: _unread
+                ? AppColors.primary.withValues(alpha: 0.25)
+                : AppColors.divider.withValues(alpha: 0.6),
           ),
-          boxShadow: notification.isRead ? null : AppShadows.soft,
+          boxShadow: _unread ? AppShadows.soft : null,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Tinted icon box ──────────────────────────────────────────
             Container(
-              padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(color: _color.withValues(alpha: 0.12), shape: BoxShape.circle),
-              child: Icon(_icon, color: _color, size: 18),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(_icon, color: _color, size: 20),
             ),
             const SizedBox(width: 12),
+
+            // ── Content ──────────────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Title + unread dot
                   Row(
                     children: [
                       Expanded(
                         child: Text(
-                          notification.title,
+                          n.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: _unread ? FontWeight.w700 : FontWeight.w600,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -0.1,
+                          ),
                         ),
                       ),
-                      if (!notification.isRead)
+                      if (_unread)
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(
+                              color: AppColors.primary, shape: BoxShape.circle),
                         ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    notification.message,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
+
+                  // Message — collapses to 2 lines, expands in full
+                  AnimatedSize(
+                    duration: AppMotion.fast,
+                    curve: AppMotion.emphasized,
+                    alignment: Alignment.topCenter,
+                    child: Text(
+                      n.message,
+                      maxLines: _expanded ? null : 2,
+                      overflow: _expanded ? null : TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(_timeAgo, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+
+                  // Meta row — category pill + timestamp
+                  Row(
+                    children: [
+                      _CategoryPill(label: _category, color: _color),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          _expanded ? _fullDate : _timeAgo,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textTertiary,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Single-word category pill — quiet, tinted, uppercase.
+class _CategoryPill extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _CategoryPill({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
         ),
       ),
     );
