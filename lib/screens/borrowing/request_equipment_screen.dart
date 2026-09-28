@@ -65,6 +65,20 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
 
   Future<void> _submit(int available) async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Guard: only admin-verified accounts can borrow.
+    final appState = context.read<AppState>();
+    if (appState.currentUser?.isPending == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your account must be verified by an administrator before you can borrow equipment.'),
+          backgroundColor: Color(0xFFF59E0B),
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     if (_borrowDate == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Select a borrowing date.')));
@@ -83,7 +97,6 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
 
     setState(() => _loading = true);
 
-    final appState = context.read<AppState>();
     final equipment = appState.equipmentById(widget.equipmentId);
     if (equipment == null) {
       setState(() => _loading = false);
@@ -147,6 +160,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
       );
     }
 
+    final isPending = appState.currentUser?.isPending == true;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Request Equipment')),
       body: SafeArea(
@@ -158,6 +173,36 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Verification warning banner
+                if (isPending) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                      border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5)),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.verified_user_outlined, color: Color(0xFFB45309), size: 20),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Account not yet verified. An administrator needs to verify your ID before you can borrow equipment. Go to Profile → ID Verification to submit your ID.',
+                            style: TextStyle(
+                              color: Color(0xFF78350F),
+                              fontSize: 13,
+                              height: 1.4,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -290,8 +335,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                   ),
                 const SizedBox(height: 24),
                 CustomButton(
-                  label: 'Submit Request',
-                  onPressed: () => _submit(equipment.availableQuantity),
+                  label: isPending ? 'Verification Required' : 'Submit Request',
+                  onPressed: isPending ? null : () => _submit(equipment.availableQuantity),
                   loading: _loading,
                 ),
               ],

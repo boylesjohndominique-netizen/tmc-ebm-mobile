@@ -254,44 +254,81 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // ── Approval note ─────────────────────────────────────
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 15, color: AppColors.textTertiary),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'Requests are reviewed by the Equipment Office.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                    // ── Approval note / Verification status ──────────────
+                    if (appState.currentUser?.isPending == true) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.lock_outline_rounded,
+                                color: Color(0xFFD97706), size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Account Not Verified: You can view equipment, but borrowing requires administrator verification of your ID.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).textTheme.bodySmall?.color,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded,
+                              size: 15, color: AppColors.textTertiary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Requests are reviewed by the Equipment Office.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
 
                     // ── CTA ───────────────────────────────────────────────
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: equipment.isAvailable
+                          backgroundColor: (equipment.isAvailable && appState.currentUser?.isPending != true)
                               ? AppColors.primary
                               : AppColors.surfaceMuted,
-                          foregroundColor: equipment.isAvailable
+                          foregroundColor: (equipment.isAvailable && appState.currentUser?.isPending != true)
                               ? Colors.white
                               : AppColors.textTertiary,
                         ),
-                        onPressed: equipment.isAvailable
+                        onPressed: (equipment.isAvailable && appState.currentUser?.isPending != true)
                             ? () => Navigator.of(context).push(
                                   MaterialPageRoute(
                                       builder: (_) => RequestEquipmentScreen(
                                           equipmentId: equipment.id)),
                                 )
-                                : null,
-                        icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+                            : null,
+                        icon: Icon(
+                          appState.currentUser?.isPending == true
+                              ? Icons.lock_outline_rounded
+                              : Icons.add_circle_outline_rounded,
+                          size: 20,
+                        ),
                         label: Text(
-                            equipment.isAvailable ? 'Request' : 'Unavailable'),
+                          appState.currentUser?.isPending == true
+                              ? 'Verification Required to Borrow'
+                              : (equipment.isAvailable ? 'Request' : 'Unavailable'),
+                        ),
                       ),
                     ),
                   ],

@@ -104,8 +104,15 @@ class AppState extends ChangeNotifier {
   final Map<String, IdVerificationStatus> _idVerification = {};
 
   /// ID-verification lifecycle for the signed-in user.
-  IdVerificationStatus get idVerificationStatus =>
-      _idVerification[currentUser?.id] ?? IdVerificationStatus.notSubmitted;
+  ///
+  /// The source of truth is the backend `account_status`:
+  ///   - Active  → admin has verified the ID → approved
+  ///   - Pending with local submitted record → pending review
+  ///   - otherwise → notSubmitted
+  IdVerificationStatus get idVerificationStatus {
+    if (currentUser?.isActive == true) return IdVerificationStatus.approved;
+    return _idVerification[currentUser?.id] ?? IdVerificationStatus.notSubmitted;
+  }
 
   /// Records the submitted ID photos and flags the account as pending admin
   /// review.
@@ -276,6 +283,30 @@ class AppState extends ChangeNotifier {
     if (!res.success) return res.message ?? 'Registration failed.';
     return null;
   }
+
+  /// Handles any backend response that already contains a token + user object
+  /// (e.g. the email-verification endpoint after the student enters the OTP).
+  /// Persists the session and loads data exactly like a normal login.
+  /// Returns null on success, or an error message.
+  Future<String?> loginWithTokenPayload(dynamic payload) async {
+    if (payload is! Map<String, dynamic>) {
+      return 'Unexpected response from server.';
+    }
+    final token = payload['token'] as String?;
+    final userMap = payload['user'];
+    if (token == null || userMap is! Map<String, dynamic>) {
+      return 'Missing token or user data.';
+    }
+    await ApiService.instance.setAuthToken(token);
+    currentUser = mapUser(userMap);
+    await _loadIdVerification();
+    await _persistUser();
+    _startRealtime();
+    await refreshAll();
+    notifyListeners();
+    return null;
+  }
+
 
   /// Returns null on success, or an error message.
   Future<String?> updateProfile({

@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../data/api_service.dart';
+import '../../state/app_state.dart';
 import '../../widgets/auth_surface.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/pressable.dart';
+
 
 class VerifyEmailScreen extends StatefulWidget {
   final String email;
@@ -87,32 +90,17 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     setState(() => _loading = false);
 
     if (res.success) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: AppColors.success, size: 28),
-              SizedBox(width: 10),
-              Expanded(child: Text('Email Verified!')),
-            ],
-          ),
-          content: const Text(
-            'Your email has been verified successfully. Your account is pending administrator approval before full access is granted.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context).pushNamedAndRemoveUntil('/login', (r) => false);
-              },
-              child: const Text('Back to Login', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      );
+      // Backend now returns a token+user on successful verification so we can
+      // auto-login and navigate straight to the dashboard.
+      final appState = context.read<AppState>();
+      final loginErr = await appState.loginWithTokenPayload(res.data);
+      if (!mounted) return;
+      if (loginErr == null) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/main', (r) => false);
+      } else {
+        // Fallback: token missing – send to login.
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (r) => false);
+      }
     } else {
       setState(() => _error = res.message ?? 'Verification failed.');
     }

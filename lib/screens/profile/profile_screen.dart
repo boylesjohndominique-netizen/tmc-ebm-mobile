@@ -219,17 +219,17 @@ class _AccountStatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (status) {
       'Pending' => (
-        'Account pending admin verification',
+        'Account Not Verified',
         AppColors.gold,
         Icons.hourglass_top_rounded,
       ),
       'Banned' => (
-        'Account banned',
+        'Account Banned',
         const Color(0xFFFFB4AE),
         Icons.block_rounded,
       ),
       _ => (
-        'Account verified',
+        'Account Verified',
         const Color(0xFF7FE0AE),
         Icons.verified_rounded,
       ),
@@ -413,17 +413,17 @@ class _IdVerificationBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, color, icon) = switch (status) {
       IdVerificationStatus.notSubmitted => (
-        'Not Verified',
+        'Account Not Verified',
         AppColors.textTertiary,
         Icons.radio_button_unchecked_rounded,
       ),
       IdVerificationStatus.pending => (
-        'Pending',
+        'Pending Review',
         AppColors.warning,
         Icons.hourglass_top_rounded,
       ),
       IdVerificationStatus.approved => (
-        'Verified',
+        'Account Verified',
         AppColors.success,
         Icons.verified_rounded,
       ),

@@ -71,6 +71,55 @@ class DashboardScreen extends StatelessWidget {
             Text('Overview', style: Theme.of(context).textTheme.headlineLarge),
             const SizedBox(height: 16),
 
+            if (appState.currentUser?.isPending == true) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.verified_user_outlined,
+                          color: Color(0xFFD97706), size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Account Not Verified',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: Color(0xFFB45309),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'You can browse equipment, but you must submit your front and back ID photos in Profile for admin verification before borrowing.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // ── Stats strip ───────────────────────────────────────────────
             _StatsStrip(
               borrowed: appState.currentlyBorrowed.length,
