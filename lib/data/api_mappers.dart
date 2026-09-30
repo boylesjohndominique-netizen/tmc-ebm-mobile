@@ -28,6 +28,9 @@ AppUser mapUser(Map<String, dynamic> j) {
     userType: UserType.student,
     emailVerified: j['email_verified_at'] != null,
     accountStatus: (j['account_status'] as String?) ?? 'Active',
+    // Falls back to Active-status for older payloads that predate the flag.
+    isIdVerified: (j['is_id_verified'] as bool?) ?? ((j['account_status'] as String?) == 'Active'),
+    hasSubmittedId: j['id_submitted_at'] != null,
   );
 }
 

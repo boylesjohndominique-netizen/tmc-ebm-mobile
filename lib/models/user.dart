@@ -33,6 +33,16 @@ class AppUser {
   /// Admin verification lifecycle: Pending | Active | Banned.
   final String accountStatus;
 
+  /// Whether an admin has approved this account's ID verification
+  /// (backend `verified_at`). Independent of `accountStatus`: banning
+  /// never revokes verification, and unbanning never grants it.
+  final bool isIdVerified;
+
+  /// Whether ID photos have been submitted and are awaiting review
+  /// (backend `id_submitted_at`). Survives app reinstalls, unlike the
+  /// local pending cache.
+  final bool hasSubmittedId;
+
   AppUser({
     required this.id,
     required this.fullName,
@@ -43,6 +53,8 @@ class AppUser {
     required this.userType,
     this.emailVerified = false,
     this.accountStatus = 'Active',
+    this.isIdVerified = false,
+    this.hasSubmittedId = false,
   });
 
   bool get isPending => accountStatus == 'Pending';

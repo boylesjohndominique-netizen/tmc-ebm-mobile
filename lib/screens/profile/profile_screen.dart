@@ -38,7 +38,9 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 28),
 
           // ── Account details ────────────────────────────────────────────
-          const _SectionLabel('Account'),
+          // Not const: reads theme-dependent AppColors getters (see the
+          // Verification section note above).
+          _SectionLabel('Account'),
           const SizedBox(height: 8),
           _Card(
             child: Column(
@@ -55,13 +57,17 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // ── ID verification (state-aware) ──────────────────────────────
-          const _SectionLabel('Verification'),
+          // NOTE: deliberately not `const` — these widgets read AppColors
+          // getters that change with the theme. Dart canonicalizes identical
+          // const instances, so a const copy would be reused across theme
+          // switches and the card would stay stuck in the old theme's colors.
+          _SectionLabel('Verification'),
           const SizedBox(height: 8),
           _VerificationCard(status: appState.idVerificationStatus),
           const SizedBox(height: 24),
 
           // ── Settings ───────────────────────────────────────────────────
-          const _SectionLabel('Settings'),
+          _SectionLabel('Settings'),
           const SizedBox(height: 8),
           _Card(
             child: Column(
@@ -128,7 +134,9 @@ class _IdentityHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final verified = user.accountStatus == 'Active';
+    // Verification is its own dimension — a banned user who was verified
+    // keeps the badge, and an unbanned Pending user does not get one.
+    final verified = user.isIdVerified;
 
     return Column(
       children: [
@@ -329,20 +337,27 @@ class _VerificationCardState extends State<_VerificationCard> {
       _error = null;
     });
 
-    await context.read<AppState>().submitIdVerification(
+    final error = await context.read<AppState>().submitIdVerification(
           idFrontPath: _idFrontPath!,
           idBackPath: _idBackPath!,
         );
 
     if (!mounted) return;
-    setState(() => _loading = false);
+    setState(() {
+      _loading = false;
+      _error = error;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // None of these may be `const`: _Card's surface/border and the label text
+    // color come from theme-dependent sources, and Dart canonicalizes const
+    // instances — a const card would be skipped on rebuild and stay stuck in
+    // the previous theme after a Light/Dark switch.
     return switch (widget.status) {
       IdVerificationStatus.notSubmitted => _buildCapture(context),
-      IdVerificationStatus.pending => const _Card(
+      IdVerificationStatus.pending => _Card(
           child: _StateRow(
             icon: Icons.hourglass_top_rounded,
             tint: AppColors.warning,
@@ -350,7 +365,7 @@ class _VerificationCardState extends State<_VerificationCard> {
             trailing: _Pill('Pending', AppColors.warning),
           ),
         ),
-      IdVerificationStatus.rejected => const _Card(
+      IdVerificationStatus.rejected => _Card(
           child: _StateRow(
             icon: Icons.cancel_outlined,
             tint: AppColors.danger,
@@ -358,7 +373,7 @@ class _VerificationCardState extends State<_VerificationCard> {
             trailing: _Pill('Rejected', AppColors.danger),
           ),
         ),
-      IdVerificationStatus.approved => const _Card(
+      IdVerificationStatus.approved => _Card(
           child: _StateRow(
             icon: Icons.verified_outlined,
             tint: AppColors.success,
@@ -376,11 +391,14 @@ class _VerificationCardState extends State<_VerificationCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            // Not const: the title must pick up the theme's text color.
+            Row(
               children: [
                 _IconBox(icon: Icons.verified_user_outlined, tint: AppColors.primary),
-                SizedBox(width: 12),
-                Expanded(child: Text('Verify your ID', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text('Verify your ID', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                ),
                 _Pill('Required', AppColors.warning),
               ],
             ),

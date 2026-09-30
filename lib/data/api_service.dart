@@ -373,6 +373,45 @@ class ApiService {
       request('PUT', 'mobile/notifications/read-all');
 
   // =========================================================================
+  // ID VERIFICATION
+  // =========================================================================
+
+  /// Upload front/back ID photos to the backend (multipart). Photos land on
+  /// the server's PRIVATE disk and are reviewed by an administrator — the
+  /// submission itself does not verify the account.
+  Future<ApiResponse<Map<String, dynamic>>> submitIdVerification({
+    required String idFrontPath,
+    required String idBackPath,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl/mobile/id-verification');
+      final req = http.MultipartRequest('POST', uri)
+        ..headers.addAll(_headers())
+        ..files.add(await http.MultipartFile.fromPath('id_front', idFrontPath))
+        ..files.add(await http.MultipartFile.fromPath('id_back', idBackPath));
+
+      final streamed = await req.send().timeout(const Duration(seconds: 60));
+      final body = await streamed.stream.bytesToString();
+      final decoded = _parseJson(body);
+      final ok = streamed.statusCode >= 200 && streamed.statusCode < 300;
+
+      return ApiResponse(
+        success: ok,
+        data: decoded.isNotEmpty ? decoded : null,
+        message: ok
+            ? (decoded['message'] as String? ?? 'ID photos submitted.')
+            : _extractErrorMessage(decoded, 'Upload failed (${streamed.statusCode}).'),
+        statusCode: streamed.statusCode,
+      );
+    } on TimeoutException {
+      return ApiResponse(success: false, message: 'The upload took too long. Try again.');
+    } catch (e) {
+      debugPrint('ApiService submitIdVerification failed: $e');
+      return ApiResponse(success: false, message: 'Could not upload ID photos. Is the backend running?');
+    }
+  }
+
+  // =========================================================================
   // PROFILE
   // =========================================================================
 

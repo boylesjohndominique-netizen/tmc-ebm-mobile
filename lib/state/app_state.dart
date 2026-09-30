@@ -105,31 +105,47 @@ class AppState extends ChangeNotifier {
 
   /// ID-verification lifecycle for the signed-in user.
   ///
-  /// The source of truth is the backend `account_status`:
-  ///   - Active  → admin has verified the ID → approved
-  ///   - Pending with local submitted record → pending review
+  /// The source of truth is the backend's `is_id_verified` flag (the
+  /// `verified_at` column), which is independent of the ban lifecycle:
+  ///   - verified → approved (even while banned)
+  ///   - not verified + local submitted record → pending review
   ///   - otherwise → notSubmitted
   IdVerificationStatus get idVerificationStatus {
-    if (currentUser?.isActive == true) return IdVerificationStatus.approved;
+    if (currentUser?.isIdVerified == true) return IdVerificationStatus.approved;
+    // Server-side submission marker wins over the local cache (survives
+    // reinstalls and reflects submissions made from other devices).
+    if (currentUser?.hasSubmittedId == true) return IdVerificationStatus.pending;
     return _idVerification[currentUser?.id] ?? IdVerificationStatus.notSubmitted;
   }
 
-  /// Records the submitted ID photos and flags the account as pending admin
-  /// review.
+  /// Uploads the submitted ID photos to the backend (private storage) and
+  /// flags the account as pending admin review.
   ///
-  /// The backend has no ID-photo endpoint yet, so photos stay on-device and
-  /// the pending/approved lifecycle is tracked locally until the API lands.
-  Future<void> submitIdVerification({
+  /// Returns null on success or an error message. The pending state is also
+  /// cached locally so the UI reflects it immediately even if the fetch of
+  /// fresh account data fails.
+  Future<String?> submitIdVerification({
     required String idFrontPath,
     required String idBackPath,
   }) async {
     final id = currentUser?.id;
-    if (id == null) return;
+    if (id == null) return 'Not signed in.';
+
+    final res = await ApiService.instance.submitIdVerification(
+      idFrontPath: idFrontPath,
+      idBackPath: idBackPath,
+    );
+
+    if (!res.success) {
+      return res.message ?? 'Could not submit ID photos.';
+    }
+
     _idVerification[id] = IdVerificationStatus.pending;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
         _idVerificationPrefix + id, IdVerificationStatus.pending.name);
     notifyListeners();
+    return null;
   }
 
   /// Restores the stored verification status for the current user.
@@ -222,6 +238,7 @@ class AppState extends ChangeNotifier {
         'contact_number': currentUser?.contactNumber ?? '',
         'email_verified_at': currentUser!.emailVerified ? 'verified' : null,
         'account_status': currentUser?.accountStatus,
+        'is_id_verified': currentUser?.isIdVerified ?? false,
       }),
     );
   }
