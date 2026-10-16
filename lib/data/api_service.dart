@@ -19,10 +19,17 @@ class ApiConfig {
 
   static String _host = '';
 
+  static Uri? get _apiUri {
+    const fromEnv = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    return fromEnv.isEmpty ? null : Uri.tryParse(fromEnv);
+  }
+
   static String get host {
     if (_host.isNotEmpty) return _host;
     const fromEnv = String.fromEnvironment('API_HOST', defaultValue: '');
     if (fromEnv.isNotEmpty) return fromEnv;
+    final api = _apiUri;
+    if (api != null && api.host.isNotEmpty) return api.host;
     if (kIsWeb) return '127.0.0.1';
     // When phone is connected via laptop Wi-Fi hotspot, 192.168.137.1 connects directly
     // over Wi-Fi without needing an active adb reverse tunnel.
@@ -37,13 +44,30 @@ class ApiConfig {
     return 'http://$host:8000/api';
   }
 
+  /// True when the API is reached over TLS (e.g. an https ngrok tunnel), which
+  /// means Reverb must be reached over wss on port 443 by default.
+  static bool get _isSecure => baseUrl.startsWith('https://');
+
   static String get reverbHost {
     const fromEnv = String.fromEnvironment('REVERB_HOST', defaultValue: '');
     if (fromEnv.isNotEmpty) return fromEnv;
+    final api = _apiUri;
+    if (api != null && api.host.isNotEmpty) return api.host;
     return host;
   }
 
-  static const int reverbPort = int.fromEnvironment('REVERB_PORT', defaultValue: 8080);
+  static int get reverbPort {
+    const fromEnv = int.fromEnvironment('REVERB_PORT', defaultValue: 0);
+    if (fromEnv != 0) return fromEnv;
+    return _isSecure ? 443 : 8080;
+  }
+
+  static String get reverbScheme {
+    const fromEnv = String.fromEnvironment('REVERB_SCHEME', defaultValue: '');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return _isSecure ? 'wss' : 'ws';
+  }
+
   static const String reverbAppKey = String.fromEnvironment(
     'REVERB_APP_KEY',
     defaultValue: 'tmc-equipment-local',
@@ -113,6 +137,7 @@ class ApiService {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
     };
     if (withAuth && _authToken != null && _authToken!.isNotEmpty) {
       headers['Authorization'] = 'Bearer $_authToken';

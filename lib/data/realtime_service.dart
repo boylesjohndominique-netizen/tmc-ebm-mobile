@@ -66,7 +66,7 @@ class RealtimeService {
     _setState('connecting');
 
     final uri = Uri.parse(
-      'ws://${ApiConfig.reverbHost}:${ApiConfig.reverbPort}'
+      '${ApiConfig.reverbScheme}://${ApiConfig.reverbHost}:${ApiConfig.reverbPort}'
       '/app/${ApiConfig.reverbAppKey}',
     );
 
