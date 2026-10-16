@@ -57,6 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    if (_loading) return;
     FocusScope.of(context).unfocus();
     final formValid = _formKey.currentState!.validate();
 
@@ -114,10 +115,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    final isAlreadyTaken = error.toLowerCase().contains('already been taken');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(error),
+        content: Text(
+          isAlreadyTaken
+              ? 'This account already exists! Please log in instead.'
+              : error,
+        ),
         backgroundColor: AppColors.danger,
+        action: isAlreadyTaken
+            ? SnackBarAction(
+                label: 'LOG IN',
+                textColor: Colors.white,
+                onPressed: () => Navigator.of(context).maybePop(),
+              )
+            : null,
       ),
     );
   }

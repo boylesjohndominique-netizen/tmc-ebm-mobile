@@ -385,12 +385,13 @@ class AppState extends ChangeNotifier {
     // A notification usually means an admin acted on the student's requests
     // (approval, rejection, return confirmation) — refetch both feeds.
     _notifSub = RealtimeService.instance.notificationStream.listen((_) {
+      refreshProfile();
       refreshNotifications();
       refreshBorrowings();
     });
 
-    // Polling fallback keeps borrowings (admin approvals) fresh even if the
-    // WebSocket is unreachable (e.g. behind a firewall on campus Wi-Fi).
+    // Polling fallback keeps account verification and borrowings fresh even if
+    // the WebSocket is unreachable (e.g. behind a firewall on campus Wi-Fi).
     _startPolling();
   }
 
@@ -398,6 +399,7 @@ class AppState extends ChangeNotifier {
     _stopPolling();
     _pollTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       if (isLoggedIn) {
+        refreshProfile();
         refreshBorrowings();
         refreshNotifications();
       }
@@ -414,10 +416,20 @@ class AppState extends ChangeNotifier {
   // ---------------------------------------------------------------------
   Future<void> refreshAll() async {
     await Future.wait([
+      refreshProfile(),
       refreshEquipment(),
       refreshBorrowings(),
       refreshNotifications(),
     ]);
+  }
+
+  Future<void> refreshProfile() async {
+    final res = await ApiService.instance.profile();
+    if (res.success && res.data != null) {
+      currentUser = mapUser(res.data!);
+      await _persistUser();
+      notifyListeners();
+    }
   }
 
   Future<void> refreshEquipment() async {

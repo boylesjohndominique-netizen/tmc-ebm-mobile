@@ -17,26 +17,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiConfig {
   ApiConfig._();
 
-  /// Returns 127.0.0.1 everywhere — on a physical Android device it reaches
-  /// the PC through `adb reverse` (see above); on Web/Desktop it is local.
+  static String _host = '';
+
+  static String get host {
+    if (_host.isNotEmpty) return _host;
+    const fromEnv = String.fromEnvironment('API_HOST', defaultValue: '');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    if (kIsWeb) return '127.0.0.1';
+    // When phone is connected via laptop Wi-Fi hotspot, 192.168.137.1 connects directly
+    // over Wi-Fi without needing an active adb reverse tunnel.
+    return '192.168.137.1';
+  }
+
+  static set host(String val) => _host = val;
+
   static String get baseUrl {
     const fromEnv = String.fromEnvironment('API_BASE_URL', defaultValue: '');
     if (fromEnv.isNotEmpty) return fromEnv;
-    if (kIsWeb) {
-      return 'http://127.0.0.1:8000/api';
-    }
-    return 'http://127.0.0.1:8000/api';
+    return 'http://$host:8000/api';
   }
 
-  /// Reverb WebSocket server (same machine as the API). Reaches the PC via
-  /// `adb reverse tcp:8080 tcp:8080` on physical devices.
   static String get reverbHost {
     const fromEnv = String.fromEnvironment('REVERB_HOST', defaultValue: '');
     if (fromEnv.isNotEmpty) return fromEnv;
-    if (kIsWeb) {
-      return '127.0.0.1';
-    }
-    return '127.0.0.1';
+    return host;
   }
 
   static const int reverbPort = int.fromEnvironment('REVERB_PORT', defaultValue: 8080);
@@ -157,6 +161,12 @@ class ApiService {
     } on TimeoutException {
       return ApiResponse(success: false, message: 'The server took too long to respond.');
     } catch (e) {
+      if (!kIsWeb && ApiConfig.host == '192.168.137.1') {
+        ApiConfig.host = '127.0.0.1';
+        try {
+          return await request(method, path, body: body, withAuth: withAuth);
+        } catch (_) {}
+      }
       debugPrint('ApiService $method $path failed: $e');
       return ApiResponse(success: false, message: 'Could not connect to the server. Is the backend running?');
     }
@@ -191,6 +201,12 @@ class ApiService {
     } on TimeoutException {
       return ApiResponse(success: false, message: 'The server took too long to respond.');
     } catch (e) {
+      if (!kIsWeb && ApiConfig.host == '192.168.137.1') {
+        ApiConfig.host = '127.0.0.1';
+        try {
+          return await requestList(path);
+        } catch (_) {}
+      }
       debugPrint('ApiService GET $path failed: $e');
       return ApiResponse(success: false, message: 'Could not connect to the server. Is the backend running?');
     }

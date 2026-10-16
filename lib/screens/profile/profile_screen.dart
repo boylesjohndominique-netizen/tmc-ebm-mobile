@@ -28,12 +28,14 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-        children: [
-          // ── Identity ───────────────────────────────────────────────────
-          const SizedBox(height: 8),
+      body: RefreshIndicator(
+        onRefresh: () => appState.refreshProfile(),
+        child: ListView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+          children: [
+            // ── Identity ───────────────────────────────────────────────────
+            const SizedBox(height: 8),
           _IdentityHeader(user: user),
           const SizedBox(height: 28),
 
@@ -99,8 +101,9 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _confirmLogout(BuildContext context) {
     showDialog(
