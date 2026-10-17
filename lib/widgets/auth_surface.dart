@@ -123,19 +123,10 @@ class AmbientLogoHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
+        Image.asset(
+          'assets/images/tmc_logo.png',
           width: 58,
           height: 58,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(19),
-            boxShadow: AppShadows.primaryGlow,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.35),
-              width: 1.2,
-            ),
-          ),
-          child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 28),
         ),
         const SizedBox(width: 12),
         Text(
@@ -169,7 +160,8 @@ class AmbientFormCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: AppColors.isDark ? 0.94 : 0.92),
+        color:
+            AppColors.surface.withValues(alpha: AppColors.isDark ? 0.94 : 0.92),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(
           color: AppColors.isDark ? AppColors.divider : Colors.white,
