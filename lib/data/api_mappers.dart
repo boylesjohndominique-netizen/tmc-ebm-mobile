@@ -89,6 +89,8 @@ BorrowingTransaction mapBorrowing(Map<String, dynamic> j) {
     borrowingDate: _parseDate(j['borrowing_date']),
     returnDate: _parseDate(j['expected_return_date']),
     actualReturnDate: latestReturn?['returned_at'] != null ? _parseDate(latestReturn?['returned_at']) : null,
+    overdueDays: (latestReturn?['overdue_days'] as num?)?.toInt(),
+    overdueFee: _parseNum(latestReturn?['overdue_fee']),
     purpose: (j['remarks'] as String?) ?? '',
     notes: '',
     requestDate: _parseDate(j['created_at']),
@@ -127,6 +129,12 @@ DateTime _parseDate(dynamic v) {
     return DateTime.tryParse(v) ?? DateTime.now();
   }
   return DateTime.now();
+}
+
+double? _parseNum(dynamic v) {
+  if (v is num) return v.toDouble();
+  if (v is String) return double.tryParse(v);
+  return null;
 }
 
 // ---------------------------------------------------------------------------

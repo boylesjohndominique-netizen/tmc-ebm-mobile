@@ -50,6 +50,8 @@ class BorrowingTransaction {
   DateTime? approvalDate;
   RequestStatus status;
   ReturnStatus returnStatus;
+  int? overdueDays;
+  double? overdueFee;
 
   BorrowingTransaction({
     required this.transactionId,
@@ -67,6 +69,8 @@ class BorrowingTransaction {
     this.approvalDate,
     this.status = RequestStatus.pending,
     this.returnStatus = ReturnStatus.notReturned,
+    this.overdueDays,
+    this.overdueFee,
   });
 
   bool get isCurrentlyBorrowed =>
@@ -77,4 +81,6 @@ class BorrowingTransaction {
 
   bool get isOverdue =>
       isCurrentlyBorrowed && DateTime.now().isAfter(returnDate) && returnStatus != ReturnStatus.returnConfirmed;
+
+  bool get hasOverdueFee => (overdueFee ?? 0) > 0;
 }

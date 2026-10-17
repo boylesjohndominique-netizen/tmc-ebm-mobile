@@ -63,6 +63,9 @@ class TransactionDetailsScreen extends StatelessWidget {
                 'Expected Return': dateFormat.format(txn.returnDate),
                 'Actual Return':
                     txn.actualReturnDate != null ? dateFormat.format(txn.actualReturnDate!) : '—',
+                if (txn.hasOverdueFee)
+                  'Overdue Fee':
+                      '₱${txn.overdueFee!.toStringAsFixed(2)} (${txn.overdueDays ?? 0} day(s) late)',
                 'Purpose': txn.purpose,
                 if (txn.notes.isNotEmpty) 'Notes': txn.notes,
               },
