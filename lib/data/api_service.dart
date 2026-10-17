@@ -351,6 +351,18 @@ class ApiService {
     return res;
   }
 
+  /// Submits a ban appeal. Banned users cannot authenticate (their tokens are
+  /// revoked), so the account is identified by username/email instead — this
+  /// call is intentionally unauthenticated.
+  Future<ApiResponse<Map<String, dynamic>>> submitAppeal({
+    required String login,
+    required String message,
+  }) =>
+      request('POST', 'appeals', withAuth: false, body: {
+        'login': login.trim(),
+        'message': message.trim(),
+      });
+
   // =========================================================================
   // EQUIPMENT
   // =========================================================================

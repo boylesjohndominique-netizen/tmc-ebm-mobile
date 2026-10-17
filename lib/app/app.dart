@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../state/app_state.dart';
+import 'app_navigator.dart';
+import 'ban_guard.dart';
 import 'routes.dart';
 import 'theme.dart';
 
@@ -20,8 +22,11 @@ class TmcebmsApp extends StatelessWidget {
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
             themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            navigatorKey: appNavigatorKey,
             initialRoute: AppRoutes.splash,
             onGenerateRoute: AppRoutes.onGenerateRoute,
+            builder: (context, child) =>
+                BanGuard(child: child ?? const SizedBox.shrink()),
           );
         },
       ),

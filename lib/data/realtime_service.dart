@@ -38,6 +38,7 @@ class RealtimeService {
 
   final _stateCtrl = StreamController<String>.broadcast();
   final _notificationCtrl = StreamController<Map<String, dynamic>>.broadcast();
+  final _banCtrl = StreamController<Map<String, dynamic>>.broadcast();
 
   /// 'connected' | 'connecting' | 'disconnected'
   Stream<String> get stateStream => _stateCtrl.stream;
@@ -46,6 +47,11 @@ class RealtimeService {
 
   /// Payloads of 'notification.created' events for the signed-in user.
   Stream<Map<String, dynamic>> get notificationStream => _notificationCtrl.stream;
+
+  /// Payloads of 'user.banned' events ({reason, banned_at}) for the signed-in
+  /// user. Fired the moment an admin bans the account, even though the API
+  /// token is revoked at the same time.
+  Stream<Map<String, dynamic>> get banStream => _banCtrl.stream;
 
   void _setState(String s) {
     if (_state == s) return;
@@ -144,6 +150,8 @@ class RealtimeService {
         // (or plain 'notification.created' depending on protocol quirks).
         if (event != null && event.endsWith('notification.created')) {
           _notificationCtrl.add(data);
+        } else if (event != null && event.endsWith('user.banned')) {
+          _banCtrl.add(data);
         }
     }
   }

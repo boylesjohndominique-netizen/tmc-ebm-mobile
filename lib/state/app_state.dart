@@ -36,6 +36,20 @@ class AppState extends ChangeNotifier {
   bool get restoringSession => _restoringSession;
 
   // ---------------------------------------------------------------------
+  // Ban lifecycle
+  // ---------------------------------------------------------------------
+  bool _accountBanned = false;
+  String? _banReason;
+  String? _bannedLogin; // username/email captured at ban time (token is dead)
+
+  /// True when the signed-in account (or the account just used to log in)
+  /// has been banned. Drives the global ban/appeal dialog.
+  bool get accountBanned => _accountBanned;
+
+  /// Reason supplied by the administrator when the account was banned.
+  String? get banReason => _banReason;
+
+  // ---------------------------------------------------------------------
   // Data (all fetched from the backend)
   // ---------------------------------------------------------------------
   List<Equipment> _equipment = [];
@@ -258,7 +272,17 @@ class AppState extends ChangeNotifier {
       return 'EMAIL_VERIFICATION_REQUIRED:${res.unverifiedEmail ?? identifier}';
     }
 
-    if (!res.success) return res.message ?? 'Login failed.';
+    if (!res.success) {
+      // Banned accounts cannot log in — surface the global ban dialog so the
+      // student can read the reason and appeal instead of only seeing an error.
+      if (res.statusCode == 403 && res.data?['banned'] == true) {
+        _handleAccountBanned(
+          reason: res.data?['ban_reason'] as String?,
+          login: identifier,
+        );
+      }
+      return res.message ?? 'Login failed.';
+    }
 
     final user = res.data?['user'];
     if (user is Map<String, dynamic>) {
@@ -357,6 +381,36 @@ class AppState extends ChangeNotifier {
     return res.success ? null : (res.message ?? 'Could not change password.');
   }
 
+  /// Marks the account as banned and shows the global ban/appeal dialog.
+  /// Triggered by the realtime `user.banned` event or a banned login attempt.
+  void _handleAccountBanned({String? reason, String? login}) {
+    _accountBanned = true;
+    if (reason != null && reason.isNotEmpty) _banReason = reason;
+    _bannedLogin = login ??
+        _bannedLogin ??
+        currentUser?.username ??
+        (currentUser?.email.isNotEmpty == true ? currentUser?.email : null);
+    _stopPolling(); // no point polling with a revoked token
+    notifyListeners();
+  }
+
+  /// Sends an appeal message to the administrator. Returns null on success or
+  /// an error message. Works without a session (the account is looked up by
+  /// username/email on the server).
+  Future<String?> submitBanAppeal(String message) async {
+    final login = _bannedLogin ??
+        currentUser?.username ??
+        (currentUser?.email.isNotEmpty == true ? currentUser?.email : null);
+    if (login == null || login.isEmpty) {
+      return 'Could not identify your account to send the appeal.';
+    }
+    final res = await ApiService.instance.submitAppeal(
+      login: login,
+      message: message,
+    );
+    return res.success ? null : (res.message ?? 'Could not send your appeal.');
+  }
+
   Future<void> logout() async {
     await ApiService.instance.logout();
     RealtimeService.instance.disconnect();
@@ -364,6 +418,9 @@ class AppState extends ChangeNotifier {
     _equipment = [];
     _transactions = [];
     _notifications = [];
+    _accountBanned = false;
+    _banReason = null;
+    _bannedLogin = null;
     _stopPolling();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('tmc_user');
@@ -374,6 +431,7 @@ class AppState extends ChangeNotifier {
   // Realtime + polling
   // ---------------------------------------------------------------------
   StreamSubscription? _notifSub;
+  StreamSubscription? _banSub;
   Timer? _pollTimer;
 
   void _startRealtime() {
@@ -388,6 +446,12 @@ class AppState extends ChangeNotifier {
       refreshProfile();
       refreshNotifications();
       refreshBorrowings();
+    });
+
+    // The account was banned mid-session: show the ban/appeal dialog.
+    _banSub?.cancel();
+    _banSub = RealtimeService.instance.banStream.listen((data) {
+      _handleAccountBanned(reason: data['reason'] as String?);
     });
 
     // Polling fallback keeps account verification and borrowings fresh even if
@@ -548,6 +612,7 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _notifSub?.cancel();
+    _banSub?.cancel();
     _stopPolling();
     RealtimeService.instance.disconnect();
     super.dispose();
