@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../app/theme.dart';
+import 'liquid_glass.dart';
 import 'pressable.dart';
 
 /// Compact stat tile for the dashboard grid.
 ///
-/// The whole column is wrapped in a FittedBox(scaleDown) so large numbers,
-/// long labels and taller system font scales can never overflow the tile.
+/// The column is wrapped in a FittedBox(scaleDown) so large numbers, long
+/// labels and taller system font scales can never overflow the tile.
 class StatisticCard extends StatelessWidget {
   final String label;
   final String value;
@@ -26,14 +27,8 @@ class StatisticCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Pressable(
       onTap: onTap,
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-          boxShadow: AppShadows.soft,
-        ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final compact = constraints.maxHeight < 100;
@@ -47,7 +42,7 @@ class StatisticCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
+                      color: color.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Icon(icon, color: color, size: compact ? 16 : 18),

@@ -6,7 +6,11 @@ class StatusBadge extends StatelessWidget {
   final String label;
   final Color color;
   final bool filled;
-  const StatusBadge({super.key, required this.label, required this.color, this.filled = false});
+  const StatusBadge(
+      {super.key,
+      required this.label,
+      required this.color,
+      this.filled = false});
 
   factory StatusBadge.forRequest(RequestStatus status) {
     switch (status) {
@@ -26,11 +30,14 @@ class StatusBadge extends StatelessWidget {
   factory StatusBadge.forReturn(ReturnStatus status) {
     switch (status) {
       case ReturnStatus.notReturned:
-        return const StatusBadge(label: 'Not Returned', color: AppColors.neutral);
+        return const StatusBadge(
+            label: 'Not Returned', color: AppColors.neutral);
       case ReturnStatus.returnPending:
-        return const StatusBadge(label: 'Return Pending', color: AppColors.warning);
+        return const StatusBadge(
+            label: 'Return Pending', color: AppColors.warning);
       case ReturnStatus.returnConfirmed:
-        return const StatusBadge(label: 'Return Confirmed', color: AppColors.info);
+        return const StatusBadge(
+            label: 'Return Confirmed', color: AppColors.info);
       case ReturnStatus.completed:
         return const StatusBadge(label: 'Completed', color: AppColors.success);
     }
@@ -52,19 +59,45 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: filled ? color : color.withValues(alpha: 0.12),
+        color: filled ? color : color.withValues(alpha: 0.13),
+        gradient: filled
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withValues(alpha: 0.92), color],
+              )
+            : null,
         borderRadius: BorderRadius.circular(AppRadius.pill),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.fade,
-        style: TextStyle(
-          color: filled ? Colors.white : color,
-          fontSize: 11.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.1,
+        border: Border.all(
+          color: filled
+              ? Colors.white.withValues(alpha: 0.22)
+              : color.withValues(alpha: 0.22),
         ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: filled ? Colors.white : color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.fade,
+            style: TextStyle(
+              color: filled ? Colors.white : color,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../app/motion.dart';
 import '../app/theme.dart';
+import 'liquid_glass.dart';
 
 /// Ambient backdrop shared by the auth screens: a soft radial brand wash with
 /// three slowly drifting color orbs for organic depth. Never distracts from
@@ -53,15 +54,24 @@ class _AmbientBackgroundState extends State<AmbientBackground>
         // ── Gradient wash ────────────────────────────────────────────────────
         Positioned.fill(
           child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(-0.2, -1.0),
-                radius: 1.6,
-                colors: [
-                  AppColors.primary.withValues(alpha: 0.18),
-                  AppColors.background,
-                ],
-                stops: const [0.0, 0.75],
+            decoration: BoxDecoration(gradient: AppColors.ambientGradient),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(-0.2, -1.0),
+                  radius: 1.5,
+                  colors: [
+                    AppColors.primary.withValues(
+                      alpha: AppColors.isDark ? 0.26 : 0.16,
+                    ),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.8],
+                ),
               ),
             ),
           ),
@@ -123,10 +133,16 @@ class AmbientLogoHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Image.asset(
-          'assets/images/tmc_logo.png',
-          width: 58,
-          height: 58,
+        GlassPanel(
+          blur: 14,
+          radius: 20,
+          padding: const EdgeInsets.all(7),
+          shadows: AppShadows.soft,
+          child: Image.asset(
+            'assets/images/tmc_logo.png',
+            width: 44,
+            height: 44,
+          ),
         ),
         const SizedBox(width: 12),
         Text(
@@ -156,20 +172,16 @@ class AmbientFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
-        color:
-            AppColors.surface.withValues(alpha: AppColors.isDark ? 0.94 : 0.92),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: AppColors.isDark ? AppColors.divider : Colors.white,
-          width: 1.2,
-        ),
-        boxShadow: AppShadows.floating,
+      child: GlassPanel(
+        blur: 26,
+        strong: true,
+        radius: AppRadius.xl,
+        shadows: AppShadows.floating,
+        padding: padding,
+        child: child,
       ),
-      child: child,
     );
   }
 }

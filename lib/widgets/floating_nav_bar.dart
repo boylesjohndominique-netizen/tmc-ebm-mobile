@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' show ImageFilter;
 import '../app/motion.dart';
 import '../app/theme.dart';
+import 'liquid_glass.dart';
+import 'pressable.dart';
 
-/// Floating iOS-style, icon-only bottom navigation.
+/// Floating Liquid Glass tab bar.
 ///
-/// Rendered as a detached pill that floats above the bottom edge with blur,
-/// soft depth, an animated active pill and a springy icon scale — with no
-/// text labels, per the design spec.
+/// A detached, translucent pill with a glossy rim, soft depth and an animated
+/// tinted lens behind the active tab. Labels stay visible for clarity.
 class FloatingNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -21,7 +21,7 @@ class FloatingNavBar extends StatelessWidget {
   });
 
   static const _icons = [
-    Icons.space_dashboard_rounded,
+    Icons.grid_view_rounded,
     Icons.inventory_2_outlined,
     Icons.assignment_outlined,
     Icons.notifications_none_rounded,
@@ -29,46 +29,43 @@ class FloatingNavBar extends StatelessWidget {
   ];
 
   static const _activeIcons = [
-    Icons.space_dashboard_rounded,
+    Icons.grid_view_rounded,
     Icons.inventory_2_rounded,
     Icons.assignment_rounded,
     Icons.notifications_rounded,
     Icons.person_rounded,
   ];
 
+  static const _labels = ['Home', 'Gear', 'Requests', 'Alerts', 'Profile'];
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
+      minimum: const EdgeInsets.only(bottom: 8),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Container(
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: AppColors.isDark ? 0.88 : 0.92),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: AppColors.isDark
-                      ? AppColors.divider.withValues(alpha: 0.8)
-                      : Colors.white.withValues(alpha: 0.6),
-                ),
-                boxShadow: AppShadows.floating,
-              ),
-              child: Row(
-                children: List.generate(_icons.length, (i) {
-                  return Expanded(child: _NavButton(
+        padding: const EdgeInsets.fromLTRB(18, 0, 18, 6),
+        child: GlassPanel(
+          blur: 30,
+          strong: true,
+          radius: 30,
+          shadows: AppShadows.floating,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          child: SizedBox(
+            height: 58,
+            child: Row(
+              children: List.generate(_icons.length, (i) {
+                return Expanded(
+                  child: _NavItem(
                     icon: _icons[i],
                     activeIcon: _activeIcons[i],
+                    label: _labels[i],
                     selected: currentIndex == i,
                     showDot: i == 3 && unreadCount > 0,
                     onTap: () => onTap(i),
-                  ));
-                }),
-              ),
+                  ),
+                );
+              }),
             ),
           ),
         ),
@@ -77,16 +74,18 @@ class FloatingNavBar extends StatelessWidget {
   }
 }
 
-class _NavButton extends StatelessWidget {
+class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
+  final String label;
   final bool selected;
   final bool showDot;
   final VoidCallback onTap;
 
-  const _NavButton({
+  const _NavItem({
     required this.icon,
     required this.activeIcon,
+    required this.label,
     required this.selected,
     required this.showDot,
     required this.onTap,
@@ -94,57 +93,81 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    final duration = AppMotion.responsive(context, AppMotion.normal);
+
+    return Pressable(
       onTap: onTap,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: selected ? 1.0 : 0.0),
-        duration: const Duration(milliseconds: 260),
-        curve: selected ? Curves.easeOutBack : AppMotion.emphasized,
-        builder: (context, t, child) {
-          final clampedT = t.clamp(0.0, 1.5);
-          final scale = 1.0 + 0.14 * (1.0 - (1.0 - clampedT) * (1.0 - clampedT));
-          return Transform.scale(
-            scale: scale,
-            child: Opacity(opacity: (0.55 + 0.45 * clampedT).clamp(0.0, 1.0), child: child),
-          );
-        },
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            // Animated background pill for the active tab.
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 240),
-              curve: AppMotion.emphasized,
-              width: selected ? 52 : 0,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.primary
-                    .withValues(alpha: selected ? (AppColors.isDark ? 0.22 : 0.13) : 0.0),
-                borderRadius: BorderRadius.circular(18),
-              ),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: AnimatedContainer(
+          duration: duration,
+          curve: AppMotion.emphasized,
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary
+                    .withValues(alpha: AppColors.isDark ? 0.20 : 0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary.withValues(alpha: 0.20)
+                  : Colors.transparent,
             ),
-            Icon(
-              selected ? activeIcon : icon,
-              size: 24,
-              color: selected ? AppColors.primary : AppColors.textTertiary,
-            ),
-            if (showDot)
-              Positioned(
-                top: 6,
-                right: 10,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: AppColors.danger,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.surface, width: 1.5),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedScale(
+                    scale: selected ? 1.06 : 1.0,
+                    duration: duration,
+                    curve: AppMotion.emphasized,
+                    child: Icon(
+                      selected ? activeIcon : icon,
+                      size: 21,
+                      color:
+                          selected ? AppColors.primary : AppColors.textTertiary,
+                    ),
                   ),
+                  if (showDot)
+                    Positioned(
+                      top: -2,
+                      right: -3,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: AppColors.danger,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.surface.withValues(alpha: 0.9),
+                            width: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  letterSpacing: -0.1,
+                  color: selected ? AppColors.primary : AppColors.textTertiary,
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

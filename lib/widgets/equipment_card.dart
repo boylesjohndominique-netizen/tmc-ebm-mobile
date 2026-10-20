@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../app/theme.dart';
 import '../models/equipment.dart';
 import 'equipment_icon.dart';
+import 'liquid_glass.dart';
 import 'pressable.dart';
 import 'status_badge.dart';
 
@@ -9,28 +10,33 @@ class EquipmentCard extends StatelessWidget {
   final Equipment equipment;
   final VoidCallback onTap;
 
-  const EquipmentCard({super.key, required this.equipment, required this.onTap});
+  const EquipmentCard(
+      {super.key, required this.equipment, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Pressable(
       onTap: onTap,
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-          boxShadow: AppShadows.soft,
-        ),
         child: Row(
           children: [
             Container(
-              width: 54,
-              height: 54,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: AppColors.primarySoft,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primarySoft,
+                    AppColors.primarySoft.withValues(alpha: 0.45),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.14),
+                ),
               ),
               child: Icon(
                 equipmentIcon('${equipment.category} ${equipment.name}'),
@@ -74,8 +80,21 @@ class EquipmentCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+            const SizedBox(width: 6),
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppColors.glassFill,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.glassBorderSoft),
+              ),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: AppColors.textTertiary,
+              ),
+            ),
           ],
         ),
       ),

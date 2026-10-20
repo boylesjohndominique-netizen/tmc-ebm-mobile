@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../app/motion.dart';
 import '../app/theme.dart';
 import '../models/notification_item.dart';
+import 'liquid_glass.dart';
 import 'pressable.dart';
 
 /// Notification card — tinted icon box, title with unread dot, message preview
@@ -14,7 +15,8 @@ class NotificationCard extends StatefulWidget {
   final AppNotification notification;
   final VoidCallback onTap;
 
-  const NotificationCard({super.key, required this.notification, required this.onTap});
+  const NotificationCard(
+      {super.key, required this.notification, required this.onTap});
 
   @override
   State<NotificationCard> createState() => _NotificationCardState();
@@ -74,109 +76,113 @@ class _NotificationCardState extends State<NotificationCard> {
         setState(() => _expanded = !_expanded);
         widget.onTap();
       },
-      child: AnimatedContainer(
-        duration: AppMotion.normal,
-        curve: AppMotion.emphasized,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: _unread ? AppColors.primarySoft.withValues(alpha: 0.45) : AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: _unread
-                ? AppColors.primary.withValues(alpha: 0.25)
-                : AppColors.divider.withValues(alpha: 0.6),
-          ),
-          boxShadow: _unread ? AppShadows.soft : null,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Tinted icon box ──────────────────────────────────────────
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+      child: GlassPanel(
+        blur: 0,
+        radius: AppRadius.lg,
+        padding: EdgeInsets.zero,
+        shadows: AppShadows.soft,
+        tint: _unread
+            ? AppColors.primary
+                .withValues(alpha: AppColors.isDark ? 0.15 : 0.08)
+            : null,
+        borderColor: _unread ? AppColors.primary.withValues(alpha: 0.28) : null,
+        child: AnimatedContainer(
+          duration: AppMotion.responsive(context, AppMotion.normal),
+          curve: AppMotion.emphasized,
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Tinted icon box ────────────────────────────────────────
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: _color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: _color.withValues(alpha: 0.16)),
+                ),
+                child: Icon(_icon, color: _color, size: 20),
               ),
-              child: Icon(_icon, color: _color, size: 20),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-            // ── Content ──────────────────────────────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title + unread dot
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          n.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: _unread ? FontWeight.w700 : FontWeight.w600,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -0.1,
+              // ── Content ──────────────────────────────────────────────────
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title + unread dot
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            n.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight:
+                                  _unread ? FontWeight.w700 : FontWeight.w600,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.1,
+                            ),
                           ),
                         ),
-                      ),
-                      if (_unread)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                              color: AppColors.primary, shape: BoxShape.circle),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
+                        if (_unread)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
 
-                  // Message — collapses to 2 lines, expands in full
-                  AnimatedSize(
-                    duration: AppMotion.fast,
-                    curve: AppMotion.emphasized,
-                    alignment: Alignment.topCenter,
-                    child: Text(
-                      n.message,
-                      maxLines: _expanded ? null : 2,
-                      overflow: _expanded ? null : TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: AppColors.textSecondary,
+                    // Message — collapses to 2 lines, expands in full
+                    AnimatedSize(
+                      duration: AppMotion.fast,
+                      curve: AppMotion.emphasized,
+                      alignment: Alignment.topCenter,
+                      child: Text(
+                        n.message,
+                        maxLines: _expanded ? null : 2,
+                        overflow: _expanded ? null : TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                  // Meta row — category pill + timestamp
-                  Row(
-                    children: [
-                      _CategoryPill(label: _category, color: _color),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          _expanded ? _fullDate : _timeAgo,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textTertiary,
-                            letterSpacing: 0.1,
+                    // Meta row — category pill + timestamp
+                    Row(
+                      children: [
+                        _CategoryPill(label: _category, color: _color),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            _expanded ? _fullDate : _timeAgo,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textTertiary,
+                              letterSpacing: 0.1,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

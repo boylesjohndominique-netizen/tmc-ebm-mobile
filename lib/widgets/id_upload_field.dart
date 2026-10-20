@@ -42,7 +42,8 @@ class IdPhotoField extends StatelessWidget {
       // slot stays tappable so the user can retry.
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open the camera. Please try again.')),
+          const SnackBar(
+              content: Text('Could not open the camera. Please try again.')),
         );
       }
     }
@@ -53,9 +54,12 @@ class IdPhotoField extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove photo?'),
-        content: Text('The $label photo will be removed from your registration.'),
+        content:
+            Text('The $label photo will be removed from your registration.'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
@@ -90,17 +94,21 @@ class IdPhotoField extends StatelessWidget {
         GestureDetector(
           onTap: () => _capture(context),
           child: AnimatedContainer(
-            duration: AppMotion.normal,
+            duration: AppMotion.responsive(context, AppMotion.normal),
             curve: AppMotion.emphasized,
             height: 150,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: hasImage ? Colors.black.withValues(alpha: 0.03) : AppColors.surfaceMuted,
+              gradient: hasImage ? null : AppColors.glassSheen,
+              color: hasImage ? Colors.black.withValues(alpha: 0.03) : null,
               borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
-                color: hasImage ? AppColors.primary.withValues(alpha: 0.4) : borderColor,
-                width: hasImage ? 1.6 : 1.4,
+                color: hasImage
+                    ? AppColors.primary.withValues(alpha: 0.4)
+                    : (errorText != null ? borderColor : AppColors.glassBorder),
+                width: hasImage ? 1.6 : 1.2,
               ),
+              boxShadow: hasImage ? null : AppShadows.soft,
             ),
             child: hasImage
                 ? ClipRRect(
@@ -115,7 +123,8 @@ class IdPhotoField extends StatelessWidget {
                           right: 0,
                           bottom: 0,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 8),
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -183,7 +192,8 @@ class IdPhotoField extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         'Camera will open — make sure all text is readable',
-                        style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.textTertiary),
                       ),
                     ],
                   ),
@@ -193,7 +203,8 @@ class IdPhotoField extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 14),
+              const Icon(Icons.error_outline_rounded,
+                  color: AppColors.danger, size: 14),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(

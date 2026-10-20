@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app/theme.dart';
+import 'liquid_glass.dart';
 
 /// Attractive, overflow-safe empty state used across all list screens.
 class EmptyState extends StatelessWidget {
@@ -7,7 +8,8 @@ class EmptyState extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const EmptyState({super.key, required this.icon, required this.title, this.subtitle = ''});
+  const EmptyState(
+      {super.key, required this.icon, required this.title, this.subtitle = ''});
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +20,29 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
-              child: Icon(icon, size: 38, color: AppColors.primary),
+            GlassPanel(
+              blur: 18,
+              radius: 42,
+              padding: const EdgeInsets.all(4),
+              shadows: AppShadows.soft,
+              child: Container(
+                width: 82,
+                height: 82,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primarySoft,
+                      AppColors.primarySoft.withValues(alpha: 0.35),
+                    ],
+                  ),
+                ),
+                child: Icon(icon, size: 36, color: AppColors.primary),
+              ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge,
@@ -32,10 +50,13 @@ class EmptyState extends StatelessWidget {
             ),
             if (subtitle.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 300),
+                child: Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ],

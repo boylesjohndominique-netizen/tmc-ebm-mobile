@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app/theme.dart';
 import '../state/app_state.dart';
+import 'liquid_glass.dart';
+import 'pressable.dart';
 
 /// Clean, aesthetic button that toggles between light and dark mode.
 ///
@@ -47,29 +49,27 @@ class ThemeToggleButton extends StatelessWidget {
       ),
     );
 
-    if (isHeaderStyle) {
-      return Material(
-        color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.18),
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: handleTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Tooltip(
-            message: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-            child: SizedBox(
-              width: 42,
-              height: 42,
-              child: Center(child: buttonContent),
-            ),
+    return Pressable(
+      onTap: handleTap,
+      child: Tooltip(
+        message: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+        child: GlassPanel(
+          blur: 14,
+          radius: 15,
+          padding: EdgeInsets.zero,
+          shadows: AppShadows.soft,
+          tint: isHeaderStyle
+              ? Colors.white.withValues(alpha: isDark ? 0.12 : 0.18)
+              : null,
+          borderColor:
+              isHeaderStyle ? Colors.white.withValues(alpha: 0.24) : null,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Center(child: buttonContent),
           ),
         ),
-      );
-    }
-
-    return IconButton(
-      onPressed: handleTap,
-      tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-      icon: buttonContent,
+      ),
     );
   }
 }
