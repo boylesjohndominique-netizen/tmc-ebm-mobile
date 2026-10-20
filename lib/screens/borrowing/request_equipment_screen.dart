@@ -5,6 +5,8 @@ import '../../app/theme.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/equipment_icon.dart';
+import '../../widgets/liquid_glass.dart';
+import '../../widgets/pressable.dart';
 
 class RequestEquipmentScreen extends StatefulWidget {
   final String equipmentId;
@@ -49,8 +51,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
 
   Future<void> _pickReturnDate() async {
     if (_borrowDate == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Please select a borrowing date first.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Please select a borrowing date first.')));
       return;
     }
     final picked = await showDatePicker(
@@ -71,7 +73,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     if (appState.currentUser?.isPending == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Your account must be verified by an administrator before you can borrow equipment.'),
+          content: Text(
+              'Your account must be verified by an administrator before you can borrow equipment.'),
           backgroundColor: Color(0xFFF59E0B),
           duration: Duration(seconds: 4),
         ),
@@ -80,8 +83,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     }
 
     if (_borrowDate == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Select a borrowing date.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select a borrowing date.')));
       return;
     }
     if (_returnDate == null) {
@@ -90,8 +93,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
       return;
     }
     if (_quantity > available) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Requested quantity exceeds availability.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Requested quantity exceeds availability.')));
       return;
     }
 
@@ -123,18 +126,15 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     }
 
     if (!mounted) return;
-    showDialog(
+    showGlassDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: AppColors.success),
-            SizedBox(width: 8),
-            Expanded(child: Text('Request Submitted')),
-          ],
-        ),
-        content: const Text(
-            'Your borrowing request has been submitted successfully. Status: Pending'),
+      barrierDismissible: false,
+      builder: (ctx) => GlassDialog(
+        icon: Icons.check_circle_rounded,
+        iconColor: AppColors.success,
+        title: 'Request Submitted',
+        message:
+            'Your borrowing request has been submitted successfully. Status: Pending.',
         actions: [
           TextButton(
             onPressed: () {
@@ -154,7 +154,7 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     final equipment = appState.equipmentById(widget.equipmentId);
 
     if (equipment == null) {
-      return Scaffold(
+      return LiquidScaffold(
         appBar: AppBar(title: const Text('Request Equipment')),
         body: const Center(child: Text('Equipment not found.')),
       );
@@ -162,12 +162,12 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
 
     final isPending = appState.currentUser?.isPending == true;
 
-    return Scaffold(
+    return LiquidScaffold(
       appBar: AppBar(title: const Text('Request Equipment')),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
           child: Form(
             key: _formKey,
             child: Column(
@@ -175,18 +175,19 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
               children: [
                 // Verification warning banner
                 if (isPending) ...[
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
+                  GlassPanel(
+                    blur: 0,
+                    radius: AppRadius.lg,
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                      border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5)),
-                    ),
+                    shadows: AppShadows.soft,
+                    tint: AppColors.warning
+                        .withValues(alpha: AppColors.isDark ? 0.16 : 0.12),
+                    borderColor: AppColors.warning.withValues(alpha: 0.38),
                     child: const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.verified_user_outlined, color: Color(0xFFB45309), size: 20),
+                        Icon(Icons.verified_user_outlined,
+                            color: Color(0xFFB45309), size: 20),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -194,7 +195,7 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                             style: TextStyle(
                               color: Color(0xFF78350F),
                               fontSize: 13,
-                              height: 1.4,
+                              height: 1.45,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -202,31 +203,39 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
-                Container(
+
+                // ── Equipment summary ───────────────────────────────────
+                GlassCard(
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-                    boxShadow: AppShadows.soft,
-                  ),
                   child: Row(
                     children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: AppColors.primarySoft,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primarySoft,
+                              AppColors.primarySoft.withValues(alpha: 0.4),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(AppRadius.md),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.14),
+                          ),
                         ),
                         child: Icon(
-                          equipmentIcon('${equipment.category} ${equipment.name}'),
+                          equipmentIcon(
+                              '${equipment.category} ${equipment.name}'),
                           color: AppColors.primary,
-                          size: 24,
+                          size: 25,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 13),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,6 +246,7 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
+                            const SizedBox(height: 2),
                             Text('${equipment.availableQuantity} available',
                                 style: Theme.of(context).textTheme.bodyMedium),
                           ],
@@ -245,87 +255,120 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Text('Quantity to Borrow', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _StepperButton(
-                      icon: Icons.remove_rounded,
-                      onTap: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text('$_quantity', style: Theme.of(context).textTheme.titleLarge),
-                    ),
-                    _StepperButton(
-                      icon: Icons.add_rounded,
-                      onTap: _quantity < equipment.availableQuantity
-                          ? () => setState(() => _quantity++)
-                          : null,
-                    ),
-                  ],
+                const SizedBox(height: 24),
+
+                // ── Quantity ────────────────────────────────────────────
+                const GlassSectionLabel('Quantity to Borrow'),
+                const SizedBox(height: 10),
+                GlassCard(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '$_quantity unit${_quantity == 1 ? '' : 's'}',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      _StepperButton(
+                        icon: Icons.remove_rounded,
+                        onTap: _quantity > 1
+                            ? () => setState(() => _quantity--)
+                            : null,
+                      ),
+                      const SizedBox(width: 10),
+                      _StepperButton(
+                        icon: Icons.add_rounded,
+                        onTap: _quantity < equipment.availableQuantity
+                            ? () => setState(() => _quantity++)
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                Text('Borrowing Date', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
+                const SizedBox(height: 22),
+
+                // ── Dates ───────────────────────────────────────────────
+                const GlassSectionLabel('Schedule'),
+                const SizedBox(height: 10),
                 _DateSelector(
+                  icon: Icons.login_rounded,
                   label: _borrowDate == null
                       ? 'Select borrowing date'
                       : _dateFormat.format(_borrowDate!),
                   hasValue: _borrowDate != null,
                   onTap: () => _pickBorrowDate(DateTime.now()),
                 ),
-                const SizedBox(height: 16),
-                Text('Return Date', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 _DateSelector(
-                  label:
-                      _returnDate == null ? 'Select return date' : _dateFormat.format(_returnDate!),
+                  icon: Icons.logout_rounded,
+                  label: _returnDate == null
+                      ? 'Select return date'
+                      : _dateFormat.format(_returnDate!),
                   hasValue: _returnDate != null,
                   onTap: _pickReturnDate,
                 ),
-                const SizedBox(height: 20),
-                Text('Purpose / Reason', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
+                const SizedBox(height: 22),
+
+                // ── Purpose / notes ─────────────────────────────────────
+                const GlassSectionLabel('Details'),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _purposeController,
                   maxLines: 2,
                   textInputAction: TextInputAction.newline,
                   decoration: const InputDecoration(
-                      hintText: 'e.g. Thesis presentation, org event...'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Purpose is required' : null,
+                    hintText: 'Purpose — e.g. Thesis presentation, org event…',
+                    prefixIcon: Icon(Icons.edit_note_rounded),
+                  ),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Purpose is required'
+                      : null,
                 ),
-                const SizedBox(height: 16),
-                Text('Additional Notes (optional)', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: _notesController,
                   maxLines: 2,
                   textInputAction: TextInputAction.newline,
-                  decoration: const InputDecoration(hintText: 'Any additional information...'),
+                  decoration: const InputDecoration(
+                    hintText: 'Additional notes (optional)',
+                    prefixIcon: Icon(Icons.notes_rounded),
+                  ),
                 ),
                 const SizedBox(height: 20),
+
+                // ── Summary ─────────────────────────────────────────────
                 if (_borrowDate != null && _returnDate != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySoft.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                    ),
+                  GlassPanel(
+                    blur: 0,
+                    radius: AppRadius.lg,
+                    padding: const EdgeInsets.all(15),
+                    shadows: AppShadows.soft,
+                    tint: AppColors.primary
+                        .withValues(alpha: AppColors.isDark ? 0.14 : 0.07),
+                    borderColor: AppColors.primary.withValues(alpha: 0.18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Request Summary', style: Theme.of(context).textTheme.titleSmall),
-                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.receipt_long_rounded,
+                                size: 16, color: AppColors.primary),
+                            const SizedBox(width: 7),
+                            Text('Request Summary',
+                                style: Theme.of(context).textTheme.titleSmall),
+                          ],
+                        ),
+                        const SizedBox(height: 9),
                         Text(
                           '${equipment.name} × $_quantity',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 13.5),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
                           '${_dateFormat.format(_borrowDate!)} → ${_dateFormat.format(_returnDate!)}',
                           style: Theme.of(context).textTheme.bodyMedium,
@@ -336,7 +379,12 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                 const SizedBox(height: 24),
                 CustomButton(
                   label: isPending ? 'Verification Required' : 'Submit Request',
-                  onPressed: isPending ? null : () => _submit(equipment.availableQuantity),
+                  icon: isPending
+                      ? Icons.lock_outline_rounded
+                      : Icons.send_rounded,
+                  onPressed: isPending
+                      ? null
+                      : () => _submit(equipment.availableQuantity),
                   loading: _loading,
                 ),
               ],
@@ -356,20 +404,24 @@ class _StepperButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
-    return Material(
-      color: enabled ? AppColors.primarySoft : AppColors.surfaceMuted,
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Icon(
-            icon,
-            size: 20,
-            color: enabled ? AppColors.primary : AppColors.textTertiary,
+    return Pressable(
+      onTap: onTap,
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: enabled ? AppColors.primarySoft : AppColors.surfaceMuted,
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(
+            color: enabled
+                ? AppColors.primary.withValues(alpha: 0.18)
+                : AppColors.divider,
           ),
+        ),
+        child: Icon(
+          icon,
+          size: 19,
+          color: enabled ? AppColors.primary : AppColors.textTertiary,
         ),
       ),
     );
@@ -377,48 +429,56 @@ class _StepperButton extends StatelessWidget {
 }
 
 class _DateSelector extends StatelessWidget {
+  final IconData icon;
   final String label;
   final bool hasValue;
   final VoidCallback onTap;
-  const _DateSelector({required this.label, required this.hasValue, required this.onTap});
+  const _DateSelector({
+    required this.icon,
+    required this.label,
+    required this.hasValue,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: AppColors.divider),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: 18,
+    return Pressable(
+      onTap: onTap,
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: (hasValue ? AppColors.primary : AppColors.textTertiary)
+                    .withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Icon(
+                icon,
+                size: 17,
                 color: hasValue ? AppColors.primary : AppColors.textTertiary,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: hasValue ? AppColors.textPrimary : AppColors.textTertiary,
-                  ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
+                  color:
+                      hasValue ? AppColors.textPrimary : AppColors.textTertiary,
                 ),
               ),
-              Icon(Icons.expand_more_rounded, size: 20, color: AppColors.textTertiary),
-            ],
-          ),
+            ),
+            Icon(Icons.expand_more_rounded,
+                size: 20, color: AppColors.textTertiary),
+          ],
         ),
       ),
     );

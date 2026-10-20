@@ -5,6 +5,7 @@ import '../../app/theme.dart';
 import '../../models/borrowing_transaction.dart';
 import '../../state/app_state.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/liquid_glass.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/status_badge.dart';
 import '../history/transaction_details_screen.dart';
@@ -35,45 +36,67 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     final requests = _applyFilter(all);
     final dateFormat = DateFormat('MMM d');
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return LiquidScaffold(
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
             // ── Header ────────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Requests', style: Theme.of(context).textTheme.headlineLarge),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${requests.length} of ${all.length}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Requests',
+                                style:
+                                    Theme.of(context).textTheme.headlineLarge),
+                            const SizedBox(height: 3),
+                            Text(
+                              '${requests.length} of ${all.length}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      GlassIconButton(
+                        icon: Icons.history_rounded,
+                        tooltip: 'History',
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/history'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
                   // ── Status chips ────────────────────────────────────────
                   if (all.isNotEmpty)
                     SizedBox(
-                      height: 34,
+                      height: 37,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         physics: const BouncingScrollPhysics(),
                         clipBehavior: Clip.none,
                         children: [
-                          _StatusChip(
+                          GlassChip(
                             label: 'All',
                             selected: _statusFilter == null,
                             onTap: () => setState(() => _statusFilter = null),
                           ),
+                          const SizedBox(width: 8),
                           ..._filters.map(
-                            (s) => _StatusChip(
-                              label: s.label,
-                              selected: _statusFilter == s,
-                              onTap: () => setState(() => _statusFilter = s),
+                            (s) => Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GlassChip(
+                                label: s.label,
+                                selected: _statusFilter == s,
+                                onTap: () => setState(() => _statusFilter = s),
+                              ),
                             ),
                           ),
                         ],
@@ -94,7 +117,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     ? const EmptyState(
                         icon: Icons.assignment_outlined,
                         title: 'No requests',
-                        subtitle: 'Browse equipment to submit your first request.',
+                        subtitle:
+                            'Browse equipment to submit your first request.',
                       )
                     : ListView.separated(
                         physics: const BouncingScrollPhysics(
@@ -114,7 +138,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                                       transactionId: txn.transactionId)),
                             ),
                             onCancel: txn.status == RequestStatus.pending
-                                ? () => _confirmCancel(context, txn.transactionId)
+                                ? () =>
+                                    _confirmCancel(context, txn.transactionId)
                                 : null,
                           );
                         },
@@ -128,26 +153,34 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   }
 
   List<BorrowingTransaction> _applyFilter(List<BorrowingTransaction> all) {
-    final filtered =
-        _statusFilter == null ? all : all.where((t) => t.status == _statusFilter).toList();
+    final filtered = _statusFilter == null
+        ? all
+        : all.where((t) => t.status == _statusFilter).toList();
     // Newest requests first.
-    final sorted = [...filtered]..sort((a, b) => b.requestDate.compareTo(a.requestDate));
+    final sorted = [...filtered]
+      ..sort((a, b) => b.requestDate.compareTo(a.requestDate));
     return sorted;
   }
 
   void _confirmCancel(BuildContext context, String transactionId) {
-    showDialog(
+    showGlassDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cancel request?'),
-        content: const Text('This cannot be undone.'),
+      builder: (ctx) => GlassDialog(
+        icon: Icons.cancel_outlined,
+        iconColor: AppColors.danger,
+        title: 'Cancel request?',
+        message: 'This cannot be undone.',
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Keep')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Keep'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
               setState(() => _cancellingId = transactionId);
-              final error = await context.read<AppState>().cancelRequest(transactionId);
+              final error =
+                  await context.read<AppState>().cancelRequest(transactionId);
               if (!mounted) return;
               setState(() => _cancellingId = null);
               ScaffoldMessenger.of(this.context).showSnackBar(
@@ -158,7 +191,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
               );
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('Cancel'),
+            child: const Text('Cancel Request'),
           ),
         ],
       ),
@@ -167,7 +200,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Request tile — status dot, item name, date range, status pill.
+// Request tile — status accent, item name, date range, status pill.
 // ---------------------------------------------------------------------------
 class _RequestTile extends StatelessWidget {
   final BorrowingTransaction txn;
@@ -196,25 +229,33 @@ class _RequestTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Pressable(
       onTap: onTap,
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-          boxShadow: AppShadows.soft,
-        ),
         child: Column(
           children: [
             Row(
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
-                  decoration:
-                      BoxDecoration(color: _statusColor, shape: BoxShape.circle),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: _statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Icon(
+                    switch (txn.status) {
+                      RequestStatus.pending => Icons.hourglass_top_rounded,
+                      RequestStatus.approved => Icons.check_rounded,
+                      RequestStatus.rejected => Icons.close_rounded,
+                      RequestStatus.completed => Icons.task_alt_rounded,
+                      RequestStatus.cancelled =>
+                        Icons.remove_circle_outline_rounded,
+                    },
+                    size: 18,
+                    color: _statusColor,
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 11),
                 Expanded(
                   child: Text(
                     '${txn.equipmentName}  ·  ${txn.quantity}',
@@ -227,18 +268,22 @@ class _RequestTile extends StatelessWidget {
                 StatusBadge.forRequest(txn.status),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.only(left: 20),
+              padding: const EdgeInsets.only(left: 47),
               child: Row(
                 children: [
-                  Icon(Icons.event_outlined, size: 14, color: AppColors.textTertiary),
+                  Icon(Icons.event_outlined,
+                      size: 14, color: AppColors.textTertiary),
                   const SizedBox(width: 6),
-                  Text(
-                    '${dateFormat.format(txn.borrowingDate)} → ${dateFormat.format(txn.returnDate)}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Expanded(
+                    child: Text(
+                      '${dateFormat.format(txn.borrowingDate)} → ${dateFormat.format(txn.returnDate)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
-                  const Spacer(),
                   if (onCancel != null)
                     SizedBox(
                       height: 28,
@@ -251,62 +296,13 @@ class _RequestTile extends StatelessWidget {
                           textStyle: const TextStyle(
                               fontSize: 12, fontWeight: FontWeight.w600),
                         ),
-                        child: Text(cancelling ? 'Cancelling' : 'Cancel'),
+                        child: Text(cancelling ? 'Cancelling…' : 'Cancel'),
                       ),
                     ),
                 ],
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Status chip — quiet pill that fills with brand color when selected.
-// ---------------------------------------------------------------------------
-class _StatusChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _StatusChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Material(
-        color: selected ? AppColors.primary : AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(
-                color: selected ? AppColors.primary : AppColors.divider,
-              ),
-            ),
-            child: Text(
-              label,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : AppColors.textSecondary,
-              ),
-            ),
-          ),
         ),
       ),
     );
