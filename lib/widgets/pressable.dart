@@ -10,17 +10,19 @@ class Pressable extends StatefulWidget {
   final VoidCallback? onTap;
   final BorderRadius? borderRadius;
 
-  const Pressable({super.key, required this.child, this.onTap, this.borderRadius});
+  const Pressable(
+      {super.key, required this.child, this.onTap, this.borderRadius});
 
   @override
   State<Pressable> createState() => _PressableState();
 }
 
-class _PressableState extends State<Pressable> with SingleTickerProviderStateMixin {
+class _PressableState extends State<Pressable>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller =
       AnimationController(vsync: this, duration: AppMotion.fast, value: 1.0);
-  late final Animation<double> _scale =
-      Tween(begin: 0.955, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: AppMotion.springy));
+  late final Animation<double> _scale = Tween(begin: 0.955, end: 1.0)
+      .animate(CurvedAnimation(parent: _controller, curve: AppMotion.springy));
 
   @override
   void dispose() {
@@ -40,15 +42,18 @@ class _PressableState extends State<Pressable> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return GestureDetector(
-      onTapDown: (_) => _down(),
-      onTapUp: (_) => _up(),
-      onTapCancel: _up,
+      onTapDown: reduce ? null : (_) => _down(),
+      onTapUp: reduce ? null : (_) => _up(),
+      onTapCancel: reduce ? null : _up,
       onTap: widget.onTap,
-      child: ScaleTransition(
-        scale: _scale,
-        child: widget.child,
-      ),
+      child: reduce
+          ? widget.child
+          : ScaleTransition(
+              scale: _scale,
+              child: widget.child,
+            ),
     );
   }
 }
@@ -64,13 +69,14 @@ class Entrance extends StatefulWidget {
   State<Entrance> createState() => _EntranceState();
 }
 
-class _EntranceState extends State<Entrance> with SingleTickerProviderStateMixin {
+class _EntranceState extends State<Entrance>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller =
       AnimationController(vsync: this, duration: AppMotion.entrance);
   late final Animation<double> _fade =
       CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-  late final Animation<double> _rise = Tween(begin: 18.0, end: 0.0)
-      .animate(CurvedAnimation(parent: _controller, curve: AppMotion.emphasized));
+  late final Animation<double> _rise = Tween(begin: 18.0, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: AppMotion.emphasized));
   Timer? _delayTimer;
 
   @override
@@ -90,11 +96,15 @@ class _EntranceState extends State<Entrance> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      return widget.child;
+    }
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) => Opacity(
         opacity: _fade.value,
-        child: Transform.translate(offset: Offset(0, _rise.value), child: child),
+        child:
+            Transform.translate(offset: Offset(0, _rise.value), child: child),
       ),
       child: widget.child,
     );
@@ -138,13 +148,15 @@ class SectionHeader extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
 
-  const SectionHeader({super.key, required this.title, this.actionLabel, this.onAction});
+  const SectionHeader(
+      {super.key, required this.title, this.actionLabel, this.onAction});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(title, style: Theme.of(context).textTheme.titleLarge)),
+        Expanded(
+            child: Text(title, style: Theme.of(context).textTheme.titleLarge)),
         if (actionLabel != null)
           TextButton(onPressed: onAction, child: Text(actionLabel!)),
       ],

@@ -15,24 +15,40 @@ class AppMotion {
 
   /// Subtle overshoot for micro-interactions (never cartoonish).
   static const Curve springy = Curves.easeOutBack;
+
+  /// Returns [duration] or zero when the platform asks for reduced motion.
+  static Duration responsive(BuildContext context, Duration duration) {
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    return reduce ? Duration.zero : duration;
+  }
 }
 
-/// Default page route: a quick forward slide + fade with a smooth curve.
+/// Default page route: an iOS-style forward slide + soft fade.
 class AppPageRoute<T> extends PageRouteBuilder<T> {
   AppPageRoute({required WidgetBuilder builder, super.settings})
       : super(
           transitionDuration: AppMotion.pageIn,
           reverseTransitionDuration: AppMotion.pageOut,
-          pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              builder(context),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final curved = CurvedAnimation(parent: animation, curve: AppMotion.emphasized);
+            final reduce =
+                MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+            if (reduce) return child;
+
+            final curved =
+                CurvedAnimation(parent: animation, curve: AppMotion.emphasized);
             final slide = Tween<Offset>(
-              begin: const Offset(0.1, 0),
+              begin: const Offset(0.16, 0),
               end: Offset.zero,
             ).animate(curved);
+            final scale = Tween<double>(begin: 0.985, end: 1).animate(curved);
             return FadeTransition(
               opacity: curved,
-              child: SlideTransition(position: slide, child: child),
+              child: SlideTransition(
+                position: slide,
+                child: ScaleTransition(scale: scale, child: child),
+              ),
             );
           },
         );
