@@ -80,12 +80,8 @@ class _NotificationCardState extends State<NotificationCard> {
         blur: 0,
         radius: AppRadius.lg,
         padding: EdgeInsets.zero,
-        shadows: AppShadows.soft,
-        tint: _unread
-            ? AppColors.primary
-                .withValues(alpha: AppColors.isDark ? 0.15 : 0.08)
-            : null,
-        borderColor: _unread ? AppColors.primary.withValues(alpha: 0.28) : null,
+        shadows: AppShadows.card,
+        tint: _unread ? AppColors.primarySoft : null,
         child: AnimatedContainer(
           duration: AppMotion.responsive(context, AppMotion.normal),
           curve: AppMotion.emphasized,
@@ -93,16 +89,10 @@ class _NotificationCardState extends State<NotificationCard> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Tinted icon box ────────────────────────────────────────
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: _color.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(color: _color.withValues(alpha: 0.16)),
-                ),
-                child: Icon(_icon, color: _color, size: 20),
+              // ── Icon ─────────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(_icon, color: _color, size: 22),
               ),
               const SizedBox(width: 12),
 

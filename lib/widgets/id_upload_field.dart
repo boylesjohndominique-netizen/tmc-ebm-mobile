@@ -74,9 +74,6 @@ class IdPhotoField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImage = imagePath != null;
-    final borderColor = errorText != null
-        ? AppColors.danger.withValues(alpha: 0.55)
-        : AppColors.divider;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,20 +96,15 @@ class IdPhotoField extends StatelessWidget {
             height: 150,
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: hasImage ? null : AppColors.glassSheen,
-              color: hasImage ? Colors.black.withValues(alpha: 0.03) : null,
+              color: errorText != null
+                  ? AppColors.danger.withValues(alpha: 0.08)
+                  : AppColors.surfaceMuted,
               borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(
-                color: hasImage
-                    ? AppColors.primary.withValues(alpha: 0.4)
-                    : (errorText != null ? borderColor : AppColors.glassBorder),
-                width: hasImage ? 1.6 : 1.2,
-              ),
-              boxShadow: hasImage ? null : AppShadows.soft,
+              boxShadow: AppShadows.soft,
             ),
             child: hasImage
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadius.lg - 1),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -168,18 +160,8 @@ class IdPhotoField extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySoft,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.photo_camera_outlined,
-                              color: AppColors.primary, size: 22),
-                        ),
-                      ),
+                      const Icon(Icons.photo_camera_outlined,
+                          color: AppColors.primary, size: 28),
                       const SizedBox(height: 10),
                       Text(
                         hint ?? 'Tap to take a photo',
@@ -238,7 +220,7 @@ class _IconAction extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: Colors.white.withValues(alpha: 0.22),
+        color: Colors.transparent,
         shape: const CircleBorder(),
         child: InkWell(
           customBorder: const CircleBorder(),
@@ -247,7 +229,7 @@ class _IconAction extends StatelessWidget {
             padding: const EdgeInsets.all(5),
             child: Icon(
               icon,
-              size: 16,
+              size: 18,
               color: danger ? const Color(0xFFFFB4AE) : Colors.white,
             ),
           ),

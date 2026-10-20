@@ -110,7 +110,6 @@ class _BannedAccountDialogState extends State<BannedAccountDialog> {
                   textInputAction: TextInputAction.newline,
                   decoration: const InputDecoration(
                     hintText: 'Explain why your account should be reinstated…',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 if (_error != null)

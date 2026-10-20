@@ -59,7 +59,7 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: filled ? color : color.withValues(alpha: 0.13),
+        color: filled ? color : color.withValues(alpha: 0.14),
         gradient: filled
             ? LinearGradient(
                 begin: Alignment.topLeft,
@@ -68,11 +68,6 @@ class StatusBadge extends StatelessWidget {
               )
             : null,
         borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(
-          color: filled
-              ? Colors.white.withValues(alpha: 0.22)
-              : color.withValues(alpha: 0.22),
-        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -81,7 +76,7 @@ class StatusBadge extends StatelessWidget {
             width: 5,
             height: 5,
             decoration: BoxDecoration(
-              color: filled ? Colors.white : color,
+              color: filled ? AppColors.onPrimary : color,
               shape: BoxShape.circle,
             ),
           ),
@@ -91,7 +86,7 @@ class StatusBadge extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.fade,
             style: TextStyle(
-              color: filled ? Colors.white : color,
+              color: filled ? AppColors.onPrimary : color,
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.1,

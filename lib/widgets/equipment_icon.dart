@@ -100,6 +100,8 @@ class EquipmentVisual extends StatelessWidget {
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
+      cacheWidth: 240,
+      filterQuality: FilterQuality.medium,
       errorBuilder: (_, __, ___) => fallback,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;

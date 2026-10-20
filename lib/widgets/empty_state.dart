@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../app/theme.dart';
-import 'liquid_glass.dart';
 
 /// Attractive, overflow-safe empty state used across all list screens.
 class EmptyState extends StatelessWidget {
@@ -20,29 +19,8 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            GlassPanel(
-              blur: 18,
-              radius: 42,
-              padding: const EdgeInsets.all(4),
-              shadows: AppShadows.soft,
-              child: Container(
-                width: 82,
-                height: 82,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primarySoft,
-                      AppColors.primarySoft.withValues(alpha: 0.35),
-                    ],
-                  ),
-                ),
-                child: Icon(icon, size: 36, color: AppColors.primary),
-              ),
-            ),
-            const SizedBox(height: 20),
+            Icon(icon, size: 46, color: AppColors.primary),
+            const SizedBox(height: 16),
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge,

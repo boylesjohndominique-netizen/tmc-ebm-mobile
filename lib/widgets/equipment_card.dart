@@ -21,26 +21,12 @@ class EquipmentCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            Container(
+            SizedBox(
               width: 56,
               height: 56,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.primarySoft,
-                    AppColors.primarySoft.withValues(alpha: 0.45),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.14),
-                ),
-              ),
               child: EquipmentVisual(
                 equipment: equipment,
-                iconSize: 26,
+                iconSize: 28,
                 iconColor: AppColors.primary,
                 borderRadius: BorderRadius.circular(AppRadius.md - 1),
               ),
@@ -82,19 +68,10 @@ class EquipmentCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: AppColors.glassFill,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.glassBorderSoft),
-              ),
-              child: Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: AppColors.textTertiary,
-              ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: AppColors.textSecondary,
             ),
           ],
         ),

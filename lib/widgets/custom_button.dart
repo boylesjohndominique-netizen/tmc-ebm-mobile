@@ -38,7 +38,7 @@ class CustomButton extends StatelessWidget {
               height: 21,
               child: CircularProgressIndicator(
                 strokeWidth: 2.3,
-                color: outlined ? AppColors.primary : Colors.white,
+                color: outlined ? AppColors.primary : AppColors.onPrimary,
               ),
             )
           : Row(
@@ -73,9 +73,9 @@ class CustomButton extends StatelessWidget {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 22),
             decoration: BoxDecoration(
-              color: AppColors.glassFill,
+              color: AppColors.surfaceMuted,
               borderRadius: radius,
-              border: Border.all(color: AppColors.divider),
+              boxShadow: disabled ? null : AppShadows.soft,
             ),
             child: IconTheme(
               data: const IconThemeData(color: AppColors.primary, size: 18),
@@ -113,14 +113,13 @@ class CustomButton extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: gradient,
             borderRadius: radius,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
             boxShadow: disabled ? null : AppShadows.primaryGlow,
           ),
           child: IconTheme(
-            data: const IconThemeData(color: Colors.white, size: 18),
+            data: const IconThemeData(color: AppColors.onPrimary, size: 18),
             child: DefaultTextStyle.merge(
               style: TextStyle(
-                color: textColor ?? Colors.white,
+                color: textColor ?? AppColors.onPrimary,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.1,

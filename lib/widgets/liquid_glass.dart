@@ -27,21 +27,22 @@ class TmcBackgroundImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveOpacity = imageOpacity ?? (dark ? 0.50 : 0.42);
+    final hasCustomOverlay = overlayGradient != null;
+    final effectiveOpacity = imageOpacity ?? (dark ? 0.24 : 0.16);
     final effectiveOverlay = overlayGradient ??
         LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: dark
               ? const [
-                  Color(0xD6060B14),
-                  Color(0xA80B162C),
-                  Color(0xDE060A12),
+                  Color(0xE018202F),
+                  Color(0xD41B2436),
+                  Color(0xE8161E2C),
                 ]
-              : [
-                  const Color(0xFF0D1E3D).withValues(alpha: 0.28),
-                  const Color(0xFF13284C).withValues(alpha: 0.18),
-                  const Color(0xFF0D1E3D).withValues(alpha: 0.32),
+              : const [
+                  Color(0xEBF2F5FA),
+                  Color(0xE0EEF2F8),
+                  Color(0xEDF0F4FA),
                 ],
           stops: const [0.0, 0.5, 1.0],
         );
@@ -60,20 +61,20 @@ class TmcBackgroundImage extends StatelessWidget {
                     sigmaY: blurSigma,
                     tileMode: TileMode.clamp,
                   ),
-                  child: Opacity(
-                    opacity: effectiveOpacity,
-                    child: ColorFiltered(
-                      colorFilter: ColorFilter.mode(
-                        Colors.black.withValues(alpha: dark ? 0.44 : 0.30),
-                        BlendMode.darken,
-                      ),
-                      child: Image.asset(
-                        kTmcBackgroundAsset,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.center,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                      ),
-                    ),
+                  child: Image.asset(
+                    kTmcBackgroundAsset,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    cacheWidth: 480,
+                    filterQuality: FilterQuality.low,
+                    opacity: AlwaysStoppedAnimation<double>(effectiveOpacity),
+                    color: (dark || hasCustomOverlay)
+                        ? const Color(0xFF18202F).withValues(alpha: 0.35)
+                        : const Color(0xFFEEF2F7).withValues(alpha: 0.25),
+                    colorBlendMode: (dark || hasCustomOverlay)
+                        ? BlendMode.darken
+                        : BlendMode.softLight,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                   ),
                 ),
               ),
@@ -97,43 +98,52 @@ class LiquidBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = AppColors.isDark;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
         Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(gradient: AppColors.ambientGradient),
+          child: RepaintBoundary(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                DecoratedBox(
+                  decoration:
+                      BoxDecoration(gradient: AppColors.ambientGradient),
+                ),
+                const TmcBackgroundImage(),
+                if (orbs) ...[
+                  Positioned(
+                    top: -150,
+                    right: -120,
+                    child: _Orb(
+                      size: 360,
+                      color: AppColors.primary
+                          .withValues(alpha: dark ? 0.18 : 0.10),
+                    ),
+                  ),
+                  Positioned(
+                    top: 260,
+                    left: -190,
+                    child: _Orb(
+                      size: 380,
+                      color:
+                          AppColors.gold.withValues(alpha: dark ? 0.10 : 0.08),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -160,
+                    right: -120,
+                    child: _Orb(
+                      size: 360,
+                      color:
+                          AppColors.info.withValues(alpha: dark ? 0.14 : 0.08),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-        const Positioned.fill(
-          child: TmcBackgroundImage(),
-        ),
-        if (orbs) ...[
-          Positioned(
-            top: -150,
-            right: -120,
-            child: _Orb(
-              size: 360,
-              color: AppColors.primary.withValues(alpha: dark ? 0.30 : 0.18),
-            ),
-          ),
-          Positioned(
-            top: 260,
-            left: -190,
-            child: _Orb(
-              size: 380,
-              color: AppColors.gold.withValues(alpha: dark ? 0.12 : 0.11),
-            ),
-          ),
-          Positioned(
-            bottom: -160,
-            right: -120,
-            child: _Orb(
-              size: 360,
-              color: AppColors.info.withValues(alpha: dark ? 0.20 : 0.13),
-            ),
-          ),
-        ],
         Positioned.fill(child: child),
       ],
     );
@@ -211,7 +221,6 @@ class GlassPanel extends StatelessWidget {
   final double blur;
   final bool strong;
   final Color? tint;
-  final Color? borderColor;
   final Gradient? gradient;
   final List<BoxShadow>? shadows;
 
@@ -223,7 +232,6 @@ class GlassPanel extends StatelessWidget {
     this.blur = 18,
     this.strong = false,
     this.tint,
-    this.borderColor,
     this.gradient,
     this.shadows,
   });
@@ -252,27 +260,28 @@ class GlassPanel extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         gradient: effectiveGradient,
-        border: Border.all(
-          color: borderColor ?? AppColors.glassBorder,
-          width: 1,
-        ),
       ),
       child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
     );
 
     if (blur > 0) {
-      surface = BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: surface,
+      surface = ClipRRect(
+        borderRadius: borderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: surface,
+        ),
       );
+    } else if (padding == null || padding == EdgeInsets.zero) {
+      surface = ClipRRect(borderRadius: borderRadius, child: surface);
     }
 
     return Container(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        boxShadow: shadows ?? AppShadows.glass,
+        boxShadow: shadows ?? AppShadows.card,
       ),
-      child: ClipRRect(borderRadius: borderRadius, child: surface),
+      child: surface,
     );
   }
 }
@@ -296,7 +305,7 @@ class GlassCard extends StatelessWidget {
       blur: 0,
       radius: radius,
       padding: padding,
-      shadows: AppShadows.soft,
+      shadows: AppShadows.card,
       child: child,
     );
   }
@@ -313,7 +322,6 @@ class GlassIconButton extends StatelessWidget {
   final bool active;
   final Widget? badge;
   final Color? tint;
-  final Color? borderColor;
 
   const GlassIconButton({
     super.key,
@@ -326,34 +334,25 @@ class GlassIconButton extends StatelessWidget {
     this.active = false,
     this.badge,
     this.tint,
-    this.borderColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final content = GlassPanel(
-      blur: 14,
-      radius: size / 2.7,
-      padding: EdgeInsets.zero,
-      shadows: AppShadows.soft,
-      tint: tint ?? (active ? AppColors.primary : null),
-      borderColor: borderColor ?? (active ? AppColors.primary : null),
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Icon(
-              icon,
-              size: iconSize,
-              color:
-                  iconColor ?? (active ? Colors.white : AppColors.textPrimary),
-            ),
-            if (badge != null) Positioned(top: 6, right: 7, child: badge!),
-          ],
-        ),
+    final content = SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            icon,
+            size: iconSize,
+            color: iconColor ??
+                (active ? AppColors.primary : AppColors.textPrimary),
+          ),
+          if (badge != null) Positioned(top: 6, right: 7, child: badge!),
+        ],
       ),
     );
 
@@ -396,14 +395,9 @@ class GlassChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
         decoration: BoxDecoration(
           gradient: selected ? AppColors.premiumGradient : null,
-          color: selected ? null : AppColors.glassFill,
+          color: selected ? null : AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(
-            color: selected
-                ? AppColors.primary.withValues(alpha: 0.55)
-                : AppColors.glassBorder,
-          ),
-          boxShadow: selected ? AppShadows.primaryGlow : null,
+          boxShadow: selected ? AppShadows.primaryGlow : AppShadows.soft,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -412,7 +406,7 @@ class GlassChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 14,
-                color: selected ? Colors.white : AppColors.textSecondary,
+                color: selected ? AppColors.onPrimary : AppColors.textSecondary,
               ),
               const SizedBox(width: 6),
             ],
@@ -423,7 +417,7 @@ class GlassChip extends StatelessWidget {
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.1,
-                color: selected ? Colors.white : AppColors.textSecondary,
+                color: selected ? AppColors.onPrimary : AppColors.textPrimary,
               ),
             ),
             if (count != null) ...[
@@ -433,8 +427,8 @@ class GlassChip extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                 decoration: BoxDecoration(
                   color: selected
-                      ? Colors.white.withValues(alpha: 0.22)
-                      : AppColors.textTertiary.withValues(alpha: 0.14),
+                      ? AppColors.onPrimary.withValues(alpha: 0.22)
+                      : AppColors.surfaceMuted,
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Text(
@@ -442,7 +436,9 @@ class GlassChip extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
-                    color: selected ? Colors.white : AppColors.textTertiary,
+                    color: selected
+                        ? AppColors.onPrimary
+                        : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -569,17 +565,7 @@ class GlassDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (icon != null) ...[
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: (iconColor ?? AppColors.primary)
-                        .withValues(alpha: 0.14),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon,
-                      size: 22, color: iconColor ?? AppColors.primary),
-                ),
+                Icon(icon, size: 28, color: iconColor ?? AppColors.primary),
                 const SizedBox(height: 14),
               ],
               Text(title, style: Theme.of(context).textTheme.titleLarge),

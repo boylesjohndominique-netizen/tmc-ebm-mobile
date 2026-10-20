@@ -50,9 +50,9 @@ class FloatingNavBar extends StatelessWidget {
         child: GlassPanel(
           blur: 30,
           strong: true,
-          radius: 30,
+          radius: AppRadius.pill,
           shadows: AppShadows.floating,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: SizedBox(
             height: 58,
             child: Row(
@@ -106,23 +106,8 @@ class _NavItem extends StatelessWidget {
         button: true,
         selected: selected,
         label: label,
-        child: AnimatedContainer(
-          duration: duration,
-          curve: AppMotion.emphasized,
-          margin: const EdgeInsets.symmetric(horizontal: 1),
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: selected
-                ? AppColors.primary
-                    .withValues(alpha: AppColors.isDark ? 0.20 : 0.12)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? AppColors.primary.withValues(alpha: 0.20)
-                  : Colors.transparent,
-            ),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 6),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -136,8 +121,9 @@ class _NavItem extends StatelessWidget {
                     child: Icon(
                       selected ? activeIcon : icon,
                       size: 21,
-                      color:
-                          selected ? AppColors.primary : AppColors.textTertiary,
+                      color: selected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
                     ),
                   ),
                   if (showDot)
@@ -147,13 +133,9 @@ class _NavItem extends StatelessWidget {
                       child: Container(
                         width: 8,
                         height: 8,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.danger,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.surface.withValues(alpha: 0.9),
-                            width: 1.4,
-                          ),
                         ),
                       ),
                     ),
@@ -166,9 +148,9 @@ class _NavItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 9.5,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                   letterSpacing: -0.1,
-                  color: selected ? AppColors.primary : AppColors.textTertiary,
+                  color: selected ? AppColors.primary : AppColors.textSecondary,
                 ),
               ),
             ],

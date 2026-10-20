@@ -39,14 +39,7 @@ class StatisticCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Icon(icon, color: color, size: compact ? 16 : 18),
-                  ),
+                  Icon(icon, color: color, size: compact ? 18 : 20),
                   const SizedBox(height: 10),
                   Text(
                     value,

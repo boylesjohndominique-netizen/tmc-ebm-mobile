@@ -23,103 +23,104 @@ class AmbientBackground extends StatefulWidget {
 }
 
 class _AmbientBackgroundState extends State<AmbientBackground>
-    with TickerProviderStateMixin {
-  late final List<AnimationController> _orbControllers;
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _orbController;
 
   @override
   void initState() {
     super.initState();
-    // Slow ambient drift for the three background orbs.
-    _orbControllers = List.generate(3, (i) {
-      return AnimationController(
-        vsync: this,
-        duration: Duration(seconds: 9 + i * 3),
-        value: math.Random(i * 7 + 1).nextDouble(),
-      )..repeat(reverse: true);
-    });
+    // Single shared controller for the three background orbs.
+    _orbController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    for (final c in _orbControllers) {
-      c.dispose();
-    }
+    _orbController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Stack(
       children: [
-        // ── Gradient wash + blurred darkened TMC campus backdrop ─────────────
+        // ── Isolated background + drifting orbs layer ───────────────────────
         Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(gradient: AppColors.ambientGradient),
-          ),
-        ),
-        const Positioned.fill(
-          child: TmcBackgroundImage(),
-        ),
-        Positioned.fill(
-          child: IgnorePointer(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(-0.2, -1.0),
-                  radius: 1.5,
-                  colors: [
-                    AppColors.primary.withValues(
-                      alpha: AppColors.isDark ? 0.26 : 0.16,
+          child: RepaintBoundary(
+            child: IgnorePointer(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration:
+                        BoxDecoration(gradient: AppColors.ambientGradient),
+                  ),
+                  const TmcBackgroundImage(),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: const Alignment(-0.2, -1.0),
+                        radius: 1.5,
+                        colors: [
+                          AppColors.primary.withValues(
+                            alpha: AppColors.isDark ? 0.26 : 0.16,
+                          ),
+                          Colors.transparent,
+                        ],
+                        stops: const [0.0, 0.8],
+                      ),
                     ),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.8],
-                ),
+                  ),
+                  ...List.generate(3, (i) {
+                    final colors = [
+                      [AppColors.primary, AppColors.primaryDeep],
+                      [AppColors.gold, const Color(0xFFFFD98A)],
+                      [AppColors.info, AppColors.primary],
+                    ][i];
+                    final sizes = [260.0, 180.0, 220.0][i];
+                    final phase = i * 2.1;
+                    return Positioned(
+                      top: [-80.0, 130.0, 40.0][i],
+                      right: [-90.0, -70.0, null][i],
+                      left: [null, null, -100.0][i],
+                      child: AnimatedBuilder(
+                        animation: _orbController,
+                        builder: (context, child) {
+                          final angle =
+                              _orbController.value * 2 * math.pi + phase;
+                          return Transform.translate(
+                            offset: Offset(
+                              math.sin(angle) * (10.0 + i * 4),
+                              math.cos(angle) * (8.0 + i * 3),
+                            ),
+                            child: child,
+                          );
+                        },
+                        child: Container(
+                          width: sizes,
+                          height: sizes,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                colors.first
+                                    .withValues(alpha: isDark ? 0.18 : 0.10),
+                                colors.last.withValues(alpha: 0.0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ),
             ),
           ),
         ),
-
-        // ── Drifting orbs ───────────────────────────────────────────────────
-        ...List.generate(3, (i) {
-          final colors = [
-            [AppColors.primary, AppColors.primaryDeep],
-            [AppColors.gold, const Color(0xFFFFD98A)],
-            [AppColors.info, AppColors.primary],
-          ][i];
-          final sizes = [260.0, 180.0, 220.0][i];
-          return Positioned(
-            top: [-80.0, 130.0, 40.0][i],
-            right: [-90.0, -70.0, null][i],
-            left: [null, null, -100.0][i],
-            child: AnimatedBuilder(
-              animation: _orbControllers[i],
-              builder: (context, child) {
-                final t = _orbControllers[i].value;
-                return Transform.translate(
-                  offset: Offset(
-                    math.sin(t * 2 * math.pi) * (10.0 + i * 4),
-                    math.cos(t * 2 * math.pi) * (8.0 + i * 3),
-                  ),
-                  child: child,
-                );
-              },
-              child: Container(
-                width: sizes,
-                height: sizes,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      colors.first.withValues(alpha: 0.30),
-                      colors.last.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
 
         // ── Foreground content ──────────────────────────────────────────────
         widget.child,
@@ -128,7 +129,7 @@ class _AmbientBackgroundState extends State<AmbientBackground>
   }
 }
 
-/// Brand header: gradient logo tile with glow + letterspaced wordmark.
+/// Brand header: logo + letterspaced wordmark.
 class AmbientLogoHeader extends StatelessWidget {
   const AmbientLogoHeader({super.key});
 
@@ -136,16 +137,11 @@ class AmbientLogoHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        GlassPanel(
-          blur: 14,
-          radius: 20,
-          padding: const EdgeInsets.all(7),
-          shadows: AppShadows.soft,
-          child: Image.asset(
-            'assets/images/tmc_logo.png',
-            width: 44,
-            height: 44,
-          ),
+        Image.asset(
+          'assets/images/tmc_logo.png',
+          width: 44,
+          height: 44,
+          cacheWidth: 132,
         ),
         const SizedBox(width: 12),
         Text(
