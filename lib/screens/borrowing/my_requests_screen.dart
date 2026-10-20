@@ -245,25 +245,17 @@ class _RequestTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: _statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                  child: Icon(
-                    switch (txn.status) {
-                      RequestStatus.pending => Icons.hourglass_top_rounded,
-                      RequestStatus.approved => Icons.check_rounded,
-                      RequestStatus.rejected => Icons.close_rounded,
-                      RequestStatus.completed => Icons.task_alt_rounded,
-                      RequestStatus.cancelled =>
-                        Icons.remove_circle_outline_rounded,
-                    },
-                    size: 18,
-                    color: _statusColor,
-                  ),
+                Icon(
+                  switch (txn.status) {
+                    RequestStatus.pending => Icons.hourglass_top_rounded,
+                    RequestStatus.approved => Icons.check_rounded,
+                    RequestStatus.rejected => Icons.close_rounded,
+                    RequestStatus.completed => Icons.task_alt_rounded,
+                    RequestStatus.cancelled =>
+                      Icons.remove_circle_outline_rounded,
+                  },
+                  size: 20,
+                  color: _statusColor,
                 ),
                 const SizedBox(width: 11),
                 Expanded(
@@ -280,7 +272,7 @@ class _RequestTile extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.only(left: 47),
+              padding: const EdgeInsets.only(left: 31),
               child: Row(
                 children: [
                   Icon(

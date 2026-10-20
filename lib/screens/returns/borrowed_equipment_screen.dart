@@ -72,19 +72,11 @@ class BorrowedEquipmentScreen extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: dueColor.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(13),
-                                border: Border.all(
-                                  color: dueColor.withValues(alpha: 0.16),
-                                ),
-                              ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
                               child: Icon(
                                 Icons.inventory_2_rounded,
-                                size: 20,
+                                size: 22,
                                 color: dueColor,
                               ),
                             ),
@@ -116,12 +108,9 @@ class BorrowedEquipmentScreen extends StatelessWidget {
                                 vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: dueColor.withValues(alpha: 0.12),
+                                color: dueColor.withValues(alpha: 0.14),
                                 borderRadius:
                                     BorderRadius.circular(AppRadius.pill),
-                                border: Border.all(
-                                  color: dueColor.withValues(alpha: 0.22),
-                                ),
                               ),
                               child: Text(
                                 dueLabel,
@@ -137,7 +126,7 @@ class BorrowedEquipmentScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 11),
                         Padding(
-                          padding: const EdgeInsets.only(left: 54),
+                          padding: const EdgeInsets.only(left: 34),
                           child: Text(
                             'Expected return: ${dateFormat.format(txn.returnDate)}',
                             style: Theme.of(context).textTheme.bodyMedium,
@@ -256,11 +245,8 @@ class _ReturnEquipmentDialogState extends State<_ReturnEquipmentDialog> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.12),
+                color: AppColors.success.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: AppColors.success.withValues(alpha: 0.25),
-                ),
               ),
               child: const Row(
                 children: [

@@ -179,21 +179,19 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                     blur: 0,
                     radius: AppRadius.lg,
                     padding: const EdgeInsets.all(14),
-                    shadows: AppShadows.soft,
-                    tint: AppColors.warning
-                        .withValues(alpha: AppColors.isDark ? 0.16 : 0.12),
-                    borderColor: AppColors.warning.withValues(alpha: 0.38),
-                    child: const Row(
+                    shadows: AppShadows.card,
+                    tint: AppColors.goldSoft,
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.verified_user_outlined,
-                            color: Color(0xFFB45309), size: 20),
-                        SizedBox(width: 10),
+                        const Icon(Icons.verified_user_outlined,
+                            color: AppColors.warning, size: 20),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Account not yet verified. An administrator needs to verify your ID before you can borrow equipment. Go to Profile → ID Verification to submit your ID.',
                             style: TextStyle(
-                              color: Color(0xFF78350F),
+                              color: AppColors.textPrimary,
                               fontSize: 13,
                               height: 1.45,
                               fontWeight: FontWeight.w500,
@@ -211,26 +209,12 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                   padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
-                      Container(
+                      SizedBox(
                         width: 52,
                         height: 52,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.primarySoft,
-                              AppColors.primarySoft.withValues(alpha: 0.4),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.14),
-                          ),
-                        ),
                         child: EquipmentVisual(
                           equipment: equipment,
-                          iconSize: 25,
+                          iconSize: 28,
                           iconColor: AppColors.primary,
                           borderRadius: BorderRadius.circular(AppRadius.md - 1),
                         ),
@@ -344,10 +328,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                     blur: 0,
                     radius: AppRadius.lg,
                     padding: const EdgeInsets.all(15),
-                    shadows: AppShadows.soft,
-                    tint: AppColors.primary
-                        .withValues(alpha: AppColors.isDark ? 0.14 : 0.07),
-                    borderColor: AppColors.primary.withValues(alpha: 0.18),
+                    shadows: AppShadows.card,
+                    tint: AppColors.primarySoft,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -365,8 +347,11 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                           '${equipment.name} × $_quantity',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 13.5),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13.5,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -406,21 +391,12 @@ class _StepperButton extends StatelessWidget {
     final enabled = onTap != null;
     return Pressable(
       onTap: onTap,
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: enabled ? AppColors.primarySoft : AppColors.surfaceMuted,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(
-            color: enabled
-                ? AppColors.primary.withValues(alpha: 0.18)
-                : AppColors.divider,
-          ),
-        ),
+      child: SizedBox(
+        width: 38,
+        height: 38,
         child: Icon(
           icon,
-          size: 19,
+          size: 22,
           color: enabled ? AppColors.primary : AppColors.textTertiary,
         ),
       ),
@@ -448,19 +424,10 @@ class _DateSelector extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         child: Row(
           children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: (hasValue ? AppColors.primary : AppColors.textTertiary)
-                    .withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(11),
-              ),
-              child: Icon(
-                icon,
-                size: 17,
-                color: hasValue ? AppColors.primary : AppColors.textTertiary,
-              ),
+            Icon(
+              icon,
+              size: 20,
+              color: hasValue ? AppColors.primary : AppColors.textTertiary,
             ),
             const SizedBox(width: 12),
             Expanded(

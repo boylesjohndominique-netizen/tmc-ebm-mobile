@@ -154,11 +154,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       }
     });
 
-    return ListView(
+    return ListView.builder(
       physics:
           const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-      children: children,
+      itemCount: children.length,
+      itemBuilder: (_, index) => children[index],
     );
   }
 

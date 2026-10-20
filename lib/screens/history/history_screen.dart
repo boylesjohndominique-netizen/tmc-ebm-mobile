@@ -190,18 +190,7 @@ class _HistoryTile extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.11),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.14),
-                ),
-              ),
-              child: Icon(icon, size: 19, color: AppColors.primary),
-            ),
+            Icon(icon, size: 22, color: AppColors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

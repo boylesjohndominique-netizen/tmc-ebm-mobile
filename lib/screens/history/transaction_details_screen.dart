@@ -138,30 +138,12 @@ class TransactionDetailsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               child: Row(
                 children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primarySoft,
-                          AppColors.primarySoft.withValues(alpha: 0.4),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.14),
-                      ),
+                  Icon(
+                    equipmentIcon(
+                      '${currentTxn.category} ${currentTxn.equipmentName}',
                     ),
-                    child: Icon(
-                      equipmentIcon(
-                        '${currentTxn.category} ${currentTxn.equipmentName}',
-                      ),
-                      color: AppColors.primary,
-                      size: 26,
-                    ),
+                    color: AppColors.primary,
+                    size: 28,
                   ),
                   const SizedBox(width: 13),
                   Expanded(
