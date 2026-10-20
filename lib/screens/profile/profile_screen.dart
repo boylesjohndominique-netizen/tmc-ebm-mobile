@@ -5,6 +5,7 @@ import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/id_upload_field.dart';
+import '../../widgets/liquid_glass.dart';
 import '../../widgets/pressable.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
@@ -26,98 +27,108 @@ class ProfileScreen extends StatelessWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
+    return LiquidScaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: RefreshIndicator(
         onRefresh: () => appState.refreshProfile(),
         child: ListView(
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
           children: [
             // ── Identity ───────────────────────────────────────────────────
             const SizedBox(height: 8),
-          _IdentityHeader(user: user),
-          const SizedBox(height: 28),
+            _IdentityHeader(user: user),
+            const SizedBox(height: 28),
 
-          // ── Account details ────────────────────────────────────────────
-          // Not const: reads theme-dependent AppColors getters (see the
-          // Verification section note above).
-          _SectionLabel('Account'),
-          const SizedBox(height: 8),
-          _Card(
-            child: Column(
-              children: [
-                _DetailRow(icon: Icons.badge_outlined, value: user.idNumber),
-                const Divider(height: 1, indent: 40),
-                _DetailRow(icon: Icons.mail_outline_rounded, value: user.email),
-                const Divider(height: 1, indent: 40),
-                _DetailRow(
-                    icon: Icons.phone_outlined, value: user.contactNumber.isEmpty ? '—' : user.contactNumber),
-              ],
+            // ── Account details ────────────────────────────────────────────
+            // Not const: reads theme-dependent AppColors getters (see the
+            // Verification section note above).
+            const _SectionLabel('Account'),
+            const SizedBox(height: 8),
+            _Card(
+              child: Column(
+                children: [
+                  _DetailRow(icon: Icons.badge_outlined, value: user.idNumber),
+                  const Divider(height: 1, indent: 40),
+                  _DetailRow(
+                      icon: Icons.mail_outline_rounded, value: user.email),
+                  const Divider(height: 1, indent: 40),
+                  _DetailRow(
+                      icon: Icons.phone_outlined,
+                      value: user.contactNumber.isEmpty
+                          ? '—'
+                          : user.contactNumber),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // ── ID verification (state-aware) ──────────────────────────────
-          // NOTE: deliberately not `const` — these widgets read AppColors
-          // getters that change with the theme. Dart canonicalizes identical
-          // const instances, so a const copy would be reused across theme
-          // switches and the card would stay stuck in the old theme's colors.
-          _SectionLabel('Verification'),
-          const SizedBox(height: 8),
-          _VerificationCard(status: appState.idVerificationStatus),
-          const SizedBox(height: 24),
+            // ── ID verification (state-aware) ──────────────────────────────
+            // NOTE: deliberately not `const` — these widgets read AppColors
+            // getters that change with the theme. Dart canonicalizes identical
+            // const instances, so a const copy would be reused across theme
+            // switches and the card would stay stuck in the old theme's colors.
+            const _SectionLabel('Verification'),
+            const SizedBox(height: 8),
+            _VerificationCard(status: appState.idVerificationStatus),
+            const SizedBox(height: 24),
 
-          // ── Settings ───────────────────────────────────────────────────
-          _SectionLabel('Settings'),
-          const SizedBox(height: 8),
-          _Card(
-            child: Column(
-              children: [
-                _AppearanceTile(isDark: appState.isDarkMode),
-                const Divider(height: 1, indent: 56),
-                _SettingsRow(
-                  icon: Icons.edit_outlined,
-                  label: 'Edit Profile',
-                  onTap: () => Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (_) => const EditProfileScreen())),
-                ),
-                const Divider(height: 1, indent: 56),
-                _SettingsRow(
-                  icon: Icons.lock_outline_rounded,
-                  label: 'Password',
-                  onTap: () => Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
-                ),
-                const Divider(height: 1, indent: 56),
-                _SettingsRow(
-                  icon: Icons.logout_rounded,
-                  label: 'Log Out',
-                  tint: AppColors.danger,
-                  onTap: () => _confirmLogout(context),
-                ),
-              ],
+            // ── Settings ───────────────────────────────────────────────────
+            const _SectionLabel('Settings'),
+            const SizedBox(height: 8),
+            _Card(
+              child: Column(
+                children: [
+                  _AppearanceTile(isDark: appState.isDarkMode),
+                  const Divider(height: 1, indent: 56),
+                  _SettingsRow(
+                    icon: Icons.edit_outlined,
+                    label: 'Edit Profile',
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const EditProfileScreen())),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _SettingsRow(
+                    icon: Icons.lock_outline_rounded,
+                    label: 'Password',
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const ChangePasswordScreen())),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  _SettingsRow(
+                    icon: Icons.logout_rounded,
+                    label: 'Log Out',
+                    tint: AppColors.danger,
+                    onTap: () => _confirmLogout(context),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _confirmLogout(BuildContext context) {
-    showDialog(
+    showGlassDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Log Out?'),
-        content: const Text('Are you sure you want to log out of your account?'),
+      builder: (ctx) => GlassDialog(
+        icon: Icons.logout_rounded,
+        iconColor: AppColors.danger,
+        title: 'Log Out?',
+        message: 'Are you sure you want to log out of your account?',
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               context.read<AppState>().logout();
               Navigator.of(ctx).pop();
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/login', (route) => false);
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Log Out'),
@@ -141,72 +152,108 @@ class _IdentityHeader extends StatelessWidget {
     // keeps the badge, and an unbanned Pending user does not get one.
     final verified = user.isIdVerified;
 
-    return Column(
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.surface,
-                boxShadow: AppShadows.soft,
-              ),
-              child: CircleAvatar(
-                radius: 40,
-                backgroundColor: AppColors.primarySoft,
-                child: Text(
-                  user.initials,
-                  style: const TextStyle(
-                      color: AppColors.primary, fontSize: 26, fontWeight: FontWeight.w800),
+    return GlassPanel(
+      blur: 22,
+      strong: true,
+      radius: AppRadius.xl,
+      shadows: AppShadows.floating,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+      child: Column(
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppColors.premiumGradient,
+                  boxShadow: AppShadows.primaryGlow,
                 ),
-              ),
-            ),
-            if (verified)
-              Positioned(
-                right: 2,
-                bottom: 2,
                 child: Container(
-                  width: 20,
-                  height: 20,
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: AppColors.success,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.surface, width: 2.5),
+                    color: AppColors.surface,
                   ),
-                  child: const Icon(Icons.check_rounded, size: 11, color: Colors.white),
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.primarySoft,
+                    child: Text(
+                      user.initials,
+                      style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 27,
+                          fontWeight: FontWeight.w800),
+                    ),
+                  ),
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Text(
-          user.fullName,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.4),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              user.userType.label,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
+              if (verified)
+                Positioned(
+                  right: 0,
+                  bottom: 2,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.surface, width: 2.5),
+                    ),
+                    child: const Icon(Icons.check_rounded,
+                        size: 12, color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            user.fullName,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.45),
+          ),
+          const SizedBox(height: 9),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                child: Text(
+                  user.userType.label,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            _StatusDot(status: user.accountStatus),
-          ],
-        ),
-      ],
+              const SizedBox(width: 8),
+              _StatusDot(status: user.accountStatus),
+              const SizedBox(width: 5),
+              Text(
+                user.accountStatus,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -245,7 +292,7 @@ class _SectionLabel extends StatelessWidget {
       child: Text(
         text.toUpperCase(),
         style: TextStyle(
-          color: AppColors.textTertiary,
+          color: AppColors.textTertiaryFor(Theme.of(context).brightness),
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.1,
@@ -264,17 +311,10 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-        boxShadow: AppShadows.soft,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: child,
-      ),
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      radius: AppRadius.lg,
+      child: child,
     );
   }
 }
@@ -360,7 +400,7 @@ class _VerificationCardState extends State<_VerificationCard> {
     // the previous theme after a Light/Dark switch.
     return switch (widget.status) {
       IdVerificationStatus.notSubmitted => _buildCapture(context),
-      IdVerificationStatus.pending => _Card(
+      IdVerificationStatus.pending => const _Card(
           child: _StateRow(
             icon: Icons.hourglass_top_rounded,
             tint: AppColors.warning,
@@ -368,7 +408,7 @@ class _VerificationCardState extends State<_VerificationCard> {
             trailing: _Pill('Pending', AppColors.warning),
           ),
         ),
-      IdVerificationStatus.rejected => _Card(
+      IdVerificationStatus.rejected => const _Card(
           child: _StateRow(
             icon: Icons.cancel_outlined,
             tint: AppColors.danger,
@@ -376,7 +416,7 @@ class _VerificationCardState extends State<_VerificationCard> {
             trailing: _Pill('Rejected', AppColors.danger),
           ),
         ),
-      IdVerificationStatus.approved => _Card(
+      IdVerificationStatus.approved => const _Card(
           child: _StateRow(
             icon: Icons.verified_outlined,
             tint: AppColors.success,
@@ -395,12 +435,16 @@ class _VerificationCardState extends State<_VerificationCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Not const: the title must pick up the theme's text color.
-            Row(
+            const Row(
               children: [
-                _IconBox(icon: Icons.verified_user_outlined, tint: AppColors.primary),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text('Verify your ID', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                _IconBox(
+                    icon: Icons.verified_user_outlined,
+                    tint: AppColors.primary),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text('Verify your ID',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                 ),
                 _Pill('Required', AppColors.warning),
               ],
@@ -415,7 +459,9 @@ class _VerificationCardState extends State<_VerificationCard> {
                     imagePath: _idFrontPath,
                     onChanged: (p) => setState(() {
                       _idFrontPath = p;
-                      if (_idFrontPath != null && _idBackPath != null) _error = null;
+                      if (_idFrontPath != null && _idBackPath != null) {
+                        _error = null;
+                      }
                     }),
                   ),
                 ),
@@ -426,7 +472,9 @@ class _VerificationCardState extends State<_VerificationCard> {
                     imagePath: _idBackPath,
                     onChanged: (p) => setState(() {
                       _idBackPath = p;
-                      if (_idFrontPath != null && _idBackPath != null) _error = null;
+                      if (_idFrontPath != null && _idBackPath != null) {
+                        _error = null;
+                      }
                     }),
                   ),
                 ),
@@ -436,16 +484,20 @@ class _VerificationCardState extends State<_VerificationCard> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 15),
+                  const Icon(Icons.error_outline_rounded,
+                      color: AppColors.danger, size: 15),
                   const SizedBox(width: 5),
                   Expanded(
-                    child: Text(_error!, style: const TextStyle(fontSize: 12, color: AppColors.danger)),
+                    child: Text(_error!,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.danger)),
                   ),
                 ],
               ),
             ],
             const SizedBox(height: 12),
-            CustomButton(label: 'Submit', onPressed: _submit, loading: _loading),
+            CustomButton(
+                label: 'Submit', onPressed: _submit, loading: _loading),
           ],
         ),
       ),
@@ -466,11 +518,12 @@ class _IconBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 34,
-      height: 34,
+      width: 35,
+      height: 35,
       decoration: BoxDecoration(
-        color: tint.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        color: tint.withValues(alpha: 0.13),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: tint.withValues(alpha: 0.16)),
       ),
       child: Icon(icon, size: 17, color: tint),
     );
@@ -490,6 +543,7 @@ class _Pill extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Text(
         label,
@@ -526,7 +580,9 @@ class _StateRow extends StatelessWidget {
           _IconBox(icon: icon, tint: tint),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            child: Text(label,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           ),
           trailing,
         ],
@@ -550,10 +606,14 @@ class _AppearanceTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            _IconBox(icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, tint: tint),
+            _IconBox(
+                icon:
+                    isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                tint: tint),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text('Appearance', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              child: Text('Appearance',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
             ),
             Switch.adaptive(
               value: isDark,
@@ -601,7 +661,8 @@ class _SettingsRow extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right_rounded,
+                size: 20, color: AppColors.textTertiary),
           ],
         ),
       ),

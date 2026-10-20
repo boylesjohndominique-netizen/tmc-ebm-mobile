@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../app/theme.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/liquid_glass.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -46,7 +48,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final nameParts = _nameController.text.trim().split(RegExp(r'\s+'));
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : firstName;
+    final lastName =
+        nameParts.length > 1 ? nameParts.sublist(1).join(' ') : firstName;
 
     final error = await context.read<AppState>().updateProfile(
           firstName: firstName,
@@ -59,7 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(error ?? 'Profile updated successfully.'),
-        backgroundColor: error != null ? Theme.of(context).colorScheme.error : null,
+        backgroundColor: error != null ? AppColors.danger : null,
       ),
     );
     if (error == null) Navigator.of(context).pop();
@@ -67,51 +70,90 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return LiquidScaffold(
       appBar: AppBar(title: const Text('Edit Profile')),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Full Name', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(prefixIcon: Icon(Icons.badge_outlined)),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
+                const GlassSectionLabel('Personal information'),
+                const SizedBox(height: 10),
+                GlassPanel(
+                  blur: 22,
+                  strong: true,
+                  radius: AppRadius.xl,
+                  shadows: AppShadows.floating,
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Full Name',
+                          style: Theme.of(context).textTheme.titleSmall),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _nameController,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.badge_outlined),
+                          hintText: 'Enter your full name',
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Full name is required'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Email',
+                          style: Theme.of(context).textTheme.titleSmall),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.email_outlined),
+                          hintText: 'Enter your email',
+                        ),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          final regex =
+                              RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+                          if (!regex.hasMatch(v.trim())) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Contact Number',
+                          style: Theme.of(context).textTheme.titleSmall),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _contactController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.phone_outlined),
+                          hintText: 'Enter your contact number',
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Contact number is required'
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Text('Email', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(prefixIcon: Icon(Icons.email_outlined)),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Email is required';
-                    final regex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
-                    if (!regex.hasMatch(v.trim())) return 'Enter a valid email address';
-                    return null;
-                  },
+                const SizedBox(height: 22),
+                CustomButton(
+                  label: 'Save Changes',
+                  icon: Icons.check_rounded,
+                  onPressed: _save,
+                  loading: _loading,
                 ),
-                const SizedBox(height: 16),
-                Text('Contact Number', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _contactController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(prefixIcon: Icon(Icons.phone_outlined)),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Contact number is required' : null,
-                ),
-                const SizedBox(height: 24),
-                CustomButton(label: 'Save Changes', onPressed: _save, loading: _loading),
               ],
             ),
           ),
