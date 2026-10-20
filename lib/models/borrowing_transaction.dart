@@ -73,16 +73,32 @@ class BorrowingTransaction {
     this.overdueFee,
   });
 
+  DateTime get _today {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  DateTime get _dueDay =>
+      DateTime(returnDate.year, returnDate.month, returnDate.day);
+
+  bool get canReturn =>
+      status == RequestStatus.approved &&
+      returnStatus == ReturnStatus.notReturned;
+
   bool get isCurrentlyBorrowed =>
       status == RequestStatus.approved &&
       (returnStatus == ReturnStatus.notReturned ||
           returnStatus == ReturnStatus.returnPending);
 
-  int get daysUntilDue => returnDate.difference(DateTime.now()).inDays;
+  int get daysUntilDue => _dueDay.difference(_today).inDays;
+
+  bool get isBeforeDueDate => _today.isBefore(_dueDay);
+
+  bool get isEarlyReturnEligible => canReturn && isBeforeDueDate;
 
   bool get isOverdue =>
       isCurrentlyBorrowed &&
-      DateTime.now().isAfter(returnDate) &&
+      _today.isAfter(_dueDay) &&
       returnStatus != ReturnStatus.returnConfirmed;
 
   bool get hasOverdueFee => (overdueFee ?? 0) > 0;

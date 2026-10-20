@@ -55,10 +55,17 @@ class AppState extends ChangeNotifier {
   List<Equipment> _equipment = [];
   List<BorrowingTransaction> _transactions = [];
   List<AppNotification> _notifications = [];
+  List<PlatformPolicy> _platformPolicies = [];
+  double _overdueFeePerDay = 0;
 
   bool _loadingEquipment = false;
+  bool _loadingPolicies = false;
 
   bool get isLoadingEquipment => _loadingEquipment;
+  bool get isLoadingPolicies => _loadingPolicies;
+  List<PlatformPolicy> get platformPolicies =>
+      List.unmodifiable(_platformPolicies);
+  double get overdueFeePerDay => _overdueFeePerDay;
   List<Equipment> get equipment => List.unmodifiable(_equipment);
 
   Equipment? equipmentById(String id) {
@@ -252,6 +259,8 @@ class AppState extends ChangeNotifier {
         'id': currentUser?.id,
         'first_name': currentUser?.fullName.split(' ').first ?? '',
         'last_name': currentUser?.fullName.split(' ').skip(1).join(' ') ?? '',
+        'id_number': currentUser?.idNumber ?? '',
+        'profile_photo_path': currentUser?.avatarUrl,
         'username': currentUser?.username ?? '',
         'email': currentUser?.email ?? '',
         'contact_number': currentUser?.contactNumber ?? '',
@@ -304,23 +313,31 @@ class AppState extends ChangeNotifier {
 
   /// Returns null on success, or an error message.
   Future<String?> register({
-    required String fullName,
+    required String firstName,
+    String? middleName,
+    required String lastName,
     required String idNumber,
     required String email,
-    required String username,
+    String? username,
     required String contactNumber,
     required UserType userType,
     required String password,
   }) async {
-    final nameParts = fullName.trim().split(RegExp(r'\s+'));
-    final firstName = nameParts.isNotEmpty ? nameParts.first : fullName;
-    final lastName =
-        nameParts.length > 1 ? nameParts.sublist(1).join(' ') : 'Student';
+    final trimmedFirst = firstName.trim();
+    final trimmedMiddle = middleName?.trim();
+    final trimmedLast = lastName.trim();
+    final resolvedUsername = (username != null && username.trim().isNotEmpty)
+        ? username.trim()
+        : trimmedFirst;
 
     final res = await ApiService.instance.register(
-      firstName: firstName,
-      lastName: lastName,
-      username: username,
+      firstName: trimmedFirst,
+      middleName: (trimmedMiddle != null && trimmedMiddle.isNotEmpty)
+          ? trimmedMiddle
+          : null,
+      lastName: trimmedLast,
+      idNumber: idNumber,
+      username: resolvedUsername,
       email: email,
       contactNumber: contactNumber,
       password: password,
@@ -358,14 +375,34 @@ class AppState extends ChangeNotifier {
   Future<String?> updateProfile({
     required String firstName,
     required String lastName,
+    String? idNumber,
     String? contactNumber,
+    String? avatarPath,
+    bool removeAvatar = false,
   }) async {
     final res = await ApiService.instance.updateProfile(
       firstName: firstName,
       lastName: lastName,
+      idNumber: idNumber,
       contactNumber: contactNumber,
+      avatarPath: avatarPath,
+      removeAvatar: removeAvatar,
     );
     if (!res.success) return res.message ?? 'Could not update profile.';
+
+    final fresh = res.data?['user'];
+    if (fresh is Map<String, dynamic>) {
+      currentUser = mapUser(fresh);
+      await _persistUser();
+    }
+    notifyListeners();
+    return null;
+  }
+
+  /// Uploads a new profile picture directly from the Profile header.
+  Future<String?> updateProfilePhoto(String imagePath) async {
+    final res = await ApiService.instance.updateAvatar(imagePath);
+    if (!res.success) return res.message ?? 'Could not update profile picture.';
 
     final fresh = res.data?['user'];
     if (fresh is Map<String, dynamic>) {
@@ -490,7 +527,35 @@ class AppState extends ChangeNotifier {
       refreshEquipment(),
       refreshBorrowings(),
       refreshNotifications(),
+      refreshSettings(),
     ]);
+  }
+
+  Future<void> refreshSettings() async {
+    _loadingPolicies = true;
+    notifyListeners();
+
+    final res = await ApiService.instance.fetchMobileSettings();
+    if (res.success && res.data != null) {
+      final rawFee = res.data!['overdue_fee_per_day'];
+      if (rawFee is num) {
+        _overdueFeePerDay = rawFee.toDouble();
+      } else if (rawFee != null) {
+        _overdueFeePerDay = double.tryParse(rawFee.toString()) ?? 0;
+      }
+
+      final rawPolicies = res.data!['platform_policies'];
+      if (rawPolicies is List) {
+        _platformPolicies = rawPolicies
+            .whereType<Map>()
+            .map((m) => PlatformPolicy.fromJson(Map<String, dynamic>.from(m)))
+            .where((p) => p.title.isNotEmpty || p.content.isNotEmpty)
+            .toList();
+      }
+    }
+
+    _loadingPolicies = false;
+    notifyListeners();
   }
 
   Future<void> refreshProfile() async {
@@ -579,11 +644,17 @@ class AppState extends ChangeNotifier {
   }
 
   /// Returns null on success, or an error message.
-  Future<String?> submitReturnRequest(String transactionId) async {
+  Future<String?> submitReturnRequest(
+    String transactionId, {
+    String? remarks,
+  }) async {
     final id = int.tryParse(transactionId);
     if (id == null) return 'Invalid request id.';
 
-    final res = await ApiService.instance.submitReturn(borrowingId: id);
+    final res = await ApiService.instance.submitReturn(
+      borrowingId: id,
+      remarks: remarks,
+    );
     if (!res.success) return res.message ?? 'Could not submit return.';
     await refreshBorrowings();
     await refreshEquipment();
@@ -622,5 +693,25 @@ class AppState extends ChangeNotifier {
     _stopPolling();
     RealtimeService.instance.disconnect();
     super.dispose();
+  }
+}
+
+class PlatformPolicy {
+  final String id;
+  final String title;
+  final String content;
+
+  const PlatformPolicy({
+    required this.id,
+    required this.title,
+    required this.content,
+  });
+
+  factory PlatformPolicy.fromJson(Map<String, dynamic> json) {
+    return PlatformPolicy(
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString().trim(),
+      content: (json['content'] ?? '').toString().trim(),
+    );
   }
 }

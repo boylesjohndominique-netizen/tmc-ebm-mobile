@@ -72,6 +72,38 @@ class ApiConfig {
     'REVERB_APP_KEY',
     defaultValue: 'tmc-equipment-local',
   );
+
+  /// Headers sent when loading equipment images over HTTP/HTTPS (bypasses the
+  /// ngrok free-tier browser interstitial warning).
+  static const Map<String, String> mediaHeaders = {
+    'ngrok-skip-browser-warning': 'true',
+  };
+
+  /// Resolves a stored equipment image path (e.g. `equipment-images/abc.jpg`)
+  /// into a full streaming URL on the active backend (`$baseUrl/equipment-media/abc.jpg`).
+  static String? equipmentMediaUrl(String? rawPath) {
+    if (rawPath == null || rawPath.trim().isEmpty) return null;
+    final trimmed = rawPath.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    final filename = trimmed.split('/').last;
+    if (filename.isEmpty) return null;
+    return '$baseUrl/equipment-media/${Uri.encodeComponent(filename)}';
+  }
+
+  /// Resolves a stored user avatar path (e.g. `user-avatars/abc.jpg`)
+  /// into a full streaming URL on the active backend (`$baseUrl/user-avatar/abc.jpg`).
+  static String? userAvatarUrl(String? rawPath) {
+    if (rawPath == null || rawPath.trim().isEmpty) return null;
+    final trimmed = rawPath.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    final filename = trimmed.split('/').last;
+    if (filename.isEmpty) return null;
+    return '$baseUrl/user-avatar/${Uri.encodeComponent(filename)}';
+  }
 }
 
 /// Generic API response envelope.
@@ -264,17 +296,22 @@ class ApiService {
     required String firstName,
     String? middleName,
     required String lastName,
-    required String username,
+    String? idNumber,
+    String? username,
     required String email,
     String? contactNumber,
     required String password,
     required String passwordConfirmation,
   }) async {
+    final resolvedUsername = (username != null && username.trim().isNotEmpty)
+        ? username.trim()
+        : firstName.trim();
     final res = await request('POST', 'register', withAuth: false, body: {
       'first_name': firstName,
       'middle_name': middleName,
       'last_name': lastName,
-      'username': username,
+      if (idNumber != null && idNumber.isNotEmpty) 'id_number': idNumber,
+      'username': resolvedUsername,
       'email': email,
       'contact_number': contactNumber,
       'password': password,
@@ -503,13 +540,81 @@ class ApiService {
   Future<ApiResponse<Map<String, dynamic>>> updateProfile({
     required String firstName,
     required String lastName,
+    String? idNumber,
     String? contactNumber,
-  }) =>
-      request('PUT', 'mobile/profile', body: {
-        'first_name': firstName,
-        'last_name': lastName,
-        'contact_number': contactNumber,
-      });
+    String? avatarPath,
+    bool removeAvatar = false,
+  }) async {
+    if (avatarPath != null && avatarPath.isNotEmpty) {
+      try {
+        final uri = Uri.parse('$baseUrl/mobile/profile');
+        final req = http.MultipartRequest('POST', uri)
+          ..headers.addAll(_headers())
+          ..fields['first_name'] = firstName
+          ..fields['last_name'] = lastName
+          ..files.add(await http.MultipartFile.fromPath('avatar', avatarPath));
+        if (idNumber != null && idNumber.isNotEmpty) {
+          req.fields['id_number'] = idNumber;
+        }
+        if (contactNumber != null) {
+          req.fields['contact_number'] = contactNumber;
+        }
+        final streamed = await req.send().timeout(const Duration(seconds: 40));
+        final body = await streamed.stream.bytesToString();
+        final decoded = _parseJson(body);
+        final ok = streamed.statusCode >= 200 && streamed.statusCode < 300;
+        return ApiResponse(
+          success: ok,
+          data: decoded.isNotEmpty ? decoded : null,
+          message: ok
+              ? (decoded['message'] as String?)
+              : _extractErrorMessage(
+                  decoded, 'Profile update failed (${streamed.statusCode}).'),
+          statusCode: streamed.statusCode,
+        );
+      } catch (e) {
+        return ApiResponse(
+          success: false,
+          message: 'Could not upload profile photo.',
+        );
+      }
+    }
+
+    return request('PUT', 'mobile/profile', body: {
+      'first_name': firstName,
+      'last_name': lastName,
+      if (idNumber != null && idNumber.isNotEmpty) 'id_number': idNumber,
+      'contact_number': contactNumber,
+      if (removeAvatar) 'remove_avatar': true,
+    });
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> updateAvatar(
+      String avatarPath) async {
+    try {
+      final uri = Uri.parse('$baseUrl/mobile/profile/avatar');
+      final req = http.MultipartRequest('POST', uri)
+        ..headers.addAll(_headers())
+        ..files.add(await http.MultipartFile.fromPath('avatar', avatarPath));
+      final streamed = await req.send().timeout(const Duration(seconds: 40));
+      final body = await streamed.stream.bytesToString();
+      final decoded = _parseJson(body);
+      final ok = streamed.statusCode >= 200 && streamed.statusCode < 300;
+      return ApiResponse(
+        success: ok,
+        data: decoded.isNotEmpty ? decoded : null,
+        message: ok
+            ? (decoded['message'] as String?)
+            : _extractErrorMessage(decoded, 'Could not upload profile photo.'),
+        statusCode: streamed.statusCode,
+      );
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Could not upload profile photo.',
+      );
+    }
+  }
 
   Future<ApiResponse<Map<String, dynamic>>> changePassword({
     required String currentPassword,
@@ -521,6 +626,9 @@ class ApiService {
         'password': password,
         'password_confirmation': passwordConfirmation,
       });
+
+  Future<ApiResponse<Map<String, dynamic>>> fetchMobileSettings() =>
+      request('GET', 'mobile/settings');
 
   // =========================================================================
   // HELPERS

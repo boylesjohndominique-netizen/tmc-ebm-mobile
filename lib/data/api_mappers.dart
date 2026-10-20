@@ -2,6 +2,8 @@ import '../models/borrowing_transaction.dart';
 import '../models/equipment.dart';
 import '../models/notification_item.dart';
 import '../models/user.dart';
+import '../widgets/student_id_formatter.dart';
+import 'api_service.dart';
 
 /// Converts raw backend JSON into the app's UI-facing models.
 ///
@@ -20,14 +22,16 @@ AppUser mapUser(Map<String, dynamic> j) {
       .where((p) => p.isNotEmpty)
       .join(' ');
 
+  final rawId = (j['id_number'] as String?) ?? '';
   return AppUser(
     id: (j['id'] ?? '').toString(),
     fullName: full.isNotEmpty ? full : 'Student',
-    idNumber: (j['id_number'] as String?) ?? '',
+    idNumber: rawId.contains('-') ? rawId : formatStudentId(rawId),
     email: (j['email'] as String?) ?? '',
     username: (j['username'] as String?) ?? '',
     contactNumber: (j['contact_number'] as String?) ?? '',
     userType: UserType.student,
+    avatarUrl: ApiConfig.userAvatarUrl(j['profile_photo_path'] as String?),
     emailVerified: j['email_verified_at'] != null,
     accountStatus: (j['account_status'] as String?) ?? 'Active',
     // Falls back to Active-status for older payloads that predate the flag.
@@ -41,21 +45,33 @@ AppUser mapUser(Map<String, dynamic> j) {
 // EQUIPMENT
 // ---------------------------------------------------------------------------
 
-Equipment mapEquipment(Map<String, dynamic> j) => Equipment(
-      id: (j['id'] ?? '').toString(),
-      name: (j['name'] as String?) ?? 'Unknown',
-      category:
-          ((j['category'] as Map<String, dynamic>?)?['name'] as String?) ??
-              'General',
-      description: (j['description'] as String?) ?? '',
-      condition: switch ((j['condition'] as String?)?.toLowerCase()) {
-        'excellent' => EquipmentCondition.excellent,
-        'fair' => EquipmentCondition.fair,
-        _ => EquipmentCondition.good,
-      },
-      totalQuantity: (j['quantity'] as num?)?.toInt() ?? 0,
-      availableQuantity: (j['available_quantity'] as num?)?.toInt() ?? 0,
-    );
+Equipment mapEquipment(Map<String, dynamic> j) {
+  final rawGallery = j['images'];
+  final galleryUrls = rawGallery is List
+      ? rawGallery
+          .whereType<String>()
+          .map(ApiConfig.equipmentMediaUrl)
+          .whereType<String>()
+          .toList()
+      : const <String>[];
+
+  return Equipment(
+    id: (j['id'] ?? '').toString(),
+    name: (j['name'] as String?) ?? 'Unknown',
+    category: ((j['category'] as Map<String, dynamic>?)?['name'] as String?) ??
+        'General',
+    description: (j['description'] as String?) ?? '',
+    condition: switch ((j['condition'] as String?)?.toLowerCase()) {
+      'excellent' => EquipmentCondition.excellent,
+      'fair' => EquipmentCondition.fair,
+      _ => EquipmentCondition.good,
+    },
+    totalQuantity: (j['quantity'] as num?)?.toInt() ?? 0,
+    availableQuantity: (j['available_quantity'] as num?)?.toInt() ?? 0,
+    imageUrl: ApiConfig.equipmentMediaUrl(j['image'] as String?),
+    galleryUrls: galleryUrls,
+  );
+}
 
 // ---------------------------------------------------------------------------
 // BORROWING TRANSACTIONS

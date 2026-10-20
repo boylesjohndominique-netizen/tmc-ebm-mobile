@@ -13,6 +13,7 @@ Map<String, dynamic> fakeUserJson({String status = 'Active'}) => {
       'first_name': 'Juan',
       'middle_name': null,
       'last_name': 'Dela Cruz',
+      'id_number': '24-123456',
       'username': 'juan.delacruz',
       'email': 'juan@tmc.edu',
       'contact_number': '09171234567',
@@ -62,6 +63,7 @@ void main() {
       final user = mapUser(fakeUserJson());
       expect(user.id, '8');
       expect(user.fullName, 'Juan Dela Cruz');
+      expect(user.idNumber, '24-123456');
       expect(user.username, 'juan.delacruz');
       expect(user.email, 'juan@tmc.edu');
       expect(user.userType, UserType.student);
@@ -99,6 +101,23 @@ void main() {
           'Unavailable');
       expect(mapEquipment(fakeEquipmentJson(available: 2)).availabilityStatus,
           'Limited');
+    });
+
+    test('maps main profile image and additional description gallery images',
+        () {
+      final eq = mapEquipment({
+        ...fakeEquipmentJson(),
+        'image': 'equipment-images/main-laptop.jpg',
+        'images': [
+          'equipment-images/side-angle.jpg',
+          'equipment-images/ports-closeup.jpg',
+        ],
+      });
+      expect(eq.imageUrl, endsWith('/api/equipment-media/main-laptop.jpg'));
+      expect(eq.galleryUrls.length, 2);
+      expect(eq.galleryUrls.first,
+          endsWith('/api/equipment-media/side-angle.jpg'));
+      expect(eq.allPhotos.length, 3);
     });
   });
 

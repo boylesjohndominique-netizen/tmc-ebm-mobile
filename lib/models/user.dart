@@ -26,6 +26,7 @@ class AppUser {
   final String username;
   final String contactNumber;
   final UserType userType;
+  final String? avatarUrl;
 
   /// Email verification (6-digit code) — gates login.
   final bool emailVerified;
@@ -51,6 +52,7 @@ class AppUser {
     required this.username,
     required this.contactNumber,
     required this.userType,
+    this.avatarUrl,
     this.emailVerified = false,
     this.accountStatus = 'Active',
     this.isIdVerified = false,

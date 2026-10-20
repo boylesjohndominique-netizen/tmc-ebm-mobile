@@ -13,8 +13,9 @@ extension EquipmentConditionLabel on EquipmentCondition {
   }
 }
 
-/// Equipment as served by the backend. The icon is derived from the
-/// category name at render time — no hardcoded IconData per item.
+/// Equipment as served by the backend. When an admin uploads a main profile
+/// picture (`imageUrl`) or additional description photos (`galleryUrls`), the
+/// mobile UI displays them and falls back to the category icon otherwise.
 class Equipment {
   final String id;
   final String name;
@@ -23,6 +24,8 @@ class Equipment {
   final EquipmentCondition condition;
   final int totalQuantity;
   final int availableQuantity;
+  final String? imageUrl;
+  final List<String> galleryUrls;
 
   Equipment({
     required this.id,
@@ -32,7 +35,16 @@ class Equipment {
     required this.condition,
     required this.totalQuantity,
     required this.availableQuantity,
+    this.imageUrl,
+    this.galleryUrls = const [],
   });
+
+  /// All photos starting with the main profile picture followed by additional
+  /// description photos.
+  List<String> get allPhotos => [
+        if (imageUrl != null && imageUrl!.isNotEmpty) imageUrl!,
+        ...galleryUrls.where((u) => u.isNotEmpty),
+      ];
 
   String get availabilityStatus {
     if (availableQuantity <= 0) return 'Unavailable';
