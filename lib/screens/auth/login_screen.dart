@@ -116,12 +116,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryDeep
-                              ],
-                            ).createShader(bounds),
+                            shaderCallback: (bounds) =>
+                                AppColors.headlineGradient.createShader(bounds),
                             child: const Text(
                               'Welcome back',
                               style: TextStyle(
@@ -165,13 +161,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: AppColors.danger
-                                        .withValues(alpha: 0.08),
+                                        .withValues(alpha: 0.12),
                                     borderRadius:
                                         BorderRadius.circular(AppRadius.md),
-                                    border: Border.all(
-                                      color: AppColors.danger
-                                          .withValues(alpha: 0.3),
-                                    ),
                                   ),
                                   child: Row(
                                     children: [

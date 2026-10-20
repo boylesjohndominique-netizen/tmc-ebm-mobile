@@ -157,17 +157,11 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Entrance(
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: AppShadows.primaryGlow,
-                        ),
-                        child: const Icon(Icons.mark_email_unread_rounded,
-                            color: Colors.white, size: 32),
+                    const Entrance(
+                      child: Icon(
+                        Icons.mark_email_unread_rounded,
+                        color: AppColors.primary,
+                        size: 40,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -179,12 +173,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryDeep
-                              ],
-                            ).createShader(bounds),
+                            shaderCallback: (bounds) =>
+                                AppColors.headlineGradient.createShader(bounds),
                             child: const Text(
                               'Check your inbox',
                               style: TextStyle(
@@ -236,12 +226,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color:
-                                      AppColors.danger.withValues(alpha: 0.1),
+                                      AppColors.danger.withValues(alpha: 0.12),
                                   borderRadius:
                                       BorderRadius.circular(AppRadius.md),
-                                  border: Border.all(
-                                      color: AppColors.danger
-                                          .withValues(alpha: 0.3)),
                                 ),
                                 child: Row(
                                   children: [
@@ -266,12 +253,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color:
-                                      AppColors.success.withValues(alpha: 0.1),
+                                      AppColors.success.withValues(alpha: 0.12),
                                   borderRadius:
                                       BorderRadius.circular(AppRadius.md),
-                                  border: Border.all(
-                                      color: AppColors.success
-                                          .withValues(alpha: 0.3)),
                                 ),
                                 child: Row(
                                   children: [
@@ -369,15 +353,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .cardColor
-                              .withValues(alpha: 0.6),
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(AppRadius.lg),
-                          border: Border.all(
-                            color: Theme.of(context)
-                                .dividerColor
-                                .withValues(alpha: 0.5),
-                          ),
+                          boxShadow: AppShadows.soft,
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

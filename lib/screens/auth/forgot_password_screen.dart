@@ -221,17 +221,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Entrance(
-          child: Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: AppShadows.primaryGlow,
-            ),
-            child: const Icon(Icons.lock_reset_rounded,
-                color: Colors.white, size: 30),
+        const Entrance(
+          child: Icon(
+            Icons.lock_reset_rounded,
+            color: AppColors.primary,
+            size: 40,
           ),
         ),
         const SizedBox(height: 20),
@@ -241,9 +235,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDeep],
-                ).createShader(bounds),
+                shaderCallback: (bounds) =>
+                    AppColors.headlineGradient.createShader(bounds),
                 child: const Text(
                   'Reset password',
                   style: TextStyle(
@@ -281,10 +274,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.danger.withValues(alpha: 0.1),
+                        color: AppColors.danger.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                            color: AppColors.danger.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
@@ -362,18 +353,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Entrance(
-          child: Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF8C4C), Color(0xFFEF4455)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: AppShadows.soft,
-            ),
-            child: const Icon(Icons.pin_rounded, color: Colors.white, size: 30),
+        const Entrance(
+          child: Icon(
+            Icons.pin_rounded,
+            color: AppColors.primary,
+            size: 40,
           ),
         ),
         const SizedBox(height: 20),
@@ -383,9 +367,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDeep],
-                ).createShader(bounds),
+                shaderCallback: (bounds) =>
+                    AppColors.headlineGradient.createShader(bounds),
                 child: const Text(
                   'Set new password',
                   style: TextStyle(
@@ -423,10 +406,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.danger.withValues(alpha: 0.1),
+                        color: AppColors.danger.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                            color: AppColors.danger.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         _error!,
@@ -440,10 +421,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.1),
+                        color: AppColors.success.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                            color: AppColors.success.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         _successMessage!,
