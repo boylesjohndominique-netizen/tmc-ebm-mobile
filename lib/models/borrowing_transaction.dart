@@ -75,12 +75,15 @@ class BorrowingTransaction {
 
   bool get isCurrentlyBorrowed =>
       status == RequestStatus.approved &&
-      (returnStatus == ReturnStatus.notReturned || returnStatus == ReturnStatus.returnPending);
+      (returnStatus == ReturnStatus.notReturned ||
+          returnStatus == ReturnStatus.returnPending);
 
   int get daysUntilDue => returnDate.difference(DateTime.now()).inDays;
 
   bool get isOverdue =>
-      isCurrentlyBorrowed && DateTime.now().isAfter(returnDate) && returnStatus != ReturnStatus.returnConfirmed;
+      isCurrentlyBorrowed &&
+      DateTime.now().isAfter(returnDate) &&
+      returnStatus != ReturnStatus.returnConfirmed;
 
   bool get hasOverdueFee => (overdueFee ?? 0) > 0;
 }

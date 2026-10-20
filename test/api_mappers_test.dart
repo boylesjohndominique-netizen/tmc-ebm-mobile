@@ -31,7 +31,9 @@ Map<String, dynamic> fakeEquipmentJson({int available = 15}) => {
       'category': {'id': 1, 'name': 'Information Technology'},
     };
 
-Map<String, dynamic> fakeBorrowingJson({String status = 'Pending', List<Map<String, dynamic>>? returns}) => {
+Map<String, dynamic> fakeBorrowingJson(
+        {String status = 'Pending', List<Map<String, dynamic>>? returns}) =>
+    {
       'id': 13,
       'borrowing_date': '2026-09-27T00:00:00.000000Z',
       'expected_return_date': '2026-09-30T00:00:00.000000Z',
@@ -93,8 +95,10 @@ void main() {
     });
 
     test('availability reflects stock', () {
-      expect(mapEquipment(fakeEquipmentJson(available: 0)).availabilityStatus, 'Unavailable');
-      expect(mapEquipment(fakeEquipmentJson(available: 2)).availabilityStatus, 'Limited');
+      expect(mapEquipment(fakeEquipmentJson(available: 0)).availabilityStatus,
+          'Unavailable');
+      expect(mapEquipment(fakeEquipmentJson(available: 2)).availabilityStatus,
+          'Limited');
     });
   });
 
@@ -134,10 +138,14 @@ void main() {
     });
 
     test('status mapping covers the admin lifecycle', () {
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Approved')).status, RequestStatus.approved);
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Rejected')).status, RequestStatus.rejected);
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Completed')).status, RequestStatus.completed);
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Cancelled')).status, RequestStatus.cancelled);
+      expect(mapBorrowing(fakeBorrowingJson(status: 'Approved')).status,
+          RequestStatus.approved);
+      expect(mapBorrowing(fakeBorrowingJson(status: 'Rejected')).status,
+          RequestStatus.rejected);
+      expect(mapBorrowing(fakeBorrowingJson(status: 'Completed')).status,
+          RequestStatus.completed);
+      expect(mapBorrowing(fakeBorrowingJson(status: 'Cancelled')).status,
+          RequestStatus.cancelled);
     });
   });
 

@@ -46,7 +46,8 @@ class RealtimeService {
   String get state => _state;
 
   /// Payloads of 'notification.created' events for the signed-in user.
-  Stream<Map<String, dynamic>> get notificationStream => _notificationCtrl.stream;
+  Stream<Map<String, dynamic>> get notificationStream =>
+      _notificationCtrl.stream;
 
   /// Payloads of 'user.banned' events ({reason, banned_at}) for the signed-in
   /// user. Fired the moment an admin bans the account, even though the API

@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 IconData equipmentIcon(String categoryOrName) {
   final s = categoryOrName.toLowerCase();
 
-  if (s.contains('laptop') || s.contains('computer') || s.contains('chromebook') || s.contains('tablet')) {
+  if (s.contains('laptop') ||
+      s.contains('computer') ||
+      s.contains('chromebook') ||
+      s.contains('tablet')) {
     return Icons.computer_rounded;
   }
   if (s.contains('projector') || s.contains('led') || s.contains('tv')) {
@@ -16,21 +19,36 @@ IconData equipmentIcon(String categoryOrName) {
   if (s.contains('speaker') || s.contains('amplifier') || s.contains('sound')) {
     return Icons.speaker_rounded;
   }
-  if (s.contains('printer') || s.contains('scanner') || s.contains('photocopier') || s.contains('laminating')) {
+  if (s.contains('printer') ||
+      s.contains('scanner') ||
+      s.contains('photocopier') ||
+      s.contains('laminating')) {
     return Icons.print_rounded;
   }
-  if (s.contains('cable') || s.contains('hdmi') || s.contains('vga')) return Icons.cable_rounded;
+  if (s.contains('cable') || s.contains('hdmi') || s.contains('vga')) {
+    return Icons.cable_rounded;
+  }
   if (s.contains('extension') || s.contains('power') || s.contains('charger')) {
     return Icons.power_rounded;
   }
-  if (s.contains('router') || s.contains('switch') || s.contains('network') || s.contains('wi-fi')) {
+  if (s.contains('router') ||
+      s.contains('switch') ||
+      s.contains('network') ||
+      s.contains('wi-fi')) {
     return Icons.router_rounded;
   }
-  if (s.contains('science') || s.contains('microscope') || s.contains('lab') || s.contains('thermometer') || s.contains('calculator')) {
+  if (s.contains('science') ||
+      s.contains('microscope') ||
+      s.contains('lab') ||
+      s.contains('thermometer') ||
+      s.contains('calculator')) {
     return Icons.science_rounded;
   }
   if (s.contains('tripod')) return Icons.camera_alt_rounded;
-  if (s.contains('flash') || s.contains('drive') || s.contains('usb') || s.contains('dvd')) {
+  if (s.contains('flash') ||
+      s.contains('drive') ||
+      s.contains('usb') ||
+      s.contains('dvd')) {
     return Icons.usb_rounded;
   }
   if (s.contains('information technology')) return Icons.computer_rounded;

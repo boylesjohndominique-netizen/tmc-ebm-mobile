@@ -22,7 +22,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('login with unreachable backend shows a connection error', (tester) async {
+  testWidgets('login with unreachable backend shows a connection error',
+      (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -52,7 +53,8 @@ void main() {
     );
   });
 
-  testWidgets('login validates empty fields before contacting the server', (tester) async {
+  testWidgets('login validates empty fields before contacting the server',
+      (tester) async {
     await tester.pumpWidget(_wrap(const LoginScreen()));
     await tester.pump();
 

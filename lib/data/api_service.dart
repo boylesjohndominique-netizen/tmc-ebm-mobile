@@ -104,7 +104,8 @@ class ApiService {
   static String get baseUrl => ApiConfig.baseUrl;
 
   String? _authToken;
-  final StreamController<String?> _tokenController = StreamController<String?>.broadcast();
+  final StreamController<String?> _tokenController =
+      StreamController<String?>.broadcast();
 
   String? get authToken => _authToken;
 
@@ -155,13 +156,21 @@ class ApiService {
     try {
       final res = switch (method.toUpperCase()) {
         'POST' => await http
-            .post(uri, headers: _headers(withAuth: withAuth), body: jsonEncode(body ?? {}))
+            .post(uri,
+                headers: _headers(withAuth: withAuth),
+                body: jsonEncode(body ?? {}))
             .timeout(const Duration(seconds: 20)),
         'PUT' => await http
-            .put(uri, headers: _headers(withAuth: withAuth), body: jsonEncode(body ?? {}))
+            .put(uri,
+                headers: _headers(withAuth: withAuth),
+                body: jsonEncode(body ?? {}))
             .timeout(const Duration(seconds: 20)),
-        'DELETE' => await http.delete(uri, headers: _headers(withAuth: withAuth)).timeout(const Duration(seconds: 20)),
-        _ => await http.get(uri, headers: _headers(withAuth: withAuth)).timeout(const Duration(seconds: 20)),
+        'DELETE' => await http
+            .delete(uri, headers: _headers(withAuth: withAuth))
+            .timeout(const Duration(seconds: 20)),
+        _ => await http
+            .get(uri, headers: _headers(withAuth: withAuth))
+            .timeout(const Duration(seconds: 20)),
       };
 
       final decoded = _parseJson(res.body);
@@ -178,13 +187,15 @@ class ApiService {
       }
       return ApiResponse(
         success: false,
-        message: _extractErrorMessage(decoded, 'Request failed (${res.statusCode}).'),
+        message: _extractErrorMessage(
+            decoded, 'Request failed (${res.statusCode}).'),
         statusCode: res.statusCode,
         data: decoded.isNotEmpty ? decoded : null,
         errors: decoded['errors'] as Map<String, dynamic>?,
       );
     } on TimeoutException {
-      return ApiResponse(success: false, message: 'The server took too long to respond.');
+      return ApiResponse(
+          success: false, message: 'The server took too long to respond.');
     } catch (e) {
       if (!kIsWeb && ApiConfig.host == '192.168.137.1') {
         ApiConfig.host = '127.0.0.1';
@@ -193,7 +204,9 @@ class ApiService {
         } catch (_) {}
       }
       debugPrint('ApiService $method $path failed: $e');
-      return ApiResponse(success: false, message: 'Could not connect to the server. Is the backend running?');
+      return ApiResponse(
+          success: false,
+          message: 'Could not connect to the server. Is the backend running?');
     }
   }
 
@@ -220,11 +233,13 @@ class ApiService {
       final decoded = _parseJson(res.body);
       return ApiResponse(
         success: false,
-        message: _extractErrorMessage(decoded, 'Request failed (${res.statusCode}).'),
+        message: _extractErrorMessage(
+            decoded, 'Request failed (${res.statusCode}).'),
         statusCode: res.statusCode,
       );
     } on TimeoutException {
-      return ApiResponse(success: false, message: 'The server took too long to respond.');
+      return ApiResponse(
+          success: false, message: 'The server took too long to respond.');
     } catch (e) {
       if (!kIsWeb && ApiConfig.host == '192.168.137.1') {
         ApiConfig.host = '127.0.0.1';
@@ -233,7 +248,9 @@ class ApiService {
         } catch (_) {}
       }
       debugPrint('ApiService GET $path failed: $e');
-      return ApiResponse(success: false, message: 'Could not connect to the server. Is the backend running?');
+      return ApiResponse(
+          success: false,
+          message: 'Could not connect to the server. Is the backend running?');
     }
   }
 
@@ -267,7 +284,8 @@ class ApiService {
       return ApiResponse(
         success: true,
         data: res.data,
-        message: res.message ?? 'Registration successful. Verification code sent!',
+        message:
+            res.message ?? 'Registration successful. Verification code sent!',
         statusCode: res.statusCode,
         requiresEmailVerification: true,
         unverifiedEmail: email,
@@ -287,12 +305,16 @@ class ApiService {
       });
 
   /// Resend a fresh 6-digit verification code.
-  Future<ApiResponse<Map<String, dynamic>>> resendVerification({required String email}) =>
-      request('POST', 'resend-verification', withAuth: false, body: {'email': email});
+  Future<ApiResponse<Map<String, dynamic>>> resendVerification(
+          {required String email}) =>
+      request('POST', 'resend-verification',
+          withAuth: false, body: {'email': email});
 
   /// Request a 6-digit password reset code.
-  Future<ApiResponse<Map<String, dynamic>>> forgotPassword({required String email}) =>
-      request('POST', 'forgot-password', withAuth: false, body: {'email': email.trim()});
+  Future<ApiResponse<Map<String, dynamic>>> forgotPassword(
+          {required String email}) =>
+      request('POST', 'forgot-password',
+          withAuth: false, body: {'email': email.trim()});
 
   /// Reset password using the 6-digit code.
   Future<ApiResponse<Map<String, dynamic>>> resetPassword({
@@ -367,7 +389,8 @@ class ApiService {
   // EQUIPMENT
   // =========================================================================
 
-  Future<ApiResponse<List<dynamic>>> equipmentList() => requestList('mobile/equipment');
+  Future<ApiResponse<List<dynamic>>> equipmentList() =>
+      requestList('mobile/equipment');
 
   Future<ApiResponse<Map<String, dynamic>>> equipmentShow(int id) =>
       request('GET', 'mobile/equipment/$id');
@@ -393,7 +416,8 @@ class ApiService {
         if (notes != null && notes.isNotEmpty) 'notes': notes,
       });
 
-  Future<ApiResponse<List<dynamic>>> myBorrowings() => requestList('mobile/borrowings');
+  Future<ApiResponse<List<dynamic>>> myBorrowings() =>
+      requestList('mobile/borrowings');
 
   Future<ApiResponse<Map<String, dynamic>>> cancelBorrowing(int id) =>
       request('PUT', 'mobile/borrowings/$id/cancel');
@@ -414,7 +438,8 @@ class ApiService {
   // NOTIFICATIONS
   // =========================================================================
 
-  Future<ApiResponse<List<dynamic>>> notifications() => requestList('mobile/notifications');
+  Future<ApiResponse<List<dynamic>>> notifications() =>
+      requestList('mobile/notifications');
 
   Future<ApiResponse<Map<String, dynamic>>> unreadCount() =>
       request('GET', 'mobile/notifications/unread-count');
@@ -453,14 +478,18 @@ class ApiService {
         data: decoded.isNotEmpty ? decoded : null,
         message: ok
             ? (decoded['message'] as String? ?? 'ID photos submitted.')
-            : _extractErrorMessage(decoded, 'Upload failed (${streamed.statusCode}).'),
+            : _extractErrorMessage(
+                decoded, 'Upload failed (${streamed.statusCode}).'),
         statusCode: streamed.statusCode,
       );
     } on TimeoutException {
-      return ApiResponse(success: false, message: 'The upload took too long. Try again.');
+      return ApiResponse(
+          success: false, message: 'The upload took too long. Try again.');
     } catch (e) {
       debugPrint('ApiService submitIdVerification failed: $e');
-      return ApiResponse(success: false, message: 'Could not upload ID photos. Is the backend running?');
+      return ApiResponse(
+          success: false,
+          message: 'Could not upload ID photos. Is the backend running?');
     }
   }
 
@@ -468,7 +497,8 @@ class ApiService {
   // PROFILE
   // =========================================================================
 
-  Future<ApiResponse<Map<String, dynamic>>> profile() => request('GET', 'mobile/profile');
+  Future<ApiResponse<Map<String, dynamic>>> profile() =>
+      request('GET', 'mobile/profile');
 
   Future<ApiResponse<Map<String, dynamic>>> updateProfile({
     required String firstName,

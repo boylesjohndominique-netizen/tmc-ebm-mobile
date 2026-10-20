@@ -16,7 +16,9 @@ AppUser mapUser(Map<String, dynamic> j) {
   final first = (j['first_name'] as String?) ?? '';
   final middle = (j['middle_name'] as String?) ?? '';
   final last = (j['last_name'] as String?) ?? '';
-  final full = [first, if (middle.isNotEmpty) middle, last].where((p) => p.isNotEmpty).join(' ');
+  final full = [first, if (middle.isNotEmpty) middle, last]
+      .where((p) => p.isNotEmpty)
+      .join(' ');
 
   return AppUser(
     id: (j['id'] ?? '').toString(),
@@ -29,7 +31,8 @@ AppUser mapUser(Map<String, dynamic> j) {
     emailVerified: j['email_verified_at'] != null,
     accountStatus: (j['account_status'] as String?) ?? 'Active',
     // Falls back to Active-status for older payloads that predate the flag.
-    isIdVerified: (j['is_id_verified'] as bool?) ?? ((j['account_status'] as String?) == 'Active'),
+    isIdVerified: (j['is_id_verified'] as bool?) ??
+        ((j['account_status'] as String?) == 'Active'),
     hasSubmittedId: j['id_submitted_at'] != null,
   );
 }
@@ -41,7 +44,9 @@ AppUser mapUser(Map<String, dynamic> j) {
 Equipment mapEquipment(Map<String, dynamic> j) => Equipment(
       id: (j['id'] ?? '').toString(),
       name: (j['name'] as String?) ?? 'Unknown',
-      category: ((j['category'] as Map<String, dynamic>?)?['name'] as String?) ?? 'General',
+      category:
+          ((j['category'] as Map<String, dynamic>?)?['name'] as String?) ??
+              'General',
       description: (j['description'] as String?) ?? '',
       condition: switch ((j['condition'] as String?)?.toLowerCase()) {
         'excellent' => EquipmentCondition.excellent,
@@ -65,30 +70,41 @@ BorrowingTransaction mapBorrowing(Map<String, dynamic> j) {
 
   // A borrowing request may contain several items; the UI shows them joined.
   final name = items
-      .map((i) => ((i as Map<String, dynamic>)['equipment'] as Map<String, dynamic>?)?['name'])
+      .map((i) => ((i as Map<String, dynamic>)['equipment']
+          as Map<String, dynamic>?)?['name'])
       .whereType<String>()
       .join(', ');
   final quantity = items.fold<int>(
     0,
-    (sum, i) => sum + (((i as Map<String, dynamic>)['quantity'] as num?)?.toInt() ?? 0),
+    (sum, i) =>
+        sum + (((i as Map<String, dynamic>)['quantity'] as num?)?.toInt() ?? 0),
   );
 
   final returns = (j['returns'] as List?) ?? const [];
-  final latestReturn = returns.isNotEmpty && returns.first is Map<String, dynamic>
-      ? returns.first as Map<String, dynamic>
-      : null;
-  final returnStatus = _mapReturnStatus((latestReturn?['status'] as String?), j['status'] as String?);
+  final latestReturn =
+      returns.isNotEmpty && returns.first is Map<String, dynamic>
+          ? returns.first as Map<String, dynamic>
+          : null;
+  final returnStatus = _mapReturnStatus(
+      (latestReturn?['status'] as String?), j['status'] as String?);
 
   return BorrowingTransaction(
     transactionId: (j['id'] ?? '').toString(),
-    equipmentId: ((firstItem['equipment_id'] ?? equipment?['id'] ?? '')).toString(),
+    equipmentId:
+        ((firstItem['equipment_id'] ?? equipment?['id'] ?? '')).toString(),
     equipmentName: name.isNotEmpty ? name : 'Equipment',
     assetId: equipment?['asset_id']?.toString() ?? '',
-    category: ((equipment?['category'] as Map<String, dynamic>?)?['name'] as String?) ?? '',
-    quantity: quantity > 0 ? quantity : (((firstItem['quantity'] as num?)?.toInt()) ?? 1),
+    category: ((equipment?['category'] as Map<String, dynamic>?)?['name']
+            as String?) ??
+        '',
+    quantity: quantity > 0
+        ? quantity
+        : (((firstItem['quantity'] as num?)?.toInt()) ?? 1),
     borrowingDate: _parseDate(j['borrowing_date']),
     returnDate: _parseDate(j['expected_return_date']),
-    actualReturnDate: latestReturn?['returned_at'] != null ? _parseDate(latestReturn?['returned_at']) : null,
+    actualReturnDate: latestReturn?['returned_at'] != null
+        ? _parseDate(latestReturn?['returned_at'])
+        : null,
     overdueDays: (latestReturn?['overdue_days'] as num?)?.toInt(),
     overdueFee: _parseNum(latestReturn?['overdue_fee']),
     purpose: (j['remarks'] as String?) ?? '',

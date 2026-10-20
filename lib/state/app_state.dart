@@ -75,7 +75,9 @@ class AppState extends ChangeNotifier {
       List.unmodifiable(_transactions);
 
   List<BorrowingTransaction> get pendingAndApproved => _transactions
-      .where((t) => t.status == RequestStatus.pending || t.status == RequestStatus.approved)
+      .where((t) =>
+          t.status == RequestStatus.pending ||
+          t.status == RequestStatus.approved)
       .toList();
 
   List<BorrowingTransaction> get currentlyBorrowed =>
@@ -128,8 +130,11 @@ class AppState extends ChangeNotifier {
     if (currentUser?.isIdVerified == true) return IdVerificationStatus.approved;
     // Server-side submission marker wins over the local cache (survives
     // reinstalls and reflects submissions made from other devices).
-    if (currentUser?.hasSubmittedId == true) return IdVerificationStatus.pending;
-    return _idVerification[currentUser?.id] ?? IdVerificationStatus.notSubmitted;
+    if (currentUser?.hasSubmittedId == true) {
+      return IdVerificationStatus.pending;
+    }
+    return _idVerification[currentUser?.id] ??
+        IdVerificationStatus.notSubmitted;
   }
 
   /// Uploads the submitted ID photos to the backend (private storage) and
@@ -309,7 +314,8 @@ class AppState extends ChangeNotifier {
   }) async {
     final nameParts = fullName.trim().split(RegExp(r'\s+'));
     final firstName = nameParts.isNotEmpty ? nameParts.first : fullName;
-    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : 'Student';
+    final lastName =
+        nameParts.length > 1 ? nameParts.sublist(1).join(' ') : 'Student';
 
     final res = await ApiService.instance.register(
       firstName: firstName,
@@ -348,7 +354,6 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
-
   /// Returns null on success, or an error message.
   Future<String?> updateProfile({
     required String firstName,
@@ -372,7 +377,8 @@ class AppState extends ChangeNotifier {
   }
 
   /// Returns null on success, or an error message.
-  Future<String?> changePassword(String currentPassword, String newPassword) async {
+  Future<String?> changePassword(
+      String currentPassword, String newPassword) async {
     final res = await ApiService.instance.changePassword(
       currentPassword: currentPassword,
       password: newPassword,

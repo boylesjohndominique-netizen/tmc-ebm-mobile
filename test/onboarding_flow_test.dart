@@ -10,7 +10,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('onboarding pages swipe and finish without overflow', (tester) async {
+  testWidgets('onboarding pages swipe and finish without overflow',
+      (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -30,7 +31,8 @@ void main() {
     expect(find.text('Easy Equipment Access'), findsOneWidget);
 
     // Swipe to the last page.
-    await tester.fling(find.text('Easy Equipment Access'), const Offset(-400, 0), 800);
+    await tester.fling(
+        find.text('Easy Equipment Access'), const Offset(-400, 0), 800);
     await tester.pumpAndSettle();
     expect(find.text('Track Everything'), findsOneWidget);
 
