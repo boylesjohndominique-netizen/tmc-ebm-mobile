@@ -12,12 +12,14 @@ class FloatingNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final int unreadCount;
+  final bool menuOpen;
 
   const FloatingNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
     this.unreadCount = 0,
+    this.menuOpen = false,
   });
 
   static const _icons = [
@@ -25,7 +27,7 @@ class FloatingNavBar extends StatelessWidget {
     Icons.inventory_2_outlined,
     Icons.assignment_outlined,
     Icons.notifications_none_rounded,
-    Icons.person_outline_rounded,
+    Icons.menu_rounded,
   ];
 
   static const _activeIcons = [
@@ -33,10 +35,10 @@ class FloatingNavBar extends StatelessWidget {
     Icons.inventory_2_rounded,
     Icons.assignment_rounded,
     Icons.notifications_rounded,
-    Icons.person_rounded,
+    Icons.menu_open_rounded,
   ];
 
-  static const _labels = ['Home', 'Gear', 'Requests', 'Alerts', 'Profile'];
+  static const _labels = ['Home', 'Gear', 'Requests', 'Alerts', 'Menu'];
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +57,15 @@ class FloatingNavBar extends StatelessWidget {
             height: 58,
             child: Row(
               children: List.generate(_icons.length, (i) {
+                final isMenuSlot = i == 4;
+                final isSelected =
+                    isMenuSlot ? menuOpen : (!menuOpen && currentIndex == i);
                 return Expanded(
                   child: _NavItem(
                     icon: _icons[i],
                     activeIcon: _activeIcons[i],
                     label: _labels[i],
-                    selected: currentIndex == i,
+                    selected: isSelected,
                     showDot: i == 3 && unreadCount > 0,
                     onTap: () => onTap(i),
                   ),
