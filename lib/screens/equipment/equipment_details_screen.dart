@@ -1,9 +1,13 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../models/equipment.dart';
 import '../../state/app_state.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/equipment_icon.dart';
+import '../../widgets/liquid_glass.dart';
 import '../borrowing/request_equipment_screen.dart';
 
 class EquipmentDetailsScreen extends StatefulWidget {
@@ -30,7 +34,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
     final equipment = appState.equipmentById(widget.equipmentId);
 
     if (equipment == null) {
-      return Scaffold(
+      return LiquidScaffold(
         appBar: AppBar(title: const Text('Equipment Details')),
         body: const Center(child: Text('Equipment not found.')),
       );
@@ -41,121 +45,29 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
       'Limited' => AppColors.warning,
       _ => AppColors.danger,
     };
+    final pending = appState.currentUser?.isPending == true;
+    final canRequest = equipment.isAvailable && !pending;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return LiquidScaffold(
+      extendBody: true,
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 130),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Hero header — full-width image placeholder ────────────────
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-              child: SafeArea(
-                bottom: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                      child: Row(
-                        children: [
-                          _HeroIconButton(
-                            icon: Icons.arrow_back_rounded,
-                            onTap: () => Navigator.of(context).maybePop(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Full-bleed image slot — swap for Image.network once the
-                    // backend serves equipment photos.
-                    Center(
-                      child: Container(
-                        width: 240,
-                        height: 170,
-                        margin: const EdgeInsets.only(bottom: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppRadius.xl),
-                          border:
-                              Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                        ),
-                        child: Icon(
-                          equipmentIcon('${equipment.category} ${equipment.name}'),
-                          size: 72,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 10, 24, 22),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  equipment.name,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                    height: 1.15,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: statusColor,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.6),
-                                      width: 1.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            equipment.category,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _Hero(
+              equipment: equipment,
+              statusColor: statusColor,
+              onBack: () => Navigator.of(context).maybePop(),
             ),
-
-            // ── Body sheet ────────────────────────────────────────────────
             Transform.translate(
-              offset: const Offset(0, -16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
-                ),
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              offset: const Offset(0, -24),
+              child: _BodySheet(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Spec chips ────────────────────────────────────────
+                    // ── Spec chips ──────────────────────────────────────
                     Row(
                       children: [
                         Expanded(
@@ -176,40 +88,33 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: _SpecChip(
-                            icon: Icons.circle_outlined,
-                            iconSize: 12,
+                            icon: Icons.circle,
+                            iconSize: 9,
                             label: equipment.availabilityStatus,
-                            iconColorOverride: statusColor,
                             color: statusColor,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 26),
 
-                    // ── About ─────────────────────────────────────────────
+                    // ── About ────────────────────────────────────────────
                     if (equipment.description.trim().isNotEmpty) ...[
-                      Text('About', style: Theme.of(context).textTheme.titleLarge),
+                      const GlassSectionLabel('About'),
                       const SizedBox(height: 10),
                       Text(
                         equipment.description,
                         style: Theme.of(context)
                             .textTheme
                             .bodyLarge
-                            ?.copyWith(height: 1.55),
+                            ?.copyWith(height: 1.6),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 26),
                     ],
 
-                    // ── Availability card with stock bar ──────────────────
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-                        boxShadow: AppShadows.soft,
-                      ),
+                    // ── Availability card with stock bar ─────────────────
+                    GlassCard(
+                      padding: const EdgeInsets.all(18),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -217,31 +122,36 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                             children: [
                               Expanded(
                                 child: Text('Availability',
-                                    style: Theme.of(context).textTheme.titleMedium),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium),
                               ),
                               Text(
                                 '${equipment.availableQuantity}/${equipment.totalQuantity}',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w800,
                                   color: statusColor,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 13),
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
                             child: LinearProgressIndicator(
                               value: equipment.totalQuantity == 0
                                   ? 0
-                                  : equipment.availableQuantity / equipment.totalQuantity,
-                              minHeight: 6,
-                              backgroundColor: AppColors.divider.withValues(alpha: 0.7),
-                              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                                  : equipment.availableQuantity /
+                                      equipment.totalQuantity,
+                              minHeight: 8,
+                              backgroundColor:
+                                  AppColors.divider.withValues(alpha: 0.55),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(statusColor),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerRight,
                             child: Text(
@@ -252,28 +162,34 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     // ── Approval note / Verification status ──────────────
-                    if (appState.currentUser?.isPending == true) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
-                        ),
+                    if (pending) ...[
+                      GlassPanel(
+                        blur: 0,
+                        radius: AppRadius.md,
+                        padding: const EdgeInsets.all(14),
+                        shadows: AppShadows.soft,
+                        tint: AppColors.warning
+                            .withValues(alpha: AppColors.isDark ? 0.16 : 0.10),
+                        borderColor: AppColors.warning.withValues(alpha: 0.32),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Icon(Icons.lock_outline_rounded,
-                                color: Color(0xFFD97706), size: 18),
-                            const SizedBox(width: 8),
+                                color: Color(0xFFD97706), size: 19),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Account Not Verified: You can view equipment, but borrowing requires administrator verification of your ID.',
+                                'Account Not Verified — you can view equipment, but borrowing requires administrator verification of your ID.',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).textTheme.bodySmall?.color,
+                                  fontSize: 12.5,
+                                  height: 1.5,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -296,39 +212,214 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 8),
                     ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+        child: GlassPanel(
+          blur: 28,
+          strong: true,
+          radius: AppRadius.xl,
+          shadows: AppShadows.floating,
+          padding: const EdgeInsets.all(10),
+          child: CustomButton(
+            label: pending
+                ? 'Verification Required to Borrow'
+                : (equipment.isAvailable
+                    ? 'Request Equipment'
+                    : 'Currently Unavailable'),
+            icon: pending
+                ? Icons.lock_outline_rounded
+                : Icons.add_circle_outline_rounded,
+            onPressed: canRequest
+                ? () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            RequestEquipmentScreen(equipmentId: equipment.id),
+                      ),
+                    )
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                    // ── CTA ───────────────────────────────────────────────
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: (equipment.isAvailable && appState.currentUser?.isPending != true)
-                              ? AppColors.primary
-                              : AppColors.surfaceMuted,
-                          foregroundColor: (equipment.isAvailable && appState.currentUser?.isPending != true)
-                              ? Colors.white
-                              : AppColors.textTertiary,
+// ---------------------------------------------------------------------------
+// Gradient hero with floating glass back control and product tile.
+// ---------------------------------------------------------------------------
+class _Hero extends StatelessWidget {
+  final Equipment equipment;
+  final Color statusColor;
+  final VoidCallback onBack;
+
+  const _Hero({
+    required this.equipment,
+    required this.statusColor,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: AppColors.premiumGradient,
+        boxShadow: AppShadows.primaryGlow,
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(38)),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -80,
+              right: -70,
+              child: Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.20),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 4, 20, 34),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        GlassIconButton(
+                          icon: Icons.arrow_back_rounded,
+                          tooltip: 'Back',
+                          iconColor: Colors.white,
+                          tint: Colors.white.withValues(alpha: 0.16),
+                          borderColor: Colors.white.withValues(alpha: 0.26),
+                          onTap: onBack,
                         ),
-                        onPressed: (equipment.isAvailable && appState.currentUser?.isPending != true)
-                            ? () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) => RequestEquipmentScreen(
-                                          equipmentId: equipment.id)),
-                                )
-                            : null,
-                        icon: Icon(
-                          appState.currentUser?.isPending == true
-                              ? Icons.lock_outline_rounded
-                              : Icons.add_circle_outline_rounded,
-                          size: 20,
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Center(
+                      child: GlassPanel(
+                        blur: 22,
+                        radius: 34,
+                        padding: const EdgeInsets.all(4),
+                        tint: Colors.white.withValues(alpha: 0.14),
+                        borderColor: Colors.white.withValues(alpha: 0.28),
+                        shadows: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 30,
+                            offset: const Offset(0, 16),
+                          ),
+                        ],
+                        child: Container(
+                          width: 228,
+                          height: 164,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.20),
+                                Colors.white.withValues(alpha: 0.05),
+                              ],
+                            ),
+                          ),
+                          child: Icon(
+                            equipmentIcon(
+                                '${equipment.category} ${equipment.name}'),
+                            size: 74,
+                            color: Colors.white.withValues(alpha: 0.94),
+                          ),
                         ),
-                        label: Text(
-                          appState.currentUser?.isPending == true
-                              ? 'Verification Required to Borrow'
-                              : (equipment.isAvailable ? 'Request' : 'Unavailable'),
-                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            equipment.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 27,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.7,
+                              height: 1.12,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.16),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.pill),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.22),
+                                  ),
+                                ),
+                                child: Text(
+                                  equipment.category,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.92),
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 9,
+                                height: 9,
+                                decoration: BoxDecoration(
+                                  color: statusColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                equipment.availabilityStatus,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.82),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -343,26 +434,51 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Hero header icon button — frosted square.
+// Frosted body sheet that overlaps the hero.
 // ---------------------------------------------------------------------------
-class _HeroIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  const _HeroIconButton({required this.icon, this.onTap});
+class _BodySheet extends StatelessWidget {
+  final Widget child;
+  const _BodySheet({required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.16),
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: SizedBox(
-          width: 42,
-          height: 42,
-          child: Icon(icon, color: Colors.white, size: 20),
+    const radius = BorderRadius.vertical(top: Radius.circular(34));
+    return Container(
+      decoration: const BoxDecoration(
+        borderRadius: radius,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x26000000),
+            blurRadius: 30,
+            offset: Offset(0, -6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.surface
+                      .withValues(alpha: AppColors.isDark ? 0.90 : 0.92),
+                  AppColors.background
+                      .withValues(alpha: AppColors.isDark ? 0.94 : 0.96),
+                ],
+              ),
+              border: Border(
+                top: BorderSide(color: AppColors.glassBorder, width: 1),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+              child: child,
+            ),
+          ),
         ),
       ),
     );
@@ -370,41 +486,41 @@ class _HeroIconButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Spec chip — small tinted square icon + label.
+// Spec chip — small tinted glass square icon + label.
 // ---------------------------------------------------------------------------
 class _SpecChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
-  final Color? iconColorOverride;
   final double? iconSize;
 
   const _SpecChip({
     required this.icon,
     required this.label,
     required this.color,
-    this.iconColorOverride,
     this.iconSize,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 58,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: iconSize ?? 15, color: iconColorOverride ?? color),
-            const SizedBox(width: 5),
-            Flexible(
-              child: Text(
+    return GlassPanel(
+      blur: 0,
+      radius: AppRadius.md,
+      padding: EdgeInsets.zero,
+      shadows: AppShadows.soft,
+      tint: color.withValues(alpha: 0.10),
+      borderColor: color.withValues(alpha: 0.18),
+      child: SizedBox(
+        height: 62,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: iconSize ?? 16, color: color),
+              const SizedBox(height: 5),
+              Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -414,8 +530,8 @@ class _SpecChip extends StatelessWidget {
                   color: color,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

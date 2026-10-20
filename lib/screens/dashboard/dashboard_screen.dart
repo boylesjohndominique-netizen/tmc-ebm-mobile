@@ -4,10 +4,12 @@ import '../../app/theme.dart';
 import '../../models/borrowing_transaction.dart';
 import '../../state/app_state.dart';
 import '../../widgets/equipment_card.dart';
+import '../../widgets/liquid_glass.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/theme_toggle_button.dart';
 import '../equipment/equipment_details_screen.dart';
+import '../history/transaction_details_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -20,8 +22,9 @@ class DashboardScreen extends StatelessWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    final firstName = user.fullName.trim().split(RegExp(r'\s+')).first;
+
+    return LiquidScaffold(
       body: RefreshIndicator(
         backgroundColor: AppColors.surface,
         color: AppColors.primary,
@@ -34,104 +37,142 @@ class DashboardScreen extends StatelessWidget {
           }
         },
         child: ListView(
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
           children: [
-            // ── Header: brand mark + theme + notifications ────────────────
+            // ── Header: brand mark + theme + notifications ─────────────────
             SafeArea(
               bottom: false,
               child: SizedBox(
-                height: 44,
+                height: 46,
                 child: Row(
                   children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySoft,
-                        borderRadius: BorderRadius.circular(14),
+                    GlassPanel(
+                      blur: 16,
+                      radius: 15,
+                      padding: const EdgeInsets.all(6),
+                      shadows: AppShadows.soft,
+                      child: Image.asset(
+                        'assets/images/tmc_logo.png',
+                        width: 32,
+                        height: 32,
                       ),
-                      child: const Icon(Icons.inventory_2_rounded,
-                          color: AppColors.primary, size: 21),
                     ),
                     const Spacer(),
                     const ThemeToggleButton(isHeaderStyle: false),
-                    _HeaderIconButton(
+                    const SizedBox(width: 8),
+                    GlassIconButton(
                       icon: Icons.notifications_none_rounded,
-                      showDot: appState.unreadCount > 0,
-                      onTap: () => Navigator.of(context).pushNamed('/notifications'),
+                      tooltip: 'Notifications',
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/notifications'),
+                      badge: appState.unreadCount > 0
+                          ? Container(
+                              width: 9,
+                              height: 9,
+                              decoration: BoxDecoration(
+                                color: AppColors.gold,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.surface,
+                                  width: 1.5,
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 22),
 
-            // ── Title ─────────────────────────────────────────────────────
+            // ── Title ──────────────────────────────────────────────────────
             Text('Overview', style: Theme.of(context).textTheme.headlineLarge),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
+            Text(
+              'Welcome back, $firstName.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 20),
 
             if (appState.currentUser?.isPending == true) ...[
-              Container(
-                margin: const EdgeInsets.only(bottom: 18),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
+              GlassPanel(
+                blur: 0,
+                radius: AppRadius.lg,
+                padding: EdgeInsets.zero,
+                shadows: AppShadows.soft,
+                tint: AppColors.warning
+                    .withValues(alpha: AppColors.isDark ? 0.16 : 0.10),
+                borderColor: AppColors.warning.withValues(alpha: 0.32),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: const Icon(
+                          Icons.verified_user_outlined,
+                          color: Color(0xFFD97706),
+                          size: 20,
+                        ),
                       ),
-                      child: const Icon(Icons.verified_user_outlined,
-                          color: Color(0xFFD97706), size: 22),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Account Not Verified',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                              color: Color(0xFFB45309),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Account Not Verified',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                                color: Color(0xFFB45309),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'You can browse equipment, but you must submit your front and back ID photos in Profile for admin verification before borrowing.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            const SizedBox(height: 3),
+                            Text(
+                              'Browse freely — submit your front and back ID photos in Profile to unlock borrowing.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.4,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(height: 18),
             ],
 
-            // ── Stats strip ───────────────────────────────────────────────
+            // ── Stats strip ────────────────────────────────────────────────
             _StatsStrip(
               borrowed: appState.currentlyBorrowed.length,
-              pending:
-                  appState.transactions.where((t) => t.status == RequestStatus.pending).length,
-              approved:
-                  appState.transactions.where((t) => t.status == RequestStatus.approved).length,
+              pending: appState.transactions
+                  .where((t) => t.status == RequestStatus.pending)
+                  .length,
+              approved: appState.transactions
+                  .where((t) => t.status == RequestStatus.approved)
+                  .length,
               overdue: appState.overdueCount,
             ),
             const SizedBox(height: 28),
 
-            // ── Quick actions ─────────────────────────────────────────────
+            // ── Quick actions ──────────────────────────────────────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -147,6 +188,7 @@ class DashboardScreen extends StatelessWidget {
                   child: _QuickAction(
                     icon: Icons.add_circle_outline_rounded,
                     label: 'Request',
+                    tint: AppColors.gold,
                     onTap: () => Navigator.of(context).pushNamed('/equipment'),
                   ),
                 ),
@@ -155,7 +197,9 @@ class DashboardScreen extends StatelessWidget {
                   child: _QuickAction(
                     icon: Icons.assignment_return_outlined,
                     label: 'Returns',
-                    onTap: () => Navigator.of(context).pushNamed('/borrowed-equipment'),
+                    tint: AppColors.success,
+                    onTap: () =>
+                        Navigator.of(context).pushNamed('/borrowed-equipment'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -163,15 +207,20 @@ class DashboardScreen extends StatelessWidget {
                   child: _QuickAction(
                     icon: Icons.history_rounded,
                     label: 'History',
+                    tint: AppColors.info,
                     onTap: () => Navigator.of(context).pushNamed('/history'),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 30),
 
-            // ── Equipment preview ─────────────────────────────────────────
-            const _SectionHeader('Equipment'),
+            // ── Equipment preview ──────────────────────────────────────────
+            GlassSectionHeader(
+              title: 'Equipment',
+              actionLabel: 'View all',
+              onAction: () => Navigator.of(context).pushNamed('/equipment'),
+            ),
             const SizedBox(height: 12),
             ...appState.equipment.where((e) => e.isAvailable).take(3).map(
                   (e) => Padding(
@@ -180,78 +229,40 @@ class DashboardScreen extends StatelessWidget {
                       equipment: e,
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (_) => EquipmentDetailsScreen(equipmentId: e.id)),
+                            builder: (_) =>
+                                EquipmentDetailsScreen(equipmentId: e.id)),
                       ),
                     ),
                   ),
                 ),
             const SizedBox(height: 18),
 
-            // ── Recent activity ───────────────────────────────────────────
-            const _SectionHeader('Activity'),
+            // ── Recent activity ────────────────────────────────────────────
+            GlassSectionHeader(
+              title: 'Activity',
+              actionLabel: appState.transactions.isEmpty ? null : 'View all',
+              onAction: () => Navigator.of(context).pushNamed('/my-requests'),
+            ),
             const SizedBox(height: 12),
             if (appState.transactions.isEmpty)
-              Text('Nothing yet.', style: Theme.of(context).textTheme.bodyMedium)
+              GlassCard(
+                child: Row(
+                  children: [
+                    Icon(Icons.inbox_outlined,
+                        size: 20, color: AppColors.textTertiary),
+                    const SizedBox(width: 10),
+                    Text('Nothing yet.',
+                        style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
+              )
             else
-              ...appState.transactions.take(3).map((t) => _ActivityTile(txn: t)),
+              ...appState.transactions
+                  .take(3)
+                  .map((t) => _ActivityTile(txn: t)),
           ],
         ),
       ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Header action button — flat surface tile with an optional unread dot.
-// ---------------------------------------------------------------------------
-class _HeaderIconButton extends StatelessWidget {
-  final IconData icon;
-  final bool showDot;
-  final VoidCallback onTap;
-
-  const _HeaderIconButton({
-    required this.icon,
-    required this.onTap,
-    this.showDot = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Material(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-              ),
-              child: Icon(icon, color: AppColors.textPrimary, size: 21),
-            ),
-          ),
-        ),
-        if (showDot)
-          Positioned(
-            top: 5,
-            right: 6,
-            child: Container(
-              width: 9,
-              height: 9,
-              decoration: BoxDecoration(
-                color: AppColors.gold,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.surface, width: 1.5),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
@@ -275,29 +286,78 @@ class _StatsStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 18),
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        gradient: AppColors.premiumGradient,
         borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
         boxShadow: AppShadows.primaryGlow,
       ),
-      child: Row(
-        children: [
-          _StatColumn(value: borrowed, label: 'Borrowed', onTap: () => Navigator.of(context).pushNamed('/borrowed-equipment')),
-          _divider,
-          _StatColumn(value: pending, label: 'Pending', onTap: () => Navigator.of(context).pushNamed('/my-requests')),
-          _divider,
-          _StatColumn(value: approved, label: 'Approved', onTap: () => Navigator.of(context).pushNamed('/my-requests')),
-          _divider,
-          _StatColumn(value: overdue, label: 'Overdue', onTap: () => Navigator.of(context).pushNamed('/borrowed-equipment')),
-        ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: Stack(
+          children: [
+            // Glossy top rim.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.22),
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.10),
+                      ],
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Row(
+                children: [
+                  _StatColumn(
+                    value: borrowed,
+                    label: 'Borrowed',
+                    onTap: () =>
+                        Navigator.of(context).pushNamed('/borrowed-equipment'),
+                  ),
+                  _divider,
+                  _StatColumn(
+                    value: pending,
+                    label: 'Pending',
+                    onTap: () =>
+                        Navigator.of(context).pushNamed('/my-requests'),
+                  ),
+                  _divider,
+                  _StatColumn(
+                    value: approved,
+                    label: 'Approved',
+                    onTap: () =>
+                        Navigator.of(context).pushNamed('/my-requests'),
+                  ),
+                  _divider,
+                  _StatColumn(
+                    value: overdue,
+                    label: 'Overdue',
+                    onTap: () =>
+                        Navigator.of(context).pushNamed('/borrowed-equipment'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget get _divider => Container(
         width: 1,
-        height: 30,
+        height: 32,
         color: Colors.white.withValues(alpha: 0.18),
       );
 }
@@ -307,23 +367,23 @@ class _StatColumn extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _StatColumn({required this.value, required this.label, required this.onTap});
+  const _StatColumn(
+      {required this.value, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
+      child: Pressable(
         onTap: onTap,
-        behavior: HitTestBehavior.opaque,
         child: Column(
           children: [
             Text(
               '$value',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 22,
+                fontSize: 24,
                 fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
+                letterSpacing: -0.7,
               ),
             ),
             const SizedBox(height: 4),
@@ -332,7 +392,7 @@ class _StatColumn extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.78),
+                color: Colors.white.withValues(alpha: 0.80),
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3,
@@ -346,32 +406,42 @@ class _StatColumn extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Quick action tile — icon + single-word label.
+// Quick action tile — glass card with a tinted icon.
 // ---------------------------------------------------------------------------
 class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color? tint;
 
-  const _QuickAction({required this.icon, required this.label, required this.onTap});
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.tint,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final color = tint ?? AppColors.primary;
     return Pressable(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-          boxShadow: AppShadows.soft,
-        ),
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: AppColors.primary, size: 22),
-            const SizedBox(height: 8),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: color.withValues(alpha: 0.16)),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 9),
             Text(
               label,
               maxLines: 1,
@@ -382,20 +452,6 @@ class _QuickAction extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Section header — label + optional trailing action.
-// ---------------------------------------------------------------------------
-class _SectionHeader extends StatelessWidget {
-  final String label;
-
-  const _SectionHeader(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(label, style: Theme.of(context).textTheme.titleLarge);
   }
 }
 
@@ -416,33 +472,47 @@ class _ActivityTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: _statusColor, shape: BoxShape.circle),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Pressable(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                TransactionDetailsScreen(transactionId: txn.transactionId),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '${txn.equipmentName}  ·  ${txn.quantity}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+        ),
+        child: GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          child: Row(
+            children: [
+              Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: _statusColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _statusColor.withValues(alpha: 0.45),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '${txn.equipmentName}  ·  ${txn.quantity}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusBadge.forRequest(txn.status),
+            ],
           ),
-          const SizedBox(width: 8),
-          StatusBadge.forRequest(txn.status),
-        ],
+        ),
       ),
     );
   }
