@@ -7,6 +7,7 @@ import '../../state/app_state.dart';
 import '../../widgets/auth_surface.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/student_id_formatter.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,26 +18,28 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _middleNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _idNumberController = TextEditingController();
   final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   // One key per text field, in tab order, used to scroll to the first error.
   final List<GlobalKey<FormFieldState<String>>> _fieldKeys =
-      List.generate(7, (_) => GlobalKey<FormFieldState<String>>());
+      List.generate(8, (_) => GlobalKey<FormFieldState<String>>());
   bool _obscure1 = true;
   bool _obscure2 = true;
   bool _loading = false;
 
   @override
   void dispose() {
-    _fullNameController.dispose();
+    _firstNameController.dispose();
+    _middleNameController.dispose();
+    _lastNameController.dispose();
     _idNumberController.dispose();
     _emailController.dispose();
-    _usernameController.dispose();
     _contactController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
@@ -83,10 +86,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     setState(() => _loading = true);
+    final firstName = _firstNameController.text.trim();
+    final middleName = _middleNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
     final email = _emailController.text.trim();
-    final username = _usernameController.text.trim();
     final password = _passwordController.text;
-    final fullName = _fullNameController.text.trim();
     final contact = _contactController.text.trim();
 
     // Register through the backend API — creates a Pending student account
@@ -94,10 +98,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // database powers the admin website.
     final appState = context.read<AppState>();
     final error = await appState.register(
-      fullName: fullName,
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
       idNumber: _idNumberController.text.trim(),
       email: email,
-      username: username,
+      username: firstName,
       contactNumber: contact,
       userType: UserType.student,
       password: password,
@@ -184,34 +190,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const FieldLabel('Full Name'),
+                          const FieldLabel('First Name'),
                           const SizedBox(height: 8),
                           TextFormField(
                             key: _fieldKeys[0],
-                            controller: _fullNameController,
+                            controller: _firstNameController,
                             decoration: _dec(
-                                'Enter your full name', Icons.badge_outlined),
+                                'Enter your first name', Icons.badge_outlined),
                             validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Full name is required'
+                                ? 'First name is required'
                                 : null,
                           ),
                           const SizedBox(height: 16),
-                          const FieldLabel('Student / Employee ID'),
+                          const FieldLabel('Middle Name'),
                           const SizedBox(height: 8),
                           TextFormField(
                             key: _fieldKeys[1],
-                            controller: _idNumberController,
-                            decoration: _dec('Enter your ID number',
-                                Icons.confirmation_number_outlined),
+                            controller: _middleNameController,
+                            decoration: _dec(
+                                'Enter your middle name', Icons.badge_outlined),
+                          ),
+                          const SizedBox(height: 16),
+                          const FieldLabel('Last Name'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            key: _fieldKeys[2],
+                            controller: _lastNameController,
+                            decoration: _dec(
+                                'Enter your last name', Icons.badge_outlined),
                             validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'ID number is required'
+                                ? 'Last name is required'
                                 : null,
+                          ),
+                          const SizedBox(height: 16),
+                          const FieldLabel('Student ID (00-000000)'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            key: _fieldKeys[3],
+                            controller: _idNumberController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: const [StudentIdInputFormatter()],
+                            decoration: _dec('00-000000',
+                                Icons.confirmation_number_outlined),
+                            validator: validateStudentId,
                           ),
                           const SizedBox(height: 16),
                           const FieldLabel('Email Address'),
                           const SizedBox(height: 8),
                           TextFormField(
-                            key: _fieldKeys[2],
+                            key: _fieldKeys[4],
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             autofillHints: const [AutofillHints.email],
@@ -230,23 +257,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          const FieldLabel('Username'),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            key: _fieldKeys[3],
-                            controller: _usernameController,
-                            autofillHints: const [AutofillHints.newUsername],
-                            decoration: _dec('Enter your username',
-                                Icons.alternate_email_rounded),
-                            validator: (v) => (v == null || v.trim().length < 4)
-                                ? 'Minimum 4 characters'
-                                : null,
-                          ),
-                          const SizedBox(height: 16),
                           const FieldLabel('Contact Number'),
                           const SizedBox(height: 8),
                           TextFormField(
-                            key: _fieldKeys[4],
+                            key: _fieldKeys[5],
                             controller: _contactController,
                             keyboardType: TextInputType.phone,
                             decoration: _dec('Enter your contact number',
@@ -266,7 +280,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const FieldLabel('Password'),
                           const SizedBox(height: 8),
                           TextFormField(
-                            key: _fieldKeys[5],
+                            key: _fieldKeys[6],
                             controller: _passwordController,
                             obscureText: _obscure1,
                             autofillHints: const [AutofillHints.newPassword],
@@ -299,7 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const FieldLabel('Confirm Password'),
                           const SizedBox(height: 8),
                           TextFormField(
-                            key: _fieldKeys[6],
+                            key: _fieldKeys[7],
                             controller: _confirmController,
                             obscureText: _obscure2,
                             textInputAction: TextInputAction.done,

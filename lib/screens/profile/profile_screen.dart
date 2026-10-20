@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
+import '../../data/api_service.dart';
 import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
@@ -10,11 +12,8 @@ import '../../widgets/pressable.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 
-/// Profile — clean, minimal, iOS-inspired.
-///
-/// Structure: centered identity header → account card → verification card
-/// (state-aware) → grouped settings list. Wording kept to a minimum;
-/// iconography and color carry the meaning.
+/// Profile screen — displays overall profile details, edit profile button,
+/// ID verification status, and change password action.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -33,76 +32,94 @@ class ProfileScreen extends StatelessWidget {
         onRefresh: () => appState.refreshProfile(),
         child: ListView(
           physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics()),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 60),
           children: [
             // ── Identity ───────────────────────────────────────────────────
             const SizedBox(height: 8),
             _IdentityHeader(user: user),
             const SizedBox(height: 28),
 
-            // ── Account details ────────────────────────────────────────────
-            // Not const: reads theme-dependent AppColors getters (see the
-            // Verification section note above).
-            const _SectionLabel('Account'),
+            // ── Overall Profile Details ────────────────────────────────────
+            const _SectionLabel('Overall Profile'),
             const SizedBox(height: 8),
             _Card(
               child: Column(
                 children: [
-                  _DetailRow(icon: Icons.badge_outlined, value: user.idNumber),
-                  const Divider(height: 1, indent: 40),
-                  _DetailRow(
-                      icon: Icons.mail_outline_rounded, value: user.email),
-                  const Divider(height: 1, indent: 40),
-                  _DetailRow(
-                      icon: Icons.phone_outlined,
-                      value: user.contactNumber.isEmpty
-                          ? '—'
-                          : user.contactNumber),
+                  _LabeledDetailRow(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Full Name',
+                    value: user.fullName,
+                  ),
+                  const Divider(height: 1, indent: 46),
+                  _LabeledDetailRow(
+                    icon: Icons.alternate_email_rounded,
+                    label: 'Username',
+                    value: user.username.isEmpty ? '—' : '@${user.username}',
+                  ),
+                  const Divider(height: 1, indent: 46),
+                  _LabeledDetailRow(
+                    icon: Icons.badge_outlined,
+                    label: 'Student ID',
+                    value: user.idNumber.trim().isEmpty
+                        ? 'No Student ID set (00-000000)'
+                        : user.idNumber,
+                    muted: user.idNumber.trim().isEmpty,
+                  ),
+                  const Divider(height: 1, indent: 46),
+                  _LabeledDetailRow(
+                    icon: Icons.mail_outline_rounded,
+                    label: 'Email Address',
+                    value: user.email,
+                  ),
+                  const Divider(height: 1, indent: 46),
+                  _LabeledDetailRow(
+                    icon: Icons.phone_outlined,
+                    label: 'Contact Number',
+                    value:
+                        user.contactNumber.isEmpty ? '—' : user.contactNumber,
+                    muted: user.contactNumber.isEmpty,
+                  ),
+                  const Divider(height: 1, indent: 46),
+                  _LabeledDetailRow(
+                    icon: Icons.school_outlined,
+                    label: 'Role & Status',
+                    value: '${user.userType.label} • ${user.accountStatus}',
+                  ),
+                  const Divider(height: 1, indent: 46),
+                  _SettingsRow(
+                    icon: Icons.edit_outlined,
+                    label: 'Edit Profile',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const EditProfileScreen(),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
             // ── ID verification (state-aware) ──────────────────────────────
-            // NOTE: deliberately not `const` — these widgets read AppColors
-            // getters that change with the theme. Dart canonicalizes identical
-            // const instances, so a const copy would be reused across theme
-            // switches and the card would stay stuck in the old theme's colors.
-            const _SectionLabel('Verification'),
+            const _SectionLabel('Verification Status'),
             const SizedBox(height: 8),
             _VerificationCard(status: appState.idVerificationStatus),
             const SizedBox(height: 24),
 
-            // ── Settings ───────────────────────────────────────────────────
-            const _SectionLabel('Settings'),
+            // ── Security (Change Password) ─────────────────────────────────
+            const _SectionLabel('Security'),
             const SizedBox(height: 8),
             _Card(
-              child: Column(
-                children: [
-                  _AppearanceTile(isDark: appState.isDarkMode),
-                  const Divider(height: 1, indent: 56),
-                  _SettingsRow(
-                    icon: Icons.edit_outlined,
-                    label: 'Edit Profile',
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const EditProfileScreen())),
+              child: _SettingsRow(
+                icon: Icons.lock_outline_rounded,
+                label: 'Change Password',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ChangePasswordScreen(),
                   ),
-                  const Divider(height: 1, indent: 56),
-                  _SettingsRow(
-                    icon: Icons.lock_outline_rounded,
-                    label: 'Password',
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => const ChangePasswordScreen())),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _SettingsRow(
-                    icon: Icons.logout_rounded,
-                    label: 'Log Out',
-                    tint: AppColors.danger,
-                    onTap: () => _confirmLogout(context),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
@@ -110,47 +127,112 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-  void _confirmLogout(BuildContext context) {
-    showGlassDialog(
-      context: context,
-      builder: (ctx) => GlassDialog(
-        icon: Icons.logout_rounded,
-        iconColor: AppColors.danger,
-        title: 'Log Out?',
-        message: 'Are you sure you want to log out of your account?',
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              context.read<AppState>().logout();
-              Navigator.of(ctx).pop();
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/login', (route) => false);
-            },
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('Log Out'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
-// Identity header — avatar, name, role + one status pill. No card, no clutter.
+// Identity header — avatar (with photo picker), adjacent edit icon button,
+// name, role + status pill.
 // ---------------------------------------------------------------------------
-class _IdentityHeader extends StatelessWidget {
+class _IdentityHeader extends StatefulWidget {
   final AppUser user;
   const _IdentityHeader({required this.user});
 
   @override
+  State<_IdentityHeader> createState() => _IdentityHeaderState();
+}
+
+class _IdentityHeaderState extends State<_IdentityHeader> {
+  bool _uploadingPhoto = false;
+
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    final picker = ImagePicker();
+    try {
+      final file = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        imageQuality: 85,
+      );
+      if (file == null || !mounted) return;
+      setState(() => _uploadingPhoto = true);
+      final error =
+          await context.read<AppState>().updateProfilePhoto(file.path);
+      if (!mounted) return;
+      setState(() => _uploadingPhoto = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'Profile picture updated!'),
+          backgroundColor: error != null ? AppColors.danger : null,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _uploadingPhoto = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not select photo. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  void _showAvatarOptions() {
+    showGlassSheet(
+      context: context,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const GlassSheetHandle(),
+            Padding(
+              padding: const EdgeInsets.only(left: 4, top: 10, bottom: 8),
+              child: Text(
+                'Profile Picture',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const _IconBox(
+                icon: Icons.photo_library_outlined,
+                tint: AppColors.primary,
+              ),
+              title: const Text(
+                'Choose from Gallery',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickAndUploadAvatar(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const _IconBox(
+                icon: Icons.photo_camera_outlined,
+                tint: AppColors.primary,
+              ),
+              title: const Text(
+                'Take a Photo',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickAndUploadAvatar(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Verification is its own dimension — a banned user who was verified
-    // keeps the badge, and an unbanned Pending user does not get one.
+    final user = widget.user;
     final verified = user.isIdVerified;
+    final hasAvatar = user.avatarUrl != null && user.avatarUrl!.isNotEmpty;
 
     return GlassPanel(
       blur: 22,
@@ -160,51 +242,128 @@ class _IdentityHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
       child: Column(
         children: [
-          Stack(
-            clipBehavior: Clip.none,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.premiumGradient,
-                  boxShadow: AppShadows.primaryGlow,
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.surface,
-                  ),
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.primarySoft,
-                    child: Text(
-                      user.initials,
-                      style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 27,
-                          fontWeight: FontWeight.w800),
+              // Spacer balances the edit button on the right so the avatar
+              // remains centered in the header card.
+              const SizedBox(width: 48),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  GestureDetector(
+                    onTap: _uploadingPhoto ? null : _showAvatarOptions,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: AppColors.premiumGradient,
+                        boxShadow: AppShadows.primaryGlow,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.surface,
+                        ),
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: AppColors.primarySoft,
+                          child: _uploadingPhoto
+                              ? const SizedBox(
+                                  width: 26,
+                                  height: 26,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : hasAvatar
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        user.avatarUrl!,
+                                        headers: ApiConfig.mediaHeaders,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Text(
+                                          user.initials,
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontSize: 27,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      user.initials,
+                                      style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 27,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                        ),
+                      ),
                     ),
                   ),
+                  // Camera badge on bottom-left of avatar to add/change photo
+                  Positioned(
+                    left: -2,
+                    bottom: 2,
+                    child: GestureDetector(
+                      onTap: _uploadingPhoto ? null : _showAvatarOptions,
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: AppColors.surface, width: 2.2),
+                          boxShadow: AppShadows.soft,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          size: 13,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (verified)
+                    Positioned(
+                      right: 0,
+                      bottom: 2,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: AppColors.success,
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: AppColors.surface, width: 2.5),
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              // Edit Profile icon button right beside the profile circle
+              GlassIconButton(
+                icon: Icons.edit_outlined,
+                tooltip: 'Edit Profile',
+                size: 38,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
                 ),
               ),
-              if (verified)
-                Positioned(
-                  right: 0,
-                  bottom: 2,
-                  child: Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.surface, width: 2.5),
-                    ),
-                    child: const Icon(Icons.check_rounded,
-                        size: 12, color: Colors.white),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -214,9 +373,10 @@ class _IdentityHeader extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.45),
+              fontSize: 21,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.45,
+            ),
           ),
           const SizedBox(height: 9),
           Row(
@@ -279,7 +439,7 @@ class _StatusDot extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Section label — one word, small caps, whisper-quiet.
+// Section label — small caps, whisper-quiet.
 // ---------------------------------------------------------------------------
 class _SectionLabel extends StatelessWidget {
   final String text;
@@ -320,27 +480,53 @@ class _Card extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Detail row — icon + value. Labels dropped; the values speak for themselves.
+// Labeled detail row — icon + label + value for overall profile clarity.
 // ---------------------------------------------------------------------------
-class _DetailRow extends StatelessWidget {
+class _LabeledDetailRow extends StatelessWidget {
   final IconData icon;
+  final String label;
   final String value;
-  const _DetailRow({required this.icon, required this.value});
+  final bool muted;
+
+  const _LabeledDetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.muted = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           Icon(icon, size: 18, color: AppColors.textTertiary),
           const SizedBox(width: 14),
           Expanded(
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: muted ? FontWeight.w500 : FontWeight.w600,
+                    fontSize: 14,
+                    color: muted ? AppColors.textTertiary : null,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -394,10 +580,6 @@ class _VerificationCardState extends State<_VerificationCard> {
 
   @override
   Widget build(BuildContext context) {
-    // None of these may be `const`: _Card's surface/border and the label text
-    // color come from theme-dependent sources, and Dart canonicalizes const
-    // instances — a const card would be skipped on rebuild and stay stuck in
-    // the previous theme after a Light/Dark switch.
     return switch (widget.status) {
       IdVerificationStatus.notSubmitted => _buildCapture(context),
       IdVerificationStatus.pending => const _Card(
@@ -434,17 +616,18 @@ class _VerificationCardState extends State<_VerificationCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Not const: the title must pick up the theme's text color.
             const Row(
               children: [
                 _IconBox(
-                    icon: Icons.verified_user_outlined,
-                    tint: AppColors.primary),
+                  icon: Icons.verified_user_outlined,
+                  tint: AppColors.primary,
+                ),
                 SizedBox(width: 12),
                 Expanded(
-                  child: Text('Verify your ID',
-                      style:
-                          TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  child: Text(
+                    'Verify your ID',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
                 ),
                 _Pill('Required', AppColors.warning),
               ],
@@ -484,20 +667,30 @@ class _VerificationCardState extends State<_VerificationCard> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.error_outline_rounded,
-                      color: AppColors.danger, size: 15),
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: AppColors.danger,
+                    size: 15,
+                  ),
                   const SizedBox(width: 5),
                   Expanded(
-                    child: Text(_error!,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.danger)),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.danger,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ],
             const SizedBox(height: 12),
             CustomButton(
-                label: 'Submit', onPressed: _submit, loading: _loading),
+              label: 'Submit',
+              onPressed: _submit,
+              loading: _loading,
+            ),
           ],
         ),
       ),
@@ -580,9 +773,10 @@ class _StateRow extends StatelessWidget {
           _IconBox(icon: icon, tint: tint),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(label,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
           ),
           trailing,
         ],
@@ -591,78 +785,46 @@ class _StateRow extends StatelessWidget {
   }
 }
 
-/// Appearance row — dark mode toggle. Tapping anywhere on the row toggles.
-class _AppearanceTile extends StatelessWidget {
-  final bool isDark;
-  const _AppearanceTile({required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    final tint = isDark ? AppColors.gold : AppColors.primary;
-    final appState = context.read<AppState>();
-    return Pressable(
-      onTap: () => appState.toggleDarkMode(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            _IconBox(
-                icon:
-                    isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                tint: tint),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text('Appearance',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-            ),
-            Switch.adaptive(
-              value: isDark,
-              onChanged: (_) => appState.toggleDarkMode(),
-              activeTrackColor: AppColors.primary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Settings row — icon, one-word label, chevron.
+/// Settings row — icon, label, chevron.
 class _SettingsRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final Color? tint;
   const _SettingsRow({
     required this.icon,
     required this.label,
     required this.onTap,
-    this.tint,
   });
 
   @override
   Widget build(BuildContext context) {
-    final c = tint ?? AppColors.primary;
+    const c = AppColors.primary;
     return Pressable(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            _IconBox(icon: icon, tint: c),
+            const _IconBox(icon: Icons.lock_outline_rounded, tint: c).icon ==
+                    icon
+                ? const _IconBox(icon: Icons.lock_outline_rounded, tint: c)
+                : _IconBox(icon: icon, tint: c),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
-                  color: tint ?? AppColors.textPrimary,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
               ),
             ),
-            Icon(Icons.chevron_right_rounded,
-                size: 20, color: AppColors.textTertiary),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: AppColors.textTertiary,
+            ),
           ],
         ),
       ),
