@@ -3,11 +3,13 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
+import '../../data/api_service.dart';
 import '../../models/equipment.dart';
 import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/equipment_icon.dart';
 import '../../widgets/liquid_glass.dart';
+import '../../widgets/pressable.dart';
 import '../borrowing/request_equipment_screen.dart';
 
 class EquipmentDetailsScreen extends StatefulWidget {
@@ -26,6 +28,28 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AppState>().refreshEquipment();
     });
+  }
+
+  void _openPhotoViewer(Equipment equipment, int initialIndex) {
+    final photos = equipment.allPhotos;
+    if (photos.isEmpty) return;
+
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black87,
+        pageBuilder: (ctx, animation, _) => FadeTransition(
+          opacity: animation,
+          child: _EquipmentPhotoViewerDialog(
+            equipmentName: equipment.name,
+            photos: photos,
+            hasMainPhoto:
+                equipment.imageUrl != null && equipment.imageUrl!.isNotEmpty,
+            initialIndex: initialIndex.clamp(0, photos.length - 1),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -47,6 +71,10 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
     };
     final pending = appState.currentUser?.isPending == true;
     final canRequest = equipment.isAvailable && !pending;
+    final hasMainPhoto =
+        equipment.imageUrl != null && equipment.imageUrl!.isNotEmpty;
+    final galleryPhotos = equipment.galleryUrls;
+    final allPhotos = equipment.allPhotos;
 
     return LiquidScaffold(
       extendBody: true,
@@ -60,6 +88,9 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
               equipment: equipment,
               statusColor: statusColor,
               onBack: () => Navigator.of(context).maybePop(),
+              onTapHeroPhoto: allPhotos.isNotEmpty
+                  ? () => _openPhotoViewer(equipment, 0)
+                  : null,
             ),
             Transform.translate(
               offset: const Offset(0, -24),
@@ -108,6 +139,108 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                             .textTheme
                             .bodyLarge
                             ?.copyWith(height: 1.6),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
+                    // ── Description / Gallery Pictures ───────────────────
+                    if (galleryPhotos.isNotEmpty) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const GlassSectionLabel('More Pictures'),
+                          Text(
+                            '${galleryPhotos.length} ${galleryPhotos.length == 1 ? 'photo' : 'photos'} · Tap to zoom',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 112,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          clipBehavior: Clip.none,
+                          itemCount: galleryPhotos.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 12),
+                          itemBuilder: (context, idx) {
+                            final photoUrl = galleryPhotos[idx];
+                            final viewerIdx = hasMainPhoto ? idx + 1 : idx;
+                            return Pressable(
+                              onTap: () =>
+                                  _openPhotoViewer(equipment, viewerIdx),
+                              child: GlassPanel(
+                                blur: 14,
+                                radius: 18,
+                                padding: const EdgeInsets.all(3),
+                                shadows: AppShadows.soft,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: SizedBox(
+                                    width: 144,
+                                    height: 106,
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        Image.network(
+                                          photoUrl,
+                                          headers: ApiConfig.mediaHeaders,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              Container(
+                                            color: AppColors.primarySoft,
+                                            child: const Icon(
+                                              Icons.broken_image_outlined,
+                                              color: AppColors.primary,
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          right: 7,
+                                          bottom: 7,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 7,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.56),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      AppRadius.pill),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.fullscreen_rounded,
+                                                  size: 13,
+                                                  color: Colors.white,
+                                                ),
+                                                const SizedBox(width: 3),
+                                                Text(
+                                                  '${idx + 1}/${galleryPhotos.length}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                       const SizedBox(height: 26),
                     ],
@@ -261,15 +394,19 @@ class _Hero extends StatelessWidget {
   final Equipment equipment;
   final Color statusColor;
   final VoidCallback onBack;
+  final VoidCallback? onTapHeroPhoto;
 
   const _Hero({
     required this.equipment,
     required this.statusColor,
     required this.onBack,
+    this.onTapHeroPhoto,
   });
 
   @override
   Widget build(BuildContext context) {
+    final totalPhotos = equipment.allPhotos.length;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -318,38 +455,83 @@ class _Hero extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     Center(
-                      child: GlassPanel(
-                        blur: 22,
-                        radius: 34,
-                        padding: const EdgeInsets.all(4),
-                        tint: Colors.white.withValues(alpha: 0.14),
-                        borderColor: Colors.white.withValues(alpha: 0.28),
-                        shadows: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.18),
-                            blurRadius: 30,
-                            offset: const Offset(0, 16),
-                          ),
-                        ],
-                        child: Container(
-                          width: 228,
-                          height: 164,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.white.withValues(alpha: 0.20),
-                                Colors.white.withValues(alpha: 0.05),
+                      child: GestureDetector(
+                        onTap: onTapHeroPhoto,
+                        child: GlassPanel(
+                          blur: 22,
+                          radius: 34,
+                          padding: const EdgeInsets.all(4),
+                          tint: Colors.white.withValues(alpha: 0.14),
+                          borderColor: Colors.white.withValues(alpha: 0.28),
+                          shadows: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.18),
+                              blurRadius: 30,
+                              offset: const Offset(0, 16),
+                            ),
+                          ],
+                          child: Container(
+                            width: 228,
+                            height: 164,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white.withValues(alpha: 0.20),
+                                  Colors.white.withValues(alpha: 0.05),
+                                ],
+                              ),
+                            ),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                EquipmentVisual(
+                                  equipment: equipment,
+                                  iconSize: 74,
+                                  iconColor:
+                                      Colors.white.withValues(alpha: 0.94),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                if (totalPhotos > 0)
+                                  Positioned(
+                                    right: 10,
+                                    bottom: 10,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 9,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.55),
+                                        borderRadius: BorderRadius.circular(
+                                            AppRadius.pill),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.photo_library_outlined,
+                                            size: 12,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$totalPhotos ${totalPhotos == 1 ? 'photo' : 'photos'}',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
-                          ),
-                          child: Icon(
-                            equipmentIcon(
-                                '${equipment.category} ${equipment.name}'),
-                            size: 74,
-                            color: Colors.white.withValues(alpha: 0.94),
                           ),
                         ),
                       ),
@@ -426,6 +608,169 @@ class _Hero extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Full-screen interactive zoomable photo viewer for main + description photos.
+// ---------------------------------------------------------------------------
+class _EquipmentPhotoViewerDialog extends StatefulWidget {
+  final String equipmentName;
+  final List<String> photos;
+  final bool hasMainPhoto;
+  final int initialIndex;
+
+  const _EquipmentPhotoViewerDialog({
+    required this.equipmentName,
+    required this.photos,
+    required this.hasMainPhoto,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_EquipmentPhotoViewerDialog> createState() =>
+      _EquipmentPhotoViewerDialogState();
+}
+
+class _EquipmentPhotoViewerDialogState
+    extends State<_EquipmentPhotoViewerDialog> {
+  late final PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  String _captionFor(int index) {
+    if (widget.hasMainPhoto) {
+      if (index == 0) return 'Main Profile Picture';
+      return 'Description Photo $index';
+    }
+    return 'Description Photo ${index + 1}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black.withValues(alpha: 0.92),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.equipmentName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_captionFor(_currentIndex)}  ·  ${_currentIndex + 1} of ${widget.photos.length}',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.75),
+                            fontSize: 12.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: widget.photos.length,
+                onPageChanged: (idx) => setState(() => _currentIndex = idx),
+                itemBuilder: (context, idx) {
+                  return InteractiveViewer(
+                    minScale: 1.0,
+                    maxScale: 4.0,
+                    child: Center(
+                      child: Image.network(
+                        widget.photos[idx],
+                        headers: ApiConfig.mediaHeaders,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.broken_image_outlined,
+                          color: Colors.white54,
+                          size: 64,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (widget.photos.length > 1)
+              SizedBox(
+                height: 76,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  itemCount: widget.photos.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, idx) {
+                    final selected = idx == _currentIndex;
+                    return GestureDetector(
+                      onTap: () => _pageController.animateToPage(
+                        idx,
+                        duration: const Duration(milliseconds: 240),
+                        curve: Curves.easeOutCubic,
+                      ),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: selected ? AppColors.gold : Colors.white24,
+                            width: selected ? 2.5 : 1,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(9.5),
+                          child: Image.network(
+                            widget.photos[idx],
+                            headers: ApiConfig.mediaHeaders,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),

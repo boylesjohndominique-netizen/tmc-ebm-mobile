@@ -92,7 +92,7 @@ class DashboardScreen extends StatelessWidget {
             Text('Overview', style: Theme.of(context).textTheme.headlineLarge),
             const SizedBox(height: 4),
             Text(
-              'Welcome back, $firstName.',
+              'Welcome, $firstName! Ready to borrow equipment today?',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 20),
@@ -179,16 +179,7 @@ class DashboardScreen extends StatelessWidget {
                 Expanded(
                   child: _QuickAction(
                     icon: Icons.search_rounded,
-                    label: 'Browse',
-                    onTap: () => Navigator.of(context).pushNamed('/equipment'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _QuickAction(
-                    icon: Icons.add_circle_outline_rounded,
-                    label: 'Request',
-                    tint: AppColors.gold,
+                    label: 'Browse & Request',
                     onTap: () => Navigator.of(context).pushNamed('/equipment'),
                   ),
                 ),
@@ -442,11 +433,15 @@ class _QuickAction extends StatelessWidget {
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 9),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../data/api_service.dart';
+import '../models/equipment.dart';
 
 /// Picks a Material icon for equipment based on its category/name, replacing
-/// the old hardcoded per-item icons (the backend has no icon column).
+/// the old hardcoded per-item icons (when no photo is uploaded).
 IconData equipmentIcon(String categoryOrName) {
   final s = categoryOrName.toLowerCase();
 
@@ -58,4 +60,59 @@ IconData equipmentIcon(String categoryOrName) {
   if (s.contains('general')) return Icons.inventory_2_rounded;
 
   return Icons.devices_other_rounded;
+}
+
+/// Renders the equipment's main profile photo (`equipment.imageUrl`) clipped to
+/// [borderRadius], gracefully falling back to the category [equipmentIcon] when
+/// no photo is uploaded or if the image fails to load.
+class EquipmentVisual extends StatelessWidget {
+  final Equipment equipment;
+  final double iconSize;
+  final Color iconColor;
+  final BorderRadius? borderRadius;
+
+  const EquipmentVisual({
+    super.key,
+    required this.equipment,
+    required this.iconSize,
+    required this.iconColor,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Center(
+      child: Icon(
+        equipmentIcon('${equipment.category} ${equipment.name}'),
+        color: iconColor,
+        size: iconSize,
+      ),
+    );
+
+    final url = equipment.imageUrl;
+    if (url == null || url.isEmpty) {
+      return fallback;
+    }
+
+    final img = Image.network(
+      url,
+      headers: ApiConfig.mediaHeaders,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder: (_, __, ___) => fallback,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return fallback;
+      },
+    );
+
+    if (borderRadius != null) {
+      return ClipRRect(
+        borderRadius: borderRadius!,
+        child: img,
+      );
+    }
+    return img;
+  }
 }

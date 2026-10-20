@@ -38,10 +38,11 @@ class EquipmentCard extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: 0.14),
                 ),
               ),
-              child: Icon(
-                equipmentIcon('${equipment.category} ${equipment.name}'),
-                color: AppColors.primary,
-                size: 26,
+              child: EquipmentVisual(
+                equipment: equipment,
+                iconSize: 26,
+                iconColor: AppColors.primary,
+                borderRadius: BorderRadius.circular(AppRadius.md - 1),
               ),
             ),
             const SizedBox(width: 14),

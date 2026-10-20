@@ -11,7 +11,9 @@ import '../../widgets/pressable.dart';
 import '../equipment/equipment_details_screen.dart';
 
 class EquipmentListScreen extends StatefulWidget {
-  const EquipmentListScreen({super.key});
+  final VoidCallback? onBack;
+
+  const EquipmentListScreen({super.key, this.onBack});
 
   @override
   State<EquipmentListScreen> createState() => _EquipmentListScreenState();
@@ -275,49 +277,60 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
     final categories = appState.categories;
 
     return LiquidScaffold(
+      appBar: AppBar(
+        leading: BackButton(
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              widget.onBack?.call();
+            }
+          },
+        ),
+        title: const Text('Equipment'),
+        actions: [
+          Center(
+            child: GlassIconButton(
+              size: 40,
+              iconSize: 19,
+              icon: Icons.sort_rounded,
+              tooltip: 'Sort',
+              active: _sort != _EquipmentSort.name,
+              onTap: _openSortSheet,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 20),
+              child: GlassIconButton(
+                size: 40,
+                iconSize: 19,
+                icon: Icons.tune_rounded,
+                tooltip: 'Filters',
+                active: _hasActiveFilters,
+                onTap: () => _openFilterSheet(categories),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
+        top: false,
         bottom: false,
         child: Column(
           children: [
             // ── Header ────────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Equipment',
-                                style:
-                                    Theme.of(context).textTheme.headlineLarge),
-                            const SizedBox(height: 3),
-                            Text(
-                              '${filtered.length} of ${appState.equipment.length}  ·  ${_sort.label}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                      GlassIconButton(
-                        icon: Icons.sort_rounded,
-                        tooltip: 'Sort',
-                        active: _sort != _EquipmentSort.name,
-                        onTap: _openSortSheet,
-                      ),
-                      const SizedBox(width: 8),
-                      GlassIconButton(
-                        icon: Icons.tune_rounded,
-                        tooltip: 'Filters',
-                        active: _hasActiveFilters,
-                        onTap: () => _openFilterSheet(categories),
-                      ),
-                    ],
+                  Text(
+                    '${filtered.length} of ${appState.equipment.length}  ·  ${_sort.label}',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // ── Search ──────────────────────────────────────────────
                   GlassPanel(
@@ -496,10 +509,11 @@ class _EquipmentTile extends StatelessWidget {
                       color: AppColors.primary.withValues(alpha: 0.13),
                     ),
                   ),
-                  child: Icon(
-                    equipmentIcon('${equipment.category} ${equipment.name}'),
-                    color: AppColors.primary,
-                    size: 21,
+                  child: EquipmentVisual(
+                    equipment: equipment,
+                    iconSize: 21,
+                    iconColor: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 const Spacer(),
