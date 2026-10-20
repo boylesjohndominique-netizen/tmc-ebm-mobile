@@ -106,8 +106,10 @@ class _MainNavScreenState extends State<MainNavScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final unread = context.watch<AppState>().unreadCount;
+    final unread = context.select<AppState, int>((s) => s.unreadCount);
     return Scaffold(
+      extendBody: true,
+      backgroundColor: Colors.transparent,
       body: IndexedStack(
         index: _index,
         children: [
@@ -132,7 +134,7 @@ class _BottomNavMenuPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AppState>().currentUser;
+    final user = context.select<AppState, AppUser?>((s) => s.currentUser);
 
     return SafeArea(
       child: Stack(
@@ -268,16 +270,7 @@ class _PopupMenuItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         child: Row(
           children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: tint.withValues(alpha: 0.13),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: tint.withValues(alpha: 0.18)),
-              ),
-              child: Icon(icon, size: 17, color: tint),
-            ),
+            Icon(icon, size: 20, color: tint),
             const SizedBox(width: 11),
             Expanded(
               child: Text(
@@ -285,7 +278,8 @@ class _PopupMenuItem extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
-                  color: isDestructive ? AppColors.danger : null,
+                  color:
+                      isDestructive ? AppColors.danger : AppColors.textPrimary,
                 ),
               ),
             ),

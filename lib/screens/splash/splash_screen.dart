@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
         curve: const Interval(0.25, 1.0, curve: Curves.easeOut));
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2200), () {
+    Future.delayed(const Duration(milliseconds: 1100), () {
       if (!mounted) return;
       final appState = context.read<AppState>();
       appState.markOnboardingSeen();
@@ -111,7 +111,6 @@ class _SplashScreenState extends State<SplashScreen>
                             radius: 36,
                             padding: const EdgeInsets.all(10),
                             tint: Colors.white.withValues(alpha: 0.24),
-                            borderColor: Colors.white.withValues(alpha: 0.40),
                             shadows: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.20),
@@ -123,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen>
                               width: 104,
                               height: 104,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.onPrimary,
                                 borderRadius: BorderRadius.circular(28),
                               ),
                               child: Padding(
@@ -131,6 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 child: Image.asset(
                                   'assets/images/tmc_logo.png',
                                   fit: BoxFit.contain,
+                                  cacheWidth: 256,
                                 ),
                               ),
                             ),
@@ -144,7 +144,7 @@ class _SplashScreenState extends State<SplashScreen>
                               const Text(
                                 'TMCEBMS',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.onPrimary,
                                   fontSize: 31,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 1.6,
@@ -154,7 +154,8 @@ class _SplashScreenState extends State<SplashScreen>
                               Text(
                                 'Trinidad Municipal College',
                                 style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.85),
+                                    color: AppColors.onPrimary
+                                        .withValues(alpha: 0.85),
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500),
                               ),
@@ -165,13 +166,11 @@ class _SplashScreenState extends State<SplashScreen>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 9),
                                 tint: Colors.white.withValues(alpha: 0.16),
-                                borderColor:
-                                    Colors.white.withValues(alpha: 0.28),
-                                shadows: const [],
+                                shadows: AppShadows.soft,
                                 child: const Text(
                                   'Smart Equipment Borrowing & Tracking',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.onPrimary,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 12,
                                   ),

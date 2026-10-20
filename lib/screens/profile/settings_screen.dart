@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
+import '../../models/user.dart';
 import '../../state/app_state.dart';
 import '../../widgets/liquid_glass.dart';
 import '../../widgets/pressable.dart';
+import 'profile_screen.dart';
 
 /// Settings screen — Appearance (theme mode) and Platform Policies authored by
 /// administrators in the web system.
@@ -42,6 +44,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 48),
           children: [
+            // ── ID Verification (Profile Settings shortcut) ────────────────
+            const GlassSectionLabel('Account Verification'),
+            const SizedBox(height: 8),
+            GlassCard(
+              padding: EdgeInsets.zero,
+              child: Pressable(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.verified_user_outlined,
+                        size: 22,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Submit / View School ID',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              switch (appState.idVerificationStatus) {
+                                IdVerificationStatus.approved =>
+                                  'ID verified — borrowing is unlocked',
+                                IdVerificationStatus.pending =>
+                                  'ID submitted — awaiting admin review',
+                                IdVerificationStatus.rejected =>
+                                  'ID rejected — tap to resubmit in Profile',
+                                IdVerificationStatus.notSubmitted =>
+                                  'Tap to upload your Front & Back ID in Profile',
+                              },
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 22,
+                        color: AppColors.textTertiary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 26),
+
             // ── Appearance ─────────────────────────────────────────────────
             const GlassSectionLabel('Appearance'),
             const SizedBox(height: 8),
@@ -56,31 +120,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: (appState.isDarkMode
-                                  ? AppColors.gold
-                                  : AppColors.primary)
-                              .withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: (appState.isDarkMode
-                                    ? AppColors.gold
-                                    : AppColors.primary)
-                                .withValues(alpha: 0.18),
-                          ),
-                        ),
-                        child: Icon(
-                          appState.isDarkMode
-                              ? Icons.dark_mode_rounded
-                              : Icons.light_mode_rounded,
-                          size: 20,
-                          color: appState.isDarkMode
-                              ? AppColors.gold
-                              : AppColors.primary,
-                        ),
+                      Icon(
+                        appState.isDarkMode
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        size: 22,
+                        color: appState.isDarkMode
+                            ? AppColors.gold
+                            : AppColors.primary,
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -140,21 +187,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: const EdgeInsets.all(15),
                 child: Row(
                   children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(11),
-                        border: Border.all(
-                          color: AppColors.warning.withValues(alpha: 0.20),
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.payments_outlined,
-                        size: 19,
-                        color: AppColors.warning,
-                      ),
+                    const Icon(
+                      Icons.payments_outlined,
+                      size: 22,
+                      color: AppColors.warning,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -190,18 +226,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: Column(
                   children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.policy_outlined,
-                        size: 22,
-                        color: AppColors.primary,
-                      ),
+                    const Icon(
+                      Icons.policy_outlined,
+                      size: 28,
+                      color: AppColors.primary,
                     ),
                     const SizedBox(height: 12),
                     const Text(
@@ -265,21 +293,10 @@ class _PolicyCardState extends State<_PolicyCard> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.13),
-                      borderRadius: BorderRadius.circular(11),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.16),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.description_outlined,
-                      size: 18,
-                      color: AppColors.primary,
-                    ),
+                  const Icon(
+                    Icons.description_outlined,
+                    size: 20,
+                    color: AppColors.primary,
                   ),
                   const SizedBox(width: 12),
                   Expanded(

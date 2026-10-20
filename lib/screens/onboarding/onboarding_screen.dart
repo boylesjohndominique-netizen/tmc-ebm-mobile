@@ -79,16 +79,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 14, 0),
                 child: Row(
                   children: [
-                    GlassPanel(
-                      blur: 14,
-                      radius: 16,
-                      padding: const EdgeInsets.all(5),
-                      shadows: AppShadows.soft,
-                      child: Image.asset(
-                        'assets/images/tmc_logo.png',
-                        width: 34,
-                        height: 34,
-                      ),
+                    Image.asset(
+                      'assets/images/tmc_logo.png',
+                      width: 34,
+                      height: 34,
                     ),
                     const SizedBox(width: 10),
                     const Text(
@@ -249,39 +243,11 @@ class _Illustration extends StatelessWidget {
               ),
             ),
           ),
-          GlassPanel(
-            blur: 26,
-            strong: true,
-            radius: 64,
-            padding: const EdgeInsets.all(4),
-            shadows: AppShadows.floating,
-            child: Container(
-              width: 156,
-              height: 156,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(60),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    tint.withValues(alpha: 0.20),
-                    tint.withValues(alpha: 0.06),
-                  ],
-                ),
-              ),
-              child: Icon(icon, size: 64, color: tint),
-            ),
-          ),
+          Icon(icon, size: 72, color: tint),
           Positioned(
-            top: 18,
-            right: 30,
-            child: GlassPanel(
-              blur: 12,
-              radius: 12,
-              padding: const EdgeInsets.all(7),
-              shadows: AppShadows.soft,
-              child: Icon(Icons.auto_awesome_rounded, size: 15, color: tint),
-            ),
+            top: 26,
+            right: 36,
+            child: Icon(Icons.auto_awesome_rounded, size: 18, color: tint),
           ),
         ],
       ),

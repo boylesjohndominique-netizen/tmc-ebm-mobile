@@ -320,14 +320,12 @@ class _IdentityHeaderState extends State<_IdentityHeader> {
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           shape: BoxShape.circle,
-                          border:
-                              Border.all(color: AppColors.surface, width: 2.2),
                           boxShadow: AppShadows.soft,
                         ),
                         child: const Icon(
                           Icons.camera_alt_rounded,
                           size: 13,
-                          color: Colors.white,
+                          color: AppColors.onPrimary,
                         ),
                       ),
                     ),
@@ -342,13 +340,12 @@ class _IdentityHeaderState extends State<_IdentityHeader> {
                         decoration: BoxDecoration(
                           color: AppColors.success,
                           shape: BoxShape.circle,
-                          border:
-                              Border.all(color: AppColors.surface, width: 2.5),
+                          boxShadow: AppShadows.soft,
                         ),
                         child: const Icon(
                           Icons.check_rounded,
                           size: 12,
-                          color: Colors.white,
+                          color: AppColors.onPrimary,
                         ),
                       ),
                     ),
@@ -702,7 +699,7 @@ class _VerificationCardState extends State<_VerificationCard> {
 // Small building blocks
 // ---------------------------------------------------------------------------
 
-/// Rounded soft-tinted icon container (app-wide visual language).
+/// Clean icon wrapper without background box.
 class _IconBox extends StatelessWidget {
   final IconData icon;
   final Color tint;
@@ -710,16 +707,7 @@ class _IconBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 35,
-      height: 35,
-      decoration: BoxDecoration(
-        color: tint.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: tint.withValues(alpha: 0.16)),
-      ),
-      child: Icon(icon, size: 17, color: tint),
-    );
+    return Icon(icon, size: 20, color: tint);
   }
 }
 
@@ -734,9 +722,8 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Text(
         label,
