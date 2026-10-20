@@ -61,6 +61,22 @@ class _SplashScreenState extends State<SplashScreen>
         decoration: BoxDecoration(gradient: AppColors.premiumGradient),
         child: Stack(
           children: [
+            const Positioned.fill(
+              child: TmcBackgroundImage(
+                blurSigma: 8.0,
+                imageOpacity: 0.42,
+                overlayGradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xB80D2352),
+                    Color(0x9912306E),
+                    Color(0xCC081533),
+                  ],
+                  stops: [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
             // Ambient light pools.
             Positioned(
               top: -120,

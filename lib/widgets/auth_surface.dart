@@ -51,11 +51,14 @@ class _AmbientBackgroundState extends State<AmbientBackground>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // ── Gradient wash ────────────────────────────────────────────────────
+        // ── Gradient wash + blurred darkened TMC campus backdrop ─────────────
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(gradient: AppColors.ambientGradient),
           ),
+        ),
+        const Positioned.fill(
+          child: TmcBackgroundImage(),
         ),
         Positioned.fill(
           child: IgnorePointer(

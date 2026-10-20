@@ -5,10 +5,90 @@ import '../app/motion.dart';
 import '../app/theme.dart';
 import 'pressable.dart';
 
-/// Ambient, layered backdrop used by every screen.
+const String kTmcBackgroundAsset =
+    'assets/images/pictures/Trinidad Municipal College Entrance.png';
+
+/// Blurred, darkened Trinidad Municipal College entrance backdrop.
 ///
-/// Pure gradients only — no blur layers — so it stays cheap even while the
-/// user scrolls long lists above it.
+/// Wrapped in a [RepaintBoundary] so the blurred campus photo is rasterized
+/// once by the GPU and remains cheap while scrolling lists above it.
+class TmcBackgroundImage extends StatelessWidget {
+  final double blurSigma;
+  final double? imageOpacity;
+  final Gradient? overlayGradient;
+
+  const TmcBackgroundImage({
+    super.key,
+    this.blurSigma = 9.0,
+    this.imageOpacity,
+    this.overlayGradient,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveOpacity = imageOpacity ?? (dark ? 0.50 : 0.42);
+    final effectiveOverlay = overlayGradient ??
+        LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: dark
+              ? const [
+                  Color(0xD6060B14),
+                  Color(0xA80B162C),
+                  Color(0xDE060A12),
+                ]
+              : [
+                  const Color(0xFF0D1E3D).withValues(alpha: 0.28),
+                  const Color(0xFF13284C).withValues(alpha: 0.18),
+                  const Color(0xFF0D1E3D).withValues(alpha: 0.32),
+                ],
+          stops: const [0.0, 0.5, 1.0],
+        );
+
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: ClipRect(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Transform.scale(
+                scale: 1.08,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: blurSigma,
+                    sigmaY: blurSigma,
+                    tileMode: TileMode.clamp,
+                  ),
+                  child: Opacity(
+                    opacity: effectiveOpacity,
+                    child: ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withValues(alpha: dark ? 0.44 : 0.30),
+                        BlendMode.darken,
+                      ),
+                      child: Image.asset(
+                        kTmcBackgroundAsset,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              DecoratedBox(
+                decoration: BoxDecoration(gradient: effectiveOverlay),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ambient, layered backdrop used by every screen.
 class LiquidBackground extends StatelessWidget {
   final Widget child;
   final bool orbs;
@@ -24,6 +104,9 @@ class LiquidBackground extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(gradient: AppColors.ambientGradient),
           ),
+        ),
+        const Positioned.fill(
+          child: TmcBackgroundImage(),
         ),
         if (orbs) ...[
           Positioned(

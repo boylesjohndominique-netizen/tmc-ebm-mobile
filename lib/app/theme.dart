@@ -49,23 +49,23 @@ class AppColors {
 
   // ── Liquid Glass ─────────────────────────────────────────────────────────
   static Color get glassFill =>
-      Colors.white.withValues(alpha: isDark ? 0.06 : 0.50);
+      Colors.white.withValues(alpha: isDark ? 0.09 : 0.72);
   static Color get glassFillStrong =>
-      Colors.white.withValues(alpha: isDark ? 0.10 : 0.72);
+      Colors.white.withValues(alpha: isDark ? 0.14 : 0.86);
   static Color get glassBorder =>
-      Colors.white.withValues(alpha: isDark ? 0.10 : 0.68);
+      Colors.white.withValues(alpha: isDark ? 0.14 : 0.78);
   static Color get glassBorderSoft =>
-      Colors.white.withValues(alpha: isDark ? 0.06 : 0.38);
+      Colors.white.withValues(alpha: isDark ? 0.08 : 0.48);
   static Color get glassHighlight =>
-      Colors.white.withValues(alpha: isDark ? 0.16 : 0.55);
+      Colors.white.withValues(alpha: isDark ? 0.18 : 0.68);
   static Color get glassShadowTint =>
-      (isDark ? Colors.black : const Color(0xFF1B2A4A)).withValues(alpha: 0.22);
+      (isDark ? Colors.black : const Color(0xFF1B2A4A)).withValues(alpha: 0.24);
 
   static LinearGradient get glassSheen => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.white.withValues(alpha: isDark ? 0.10 : 0.42),
+          Colors.white.withValues(alpha: isDark ? 0.12 : 0.56),
           glassFill,
           glassFill,
         ],
@@ -76,8 +76,8 @@ class AppColors {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: isDark
-            ? const [Color(0xFF0D1526), Color(0xFF070B13), Color(0xFF0A1120)]
-            : const [Color(0xFFF9FBFF), Color(0xFFEEF3FA), Color(0xFFF3F6FD)],
+            ? const [Color(0xFF0A1222), Color(0xFF060A12), Color(0xFF09101E)]
+            : const [Color(0xFFDCE5F4), Color(0xFFD1DCEF), Color(0xFFD8E2F3)],
         stops: const [0.0, 0.55, 1.0],
       );
 
