@@ -49,11 +49,12 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
   }
 
   List<Equipment> _applyFilters(List<Equipment> all) {
+    final q = _query.trim().toLowerCase();
     return all.where((e) {
-      final matchesQuery = _query.isEmpty ||
-          e.name.toLowerCase().contains(_query.toLowerCase()) ||
-          e.category.toLowerCase().contains(_query.toLowerCase()) ||
-          e.description.toLowerCase().contains(_query.toLowerCase());
+      final matchesQuery = q.isEmpty ||
+          e.name.toLowerCase().contains(q) ||
+          e.category.toLowerCase().contains(q) ||
+          e.description.toLowerCase().contains(q);
       final matchesCategory =
           _categoryFilter == null || e.category == _categoryFilter;
       final matchesAvailability = _availabilityFilter == null ||
@@ -110,28 +111,16 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
             ..._EquipmentSort.values.map(
               (s) => ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: (_sort == s
-                            ? AppColors.primary
-                            : AppColors.textSecondary)
-                        .withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    switch (s) {
-                      _EquipmentSort.name => Icons.sort_by_alpha_rounded,
-                      _EquipmentSort.availability =>
-                        Icons.event_available_rounded,
-                      _EquipmentSort.stock => Icons.inventory_2_outlined,
-                    },
-                    size: 19,
-                    color: _sort == s
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
-                  ),
+                leading: Icon(
+                  switch (s) {
+                    _EquipmentSort.name => Icons.sort_by_alpha_rounded,
+                    _EquipmentSort.availability =>
+                      Icons.event_available_rounded,
+                    _EquipmentSort.stock => Icons.inventory_2_outlined,
+                  },
+                  size: 21,
+                  color:
+                      _sort == s ? AppColors.primary : AppColors.textSecondary,
                 ),
                 title: Text(
                   s.label,
@@ -145,13 +134,16 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                     ? const Icon(Icons.check_circle_rounded,
                         size: 21, color: AppColors.primary)
                     : null,
-                onTap: () => setState(() => _sort = s),
+                onTap: () {
+                  setState(() => _sort = s);
+                  Navigator.of(ctx).pop();
+                },
               ),
             ),
           ],
         ),
       ),
-    ).then((_) => setState(() {}));
+    );
   }
 
   void _openFilterSheet(List<String> categories) {
@@ -334,7 +326,7 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
 
                   // ── Search ──────────────────────────────────────────────
                   GlassPanel(
-                    blur: 18,
+                    blur: 0,
                     radius: AppRadius.pill,
                     padding: EdgeInsets.zero,
                     shadows: AppShadows.soft,
@@ -492,26 +484,12 @@ class _EquipmentTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
+                SizedBox(
                   width: 42,
                   height: 42,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primarySoft,
-                        AppColors.primarySoft.withValues(alpha: 0.4),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.13),
-                    ),
-                  ),
                   child: EquipmentVisual(
                     equipment: equipment,
-                    iconSize: 21,
+                    iconSize: 24,
                     iconColor: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -521,11 +499,8 @@ class _EquipmentTile extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _availabilityColor.withValues(alpha: 0.12),
+                    color: _availabilityColor.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(AppRadius.pill),
-                    border: Border.all(
-                      color: _availabilityColor.withValues(alpha: 0.22),
-                    ),
                   ),
                   child: Row(
                     children: [
@@ -613,9 +588,9 @@ class _RemovableChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.12),
+        color: AppColors.primarySoft,
         borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

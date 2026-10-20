@@ -41,47 +41,21 @@ class DashboardScreen extends StatelessWidget {
               parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
           children: [
-            // ── Header: brand mark + theme + notifications ─────────────────
+            // ── Header: brand mark + theme ─────────────────────────────────
             SafeArea(
               bottom: false,
               child: SizedBox(
                 height: 46,
                 child: Row(
                   children: [
-                    GlassPanel(
-                      blur: 16,
-                      radius: 15,
-                      padding: const EdgeInsets.all(6),
-                      shadows: AppShadows.soft,
-                      child: Image.asset(
-                        'assets/images/tmc_logo.png',
-                        width: 32,
-                        height: 32,
-                      ),
+                    Image.asset(
+                      'assets/images/tmc_logo.png',
+                      width: 36,
+                      height: 36,
+                      cacheWidth: 108,
                     ),
                     const Spacer(),
                     const ThemeToggleButton(isHeaderStyle: false),
-                    const SizedBox(width: 8),
-                    GlassIconButton(
-                      icon: Icons.notifications_none_rounded,
-                      tooltip: 'Notifications',
-                      onTap: () =>
-                          Navigator.of(context).pushNamed('/notifications'),
-                      badge: appState.unreadCount > 0
-                          ? Container(
-                              width: 9,
-                              height: 9,
-                              decoration: BoxDecoration(
-                                color: AppColors.gold,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.surface,
-                                  width: 1.5,
-                                ),
-                              ),
-                            )
-                          : null,
-                    ),
                   ],
                 ),
               ),
@@ -102,26 +76,20 @@ class DashboardScreen extends StatelessWidget {
                 blur: 0,
                 radius: AppRadius.lg,
                 padding: EdgeInsets.zero,
-                shadows: AppShadows.soft,
-                tint: AppColors.warning
-                    .withValues(alpha: AppColors.isDark ? 0.16 : 0.10),
-                borderColor: AppColors.warning.withValues(alpha: 0.32),
+                shadows: AppShadows.card,
+                tint: AppColors.goldSoft,
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                        child: const Icon(
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(
                           Icons.verified_user_outlined,
-                          color: Color(0xFFD97706),
-                          size: 20,
+                          color: AppColors.warning,
+                          size: 22,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -129,12 +97,12 @@ class DashboardScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Account Not Verified',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
-                                color: Color(0xFFB45309),
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -143,10 +111,7 @@ class DashboardScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 height: 1.4,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.color,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -280,7 +245,6 @@ class _StatsStrip extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: AppColors.premiumGradient,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
         boxShadow: AppShadows.primaryGlow,
       ),
       child: ClipRRect(
@@ -422,16 +386,7 @@ class _QuickAction extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: color.withValues(alpha: 0.16)),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
+            Icon(icon, color: color, size: 24),
             const SizedBox(height: 9),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -439,8 +394,11 @@ class _QuickAction extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ],
