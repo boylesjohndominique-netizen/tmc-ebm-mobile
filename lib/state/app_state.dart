@@ -52,10 +52,18 @@ class AppState extends ChangeNotifier {
   // ---------------------------------------------------------------------
   // Data (all fetched from the backend)
   // ---------------------------------------------------------------------
-  List<Equipment> _equipment = [];
-  List<BorrowingTransaction> _transactions = [];
-  List<AppNotification> _notifications = [];
-  List<PlatformPolicy> _platformPolicies = [];
+  List<Equipment> _equipment = const [];
+  Map<String, Equipment> _equipmentById = const {};
+  List<String> _categories = const [];
+  List<BorrowingTransaction> _transactions = const [];
+  List<BorrowingTransaction> _pendingAndApproved = const [];
+  List<BorrowingTransaction> _currentlyBorrowed = const [];
+  List<BorrowingTransaction> _borrowingHistory = const [];
+  List<BorrowingTransaction> _returnHistory = const [];
+  int _overdueCount = 0;
+  List<AppNotification> _notifications = const [];
+  int _unreadCount = 0;
+  List<PlatformPolicy> _platformPolicies = const [];
   double _overdueFeePerDay = 0;
 
   bool _loadingEquipment = false;
@@ -63,54 +71,72 @@ class AppState extends ChangeNotifier {
 
   bool get isLoadingEquipment => _loadingEquipment;
   bool get isLoadingPolicies => _loadingPolicies;
-  List<PlatformPolicy> get platformPolicies =>
-      List.unmodifiable(_platformPolicies);
+  List<PlatformPolicy> get platformPolicies => _platformPolicies;
   double get overdueFeePerDay => _overdueFeePerDay;
-  List<Equipment> get equipment => List.unmodifiable(_equipment);
+  List<Equipment> get equipment => _equipment;
 
-  Equipment? equipmentById(String id) {
-    for (final e in _equipment) {
-      if (e.id == id) return e;
-    }
-    return null;
-  }
+  Equipment? equipmentById(String id) => _equipmentById[id];
 
-  List<String> get categories =>
-      _equipment.map((e) => e.category).toSet().toList()..sort();
+  List<String> get categories => _categories;
 
-  List<BorrowingTransaction> get transactions =>
-      List.unmodifiable(_transactions);
+  List<BorrowingTransaction> get transactions => _transactions;
 
-  List<BorrowingTransaction> get pendingAndApproved => _transactions
-      .where((t) =>
-          t.status == RequestStatus.pending ||
-          t.status == RequestStatus.approved)
-      .toList();
+  List<BorrowingTransaction> get pendingAndApproved => _pendingAndApproved;
 
-  List<BorrowingTransaction> get currentlyBorrowed =>
-      _transactions.where((t) => t.isCurrentlyBorrowed).toList();
+  List<BorrowingTransaction> get currentlyBorrowed => _currentlyBorrowed;
 
-  List<BorrowingTransaction> get borrowingHistory => _transactions
-      .where((t) =>
-          t.status == RequestStatus.completed ||
-          t.status == RequestStatus.rejected ||
-          t.status == RequestStatus.cancelled)
-      .toList();
+  List<BorrowingTransaction> get borrowingHistory => _borrowingHistory;
 
-  List<BorrowingTransaction> get returnHistory => _transactions
-      .where((t) =>
-          t.returnStatus == ReturnStatus.completed ||
-          t.returnStatus == ReturnStatus.returnConfirmed)
-      .toList();
+  List<BorrowingTransaction> get returnHistory => _returnHistory;
 
-  int get overdueCount => _transactions.where((t) => t.isOverdue).length;
+  int get overdueCount => _overdueCount;
 
   // ---------------------------------------------------------------------
   // Notifications
   // ---------------------------------------------------------------------
-  List<AppNotification> get notifications => List.unmodifiable(_notifications);
+  List<AppNotification> get notifications => _notifications;
 
-  int get unreadCount => _notifications.where((n) => !n.isRead).length;
+  int get unreadCount => _unreadCount;
+
+  void _setEquipment(List<Equipment> items) {
+    _equipment = List<Equipment>.unmodifiable(items);
+    _equipmentById = {for (final e in _equipment) e.id: e};
+    final cats = _equipment.map((e) => e.category).toSet().toList()..sort();
+    _categories = List<String>.unmodifiable(cats);
+  }
+
+  void _setTransactions(List<BorrowingTransaction> items) {
+    _transactions = List<BorrowingTransaction>.unmodifiable(items);
+    _pendingAndApproved = List<BorrowingTransaction>.unmodifiable(
+      _transactions.where((t) =>
+          t.status == RequestStatus.pending ||
+          t.status == RequestStatus.approved),
+    );
+    _currentlyBorrowed = List<BorrowingTransaction>.unmodifiable(
+      _transactions.where((t) => t.isCurrentlyBorrowed),
+    );
+    _borrowingHistory = List<BorrowingTransaction>.unmodifiable(
+      _transactions.where((t) =>
+          t.status == RequestStatus.completed ||
+          t.status == RequestStatus.rejected ||
+          t.status == RequestStatus.cancelled),
+    );
+    _returnHistory = List<BorrowingTransaction>.unmodifiable(
+      _transactions.where((t) =>
+          t.returnStatus == ReturnStatus.completed ||
+          t.returnStatus == ReturnStatus.returnConfirmed),
+    );
+    _overdueCount = _transactions.where((t) => t.isOverdue).length;
+  }
+
+  void _setNotifications(List<AppNotification> items) {
+    _notifications = List<AppNotification>.unmodifiable(items);
+    _recomputeUnreadCount();
+  }
+
+  void _recomputeUnreadCount() {
+    _unreadCount = _notifications.where((n) => !n.isRead).length;
+  }
 
   // ---------------------------------------------------------------------
   // Theme + onboarding flag
@@ -304,8 +330,8 @@ class AppState extends ChangeNotifier {
       await _loadIdVerification();
       await _persistUser();
       _startRealtime();
-      await refreshAll();
       notifyListeners();
+      unawaited(refreshAll());
       return null;
     }
     return 'Login succeeded but the server returned an unexpected payload.';
@@ -322,6 +348,7 @@ class AppState extends ChangeNotifier {
     required String contactNumber,
     required UserType userType,
     required String password,
+    bool emailVerified = false,
   }) async {
     final trimmedFirst = firstName.trim();
     final trimmedMiddle = middleName?.trim();
@@ -342,9 +369,17 @@ class AppState extends ChangeNotifier {
       contactNumber: contactNumber,
       password: password,
       passwordConfirmation: password,
+      emailVerified: emailVerified,
     );
 
     if (!res.success) return res.message ?? 'Registration failed.';
+
+    if (res.data != null &&
+        res.data!['token'] is String &&
+        res.data!['user'] is Map<String, dynamic>) {
+      await loginWithTokenPayload(res.data);
+    }
+
     return null;
   }
 
@@ -366,8 +401,8 @@ class AppState extends ChangeNotifier {
     await _loadIdVerification();
     await _persistUser();
     _startRealtime();
-    await refreshAll();
     notifyListeners();
+    unawaited(refreshAll());
     return null;
   }
 
@@ -458,9 +493,9 @@ class AppState extends ChangeNotifier {
     await ApiService.instance.logout();
     RealtimeService.instance.disconnect();
     currentUser = null;
-    _equipment = [];
-    _transactions = [];
-    _notifications = [];
+    _setEquipment(const []);
+    _setTransactions(const []);
+    _setNotifications(const []);
     _accountBanned = false;
     _banReason = null;
     _bannedLogin = null;
@@ -486,9 +521,7 @@ class AppState extends ChangeNotifier {
     // A notification usually means an admin acted on the student's requests
     // (approval, rejection, return confirmation) — refetch both feeds.
     _notifSub = RealtimeService.instance.notificationStream.listen((_) {
-      refreshProfile();
-      refreshNotifications();
-      refreshBorrowings();
+      _refreshLiveFeeds();
     });
 
     // The account was banned mid-session: show the ban/appeal dialog.
@@ -506,11 +539,18 @@ class AppState extends ChangeNotifier {
     _stopPolling();
     _pollTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       if (isLoggedIn) {
-        refreshProfile();
-        refreshBorrowings();
-        refreshNotifications();
+        _refreshLiveFeeds();
       }
     });
+  }
+
+  Future<void> _refreshLiveFeeds() async {
+    await Future.wait([
+      refreshProfile(notify: false),
+      refreshBorrowings(notify: false),
+      refreshNotifications(notify: false),
+    ]);
+    notifyListeners();
   }
 
   void _stopPolling() {
@@ -522,18 +562,28 @@ class AppState extends ChangeNotifier {
   // Data loading
   // ---------------------------------------------------------------------
   Future<void> refreshAll() async {
-    await Future.wait([
-      refreshProfile(),
-      refreshEquipment(),
-      refreshBorrowings(),
-      refreshNotifications(),
-      refreshSettings(),
-    ]);
-  }
-
-  Future<void> refreshSettings() async {
+    _loadingEquipment = true;
     _loadingPolicies = true;
     notifyListeners();
+
+    await Future.wait([
+      refreshProfile(notify: false),
+      refreshEquipment(notify: false),
+      refreshBorrowings(notify: false),
+      refreshNotifications(notify: false),
+      refreshSettings(notify: false),
+    ]);
+
+    _loadingEquipment = false;
+    _loadingPolicies = false;
+    notifyListeners();
+  }
+
+  Future<void> refreshSettings({bool notify = true}) async {
+    if (notify) {
+      _loadingPolicies = true;
+      notifyListeners();
+    }
 
     final res = await ApiService.instance.fetchMobileSettings();
     if (res.success && res.data != null) {
@@ -546,61 +596,74 @@ class AppState extends ChangeNotifier {
 
       final rawPolicies = res.data!['platform_policies'];
       if (rawPolicies is List) {
-        _platformPolicies = rawPolicies
-            .whereType<Map>()
-            .map((m) => PlatformPolicy.fromJson(Map<String, dynamic>.from(m)))
-            .where((p) => p.title.isNotEmpty || p.content.isNotEmpty)
-            .toList();
+        _platformPolicies = List<PlatformPolicy>.unmodifiable(
+          rawPolicies
+              .whereType<Map>()
+              .map((m) => PlatformPolicy.fromJson(Map<String, dynamic>.from(m)))
+              .where((p) => p.title.isNotEmpty || p.content.isNotEmpty),
+        );
       }
     }
 
-    _loadingPolicies = false;
-    notifyListeners();
+    if (notify) {
+      _loadingPolicies = false;
+      notifyListeners();
+    }
   }
 
-  Future<void> refreshProfile() async {
+  Future<void> refreshProfile({bool notify = true}) async {
     final res = await ApiService.instance.profile();
     if (res.success && res.data != null) {
       currentUser = mapUser(res.data!);
       await _persistUser();
-      notifyListeners();
+      if (notify) notifyListeners();
     }
   }
 
-  Future<void> refreshEquipment() async {
-    _loadingEquipment = true;
-    notifyListeners();
+  Future<void> refreshEquipment({bool notify = true}) async {
+    if (notify) {
+      _loadingEquipment = true;
+      notifyListeners();
+    }
 
     final res = await ApiService.instance.equipmentList();
     if (res.success && res.data is List) {
-      _equipment = (res.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map(mapEquipment)
-          .toList();
+      _setEquipment(
+        (res.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map(mapEquipment)
+            .toList(),
+      );
     }
-    _loadingEquipment = false;
-    notifyListeners();
+    if (notify) {
+      _loadingEquipment = false;
+      notifyListeners();
+    }
   }
 
-  Future<void> refreshBorrowings() async {
+  Future<void> refreshBorrowings({bool notify = true}) async {
     final res = await ApiService.instance.myBorrowings();
     if (res.success && res.data is List) {
-      _transactions = (res.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map(mapBorrowing)
-          .toList();
-      notifyListeners();
+      _setTransactions(
+        (res.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map(mapBorrowing)
+            .toList(),
+      );
+      if (notify) notifyListeners();
     }
   }
 
-  Future<void> refreshNotifications() async {
+  Future<void> refreshNotifications({bool notify = true}) async {
     final res = await ApiService.instance.notifications();
     if (res.success && res.data is List) {
-      _notifications = (res.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map(mapNotification)
-          .toList();
-      notifyListeners();
+      _setNotifications(
+        (res.data as List)
+            .whereType<Map<String, dynamic>>()
+            .map(mapNotification)
+            .toList(),
+      );
+      if (notify) notifyListeners();
     }
   }
 
@@ -627,8 +690,11 @@ class AppState extends ChangeNotifier {
     );
 
     if (!res.success) return res.message ?? 'Could not submit request.';
-    await refreshBorrowings();
-    await refreshEquipment();
+    await Future.wait([
+      refreshBorrowings(notify: false),
+      refreshEquipment(notify: false),
+    ]);
+    notifyListeners();
     return null;
   }
 
@@ -656,8 +722,11 @@ class AppState extends ChangeNotifier {
       remarks: remarks,
     );
     if (!res.success) return res.message ?? 'Could not submit return.';
-    await refreshBorrowings();
-    await refreshEquipment();
+    await Future.wait([
+      refreshBorrowings(notify: false),
+      refreshEquipment(notify: false),
+    ]);
+    notifyListeners();
     return null;
   }
 
@@ -675,6 +744,7 @@ class AppState extends ChangeNotifier {
     for (final n in _notifications) {
       if (n.id == id) n.isRead = true;
     }
+    _recomputeUnreadCount();
     notifyListeners();
   }
 
@@ -683,6 +753,7 @@ class AppState extends ChangeNotifier {
     for (final n in _notifications) {
       n.isRead = true;
     }
+    _recomputeUnreadCount();
     notifyListeners();
   }
 

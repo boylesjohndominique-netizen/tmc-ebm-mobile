@@ -135,6 +135,7 @@ class ApiService {
 
   static String get baseUrl => ApiConfig.baseUrl;
 
+  final http.Client _client = http.Client();
   String? _authToken;
   final StreamController<String?> _tokenController =
       StreamController<String?>.broadcast();
@@ -178,6 +179,10 @@ class ApiService {
     return headers;
   }
 
+  Duration get _requestTimeout => (!kIsWeb && ApiConfig.host == '192.168.137.1')
+      ? const Duration(seconds: 5)
+      : const Duration(seconds: 12);
+
   Future<ApiResponse<Map<String, dynamic>>> request(
     String method,
     String path, {
@@ -185,24 +190,25 @@ class ApiService {
     bool withAuth = true,
   }) async {
     final uri = Uri.parse('$baseUrl/$path');
+    final timeout = _requestTimeout;
     try {
       final res = switch (method.toUpperCase()) {
-        'POST' => await http
+        'POST' => await _client
             .post(uri,
                 headers: _headers(withAuth: withAuth),
                 body: jsonEncode(body ?? {}))
-            .timeout(const Duration(seconds: 20)),
-        'PUT' => await http
+            .timeout(timeout),
+        'PUT' => await _client
             .put(uri,
                 headers: _headers(withAuth: withAuth),
                 body: jsonEncode(body ?? {}))
-            .timeout(const Duration(seconds: 20)),
-        'DELETE' => await http
+            .timeout(timeout),
+        'DELETE' => await _client
             .delete(uri, headers: _headers(withAuth: withAuth))
-            .timeout(const Duration(seconds: 20)),
-        _ => await http
+            .timeout(timeout),
+        _ => await _client
             .get(uri, headers: _headers(withAuth: withAuth))
-            .timeout(const Duration(seconds: 20)),
+            .timeout(timeout),
       };
 
       final decoded = _parseJson(res.body);
@@ -226,6 +232,12 @@ class ApiService {
         errors: decoded['errors'] as Map<String, dynamic>?,
       );
     } on TimeoutException {
+      if (!kIsWeb && ApiConfig.host == '192.168.137.1') {
+        ApiConfig.host = '127.0.0.1';
+        try {
+          return await request(method, path, body: body, withAuth: withAuth);
+        } catch (_) {}
+      }
       return ApiResponse(
           success: false, message: 'The server took too long to respond.');
     } catch (e) {
@@ -248,9 +260,8 @@ class ApiService {
   Future<ApiResponse<List<dynamic>>> requestList(String path) async {
     final uri = Uri.parse('$baseUrl/$path');
     try {
-      final res = await http
-          .get(uri, headers: _headers())
-          .timeout(const Duration(seconds: 20));
+      final res =
+          await _client.get(uri, headers: _headers()).timeout(_requestTimeout);
       final ok = res.statusCode >= 200 && res.statusCode < 300;
 
       if (ok) {
@@ -270,6 +281,12 @@ class ApiService {
         statusCode: res.statusCode,
       );
     } on TimeoutException {
+      if (!kIsWeb && ApiConfig.host == '192.168.137.1') {
+        ApiConfig.host = '127.0.0.1';
+        try {
+          return await requestList(path);
+        } catch (_) {}
+      }
       return ApiResponse(
           success: false, message: 'The server took too long to respond.');
     } catch (e) {
@@ -290,8 +307,32 @@ class ApiService {
   // AUTHENTICATION
   // =========================================================================
 
-  /// Register student — backend creates a Pending account and emails a
-  /// 6-digit verification code.
+  /// Step 3 of registration wizard: sends a 6-digit verification code to the
+  /// prospective email address before account creation.
+  Future<ApiResponse<Map<String, dynamic>>> sendRegistrationCode({
+    required String email,
+    String? firstName,
+  }) =>
+      request('POST', 'register/send-code', withAuth: false, body: {
+        'email': email.trim(),
+        if (firstName != null && firstName.trim().isNotEmpty)
+          'first_name': firstName.trim(),
+      });
+
+  /// Step 3 of registration wizard: verifies the 6-digit code sent to the
+  /// prospective email address.
+  Future<ApiResponse<Map<String, dynamic>>> verifyRegistrationCode({
+    required String email,
+    required String code,
+  }) =>
+      request('POST', 'register/verify-code', withAuth: false, body: {
+        'email': email.trim(),
+        'code': code.trim(),
+      });
+
+  /// Register student — backend creates a Pending account. If [emailVerified]
+  /// is true (verified during the registration wizard), backend returns a
+  /// bearer token and user payload immediately.
   Future<ApiResponse<Map<String, dynamic>>> register({
     required String firstName,
     String? middleName,
@@ -302,6 +343,7 @@ class ApiService {
     String? contactNumber,
     required String password,
     required String passwordConfirmation,
+    bool emailVerified = false,
   }) async {
     final resolvedUsername = (username != null && username.trim().isNotEmpty)
         ? username.trim()
@@ -316,16 +358,18 @@ class ApiService {
       'contact_number': contactNumber,
       'password': password,
       'password_confirmation': passwordConfirmation,
+      if (emailVerified) 'email_verified': true,
     });
     if (res.success) {
+      final needsVerify =
+          res.data?['requires_email_verification'] as bool? ?? !emailVerified;
       return ApiResponse(
         success: true,
         data: res.data,
-        message:
-            res.message ?? 'Registration successful. Verification code sent!',
+        message: res.message ?? 'Registration successful.',
         statusCode: res.statusCode,
-        requiresEmailVerification: true,
-        unverifiedEmail: email,
+        requiresEmailVerification: needsVerify,
+        unverifiedEmail: needsVerify ? email : null,
       );
     }
     return res;
