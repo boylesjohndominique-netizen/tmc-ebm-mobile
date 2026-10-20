@@ -7,6 +7,7 @@ import '../../state/app_state.dart';
 import '../../widgets/equipment_icon.dart';
 import '../../widgets/liquid_glass.dart';
 import '../../widgets/status_badge.dart';
+import '../returns/borrowed_equipment_screen.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
   final String transactionId;
@@ -31,8 +32,97 @@ class TransactionDetailsScreen extends StatelessWidget {
       );
     }
 
+    final currentTxn = txn;
+    final showBottomAction = currentTxn.canReturn ||
+        (currentTxn.status == RequestStatus.approved &&
+            currentTxn.returnStatus == ReturnStatus.returnPending);
+
     return LiquidScaffold(
-      appBar: AppBar(title: Text(txn.transactionId)),
+      appBar: AppBar(title: Text(currentTxn.transactionId)),
+      bottomNavigationBar: showBottomAction
+          ? SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: currentTxn.canReturn
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (currentTxn.isBeforeDueDate) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.event_available_rounded,
+                                    size: 15,
+                                    color: AppColors.success,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'Due ${dateFormat.format(currentTxn.returnDate)} (${currentTxn.daysUntilDue} day${currentTxn.daysUntilDue == 1 ? '' : 's'} left) — you can return early anytime.',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => showReturnEquipmentDialog(
+                                context,
+                                currentTxn,
+                              ),
+                              icon: const Icon(
+                                Icons.assignment_return_rounded,
+                                size: 18,
+                              ),
+                              label: Text(
+                                currentTxn.isBeforeDueDate
+                                    ? 'Return Equipment Early'
+                                    : 'Submit Return Request',
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : GlassCard(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.schedule_rounded,
+                              size: 18,
+                              color: AppColors.warning,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Return request submitted — awaiting admin confirmation.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            )
+          : null,
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
@@ -66,7 +156,9 @@ class TransactionDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     child: Icon(
-                      equipmentIcon('${txn.category} ${txn.equipmentName}'),
+                      equipmentIcon(
+                        '${currentTxn.category} ${currentTxn.equipmentName}',
+                      ),
                       color: AppColors.primary,
                       size: 26,
                     ),
@@ -77,7 +169,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          txn.equipmentName,
+                          currentTxn.equipmentName,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.titleMedium,
@@ -87,8 +179,8 @@ class TransactionDetailsScreen extends StatelessWidget {
                           spacing: 7,
                           runSpacing: 6,
                           children: [
-                            StatusBadge.forRequest(txn.status),
-                            StatusBadge.forReturn(txn.returnStatus),
+                            StatusBadge.forRequest(currentTxn.status),
+                            StatusBadge.forReturn(currentTxn.returnStatus),
                           ],
                         ),
                       ],
@@ -102,35 +194,37 @@ class TransactionDetailsScreen extends StatelessWidget {
             _Section(
               title: 'Equipment Information',
               rows: {
-                'Equipment': txn.equipmentName,
-                if (txn.assetId.isNotEmpty) 'Asset ID': txn.assetId,
-                if (txn.category.isNotEmpty) 'Category': txn.category,
-                'Quantity': '${txn.quantity}',
+                'Equipment': currentTxn.equipmentName,
+                if (currentTxn.assetId.isNotEmpty)
+                  'Asset ID': currentTxn.assetId,
+                if (currentTxn.category.isNotEmpty)
+                  'Category': currentTxn.category,
+                'Quantity': '${currentTxn.quantity}',
               },
             ),
             const SizedBox(height: 14),
             _Section(
               title: 'Borrowing Details',
               rows: {
-                'Borrowing Date': dateFormat.format(txn.borrowingDate),
-                'Expected Return': dateFormat.format(txn.returnDate),
-                'Actual Return': txn.actualReturnDate != null
-                    ? dateFormat.format(txn.actualReturnDate!)
+                'Borrowing Date': dateFormat.format(currentTxn.borrowingDate),
+                'Expected Return': dateFormat.format(currentTxn.returnDate),
+                'Actual Return': currentTxn.actualReturnDate != null
+                    ? dateFormat.format(currentTxn.actualReturnDate!)
                     : '—',
-                if (txn.hasOverdueFee)
+                if (currentTxn.hasOverdueFee)
                   'Overdue Fee':
-                      '₱${txn.overdueFee!.toStringAsFixed(2)} (${txn.overdueDays ?? 0} day(s) late)',
-                'Purpose': txn.purpose,
-                if (txn.notes.isNotEmpty) 'Notes': txn.notes,
+                      '₱${currentTxn.overdueFee!.toStringAsFixed(2)} (${currentTxn.overdueDays ?? 0} day(s) late)',
+                'Purpose': currentTxn.purpose,
+                if (currentTxn.notes.isNotEmpty) 'Notes': currentTxn.notes,
               },
             ),
             const SizedBox(height: 14),
             _Section(
               title: 'Timeline',
               rows: {
-                'Request Date': dateFormat.format(txn.requestDate),
-                'Approval Date': txn.approvalDate != null
-                    ? dateFormat.format(txn.approvalDate!)
+                'Request Date': dateFormat.format(currentTxn.requestDate),
+                'Approval Date': currentTxn.approvalDate != null
+                    ? dateFormat.format(currentTxn.approvalDate!)
                     : 'Pending review',
               },
             ),
@@ -189,7 +283,9 @@ class _Section extends StatelessWidget {
                   child: Text(
                     entries[i].value,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],

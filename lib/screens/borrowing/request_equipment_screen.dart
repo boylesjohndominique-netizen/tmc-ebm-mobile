@@ -228,11 +228,11 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                             color: AppColors.primary.withValues(alpha: 0.14),
                           ),
                         ),
-                        child: Icon(
-                          equipmentIcon(
-                              '${equipment.category} ${equipment.name}'),
-                          color: AppColors.primary,
-                          size: 25,
+                        child: EquipmentVisual(
+                          equipment: equipment,
+                          iconSize: 25,
+                          iconColor: AppColors.primary,
+                          borderRadius: BorderRadius.circular(AppRadius.md - 1),
                         ),
                       ),
                       const SizedBox(width: 13),

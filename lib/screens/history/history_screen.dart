@@ -17,24 +17,26 @@ class HistoryScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: LiquidScaffold(
+        appBar: AppBar(
+          leading: const BackButton(),
+          title: const Text('History'),
+        ),
         body: SafeArea(
+          top: false,
           bottom: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('History',
-                        style: Theme.of(context).textTheme.headlineLarge),
-                    const SizedBox(height: 3),
                     Text(
                       'Every request and return, in one place.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
                     GlassPanel(
                       blur: 18,
                       radius: AppRadius.pill,

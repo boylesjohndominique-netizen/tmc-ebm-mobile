@@ -9,6 +9,7 @@ import '../../widgets/liquid_glass.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/status_badge.dart';
 import '../history/transaction_details_screen.dart';
+import '../returns/borrowed_equipment_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   const MyRequestsScreen({super.key});
@@ -53,9 +54,10 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Requests',
-                                style:
-                                    Theme.of(context).textTheme.headlineLarge),
+                            Text(
+                              'Requests',
+                              style: Theme.of(context).textTheme.headlineLarge,
+                            ),
                             const SizedBox(height: 3),
                             Text(
                               '${requests.length} of ${all.length}',
@@ -122,7 +124,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       )
                     : ListView.separated(
                         physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics()),
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
                         padding: const EdgeInsets.fromLTRB(20, 2, 20, 120),
                         itemCount: requests.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -134,12 +137,17 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                             cancelling: _cancellingId == txn.transactionId,
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
-                                  builder: (_) => TransactionDetailsScreen(
-                                      transactionId: txn.transactionId)),
+                                builder: (_) => TransactionDetailsScreen(
+                                  transactionId: txn.transactionId,
+                                ),
+                              ),
                             ),
                             onCancel: txn.status == RequestStatus.pending
                                 ? () =>
                                     _confirmCancel(context, txn.transactionId)
+                                : null,
+                            onReturn: txn.canReturn
+                                ? () => showReturnEquipmentDialog(context, txn)
                                 : null,
                           );
                         },
@@ -208,6 +216,7 @@ class _RequestTile extends StatelessWidget {
   final bool cancelling;
   final VoidCallback onTap;
   final VoidCallback? onCancel;
+  final VoidCallback? onReturn;
 
   const _RequestTile({
     required this.txn,
@@ -215,6 +224,7 @@ class _RequestTile extends StatelessWidget {
     required this.cancelling,
     required this.onTap,
     this.onCancel,
+    this.onReturn,
   });
 
   Color get _statusColor => switch (txn.status) {
@@ -273,8 +283,11 @@ class _RequestTile extends StatelessWidget {
               padding: const EdgeInsets.only(left: 47),
               child: Row(
                 children: [
-                  Icon(Icons.event_outlined,
-                      size: 14, color: AppColors.textTertiary),
+                  Icon(
+                    Icons.event_outlined,
+                    size: 14,
+                    color: AppColors.textTertiary,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -284,6 +297,32 @@ class _RequestTile extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
+                  if (txn.status == RequestStatus.approved &&
+                      txn.returnStatus == ReturnStatus.returnPending)
+                    StatusBadge.forReturn(txn.returnStatus),
+                  if (onReturn != null)
+                    SizedBox(
+                      height: 28,
+                      child: TextButton.icon(
+                        onPressed: onReturn,
+                        icon: const Icon(
+                          Icons.assignment_return_rounded,
+                          size: 14,
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          minimumSize: Size.zero,
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        label: Text(
+                          txn.isBeforeDueDate ? 'Return Early' : 'Return',
+                        ),
+                      ),
+                    ),
                   if (onCancel != null)
                     SizedBox(
                       height: 28,
@@ -294,7 +333,9 @@ class _RequestTile extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           minimumSize: Size.zero,
                           textStyle: const TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w600),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         child: Text(cancelling ? 'Cancelling…' : 'Cancel'),
                       ),
