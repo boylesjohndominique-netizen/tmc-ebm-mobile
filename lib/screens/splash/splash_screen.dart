@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../app/motion.dart';
 import '../../app/theme.dart';
 import '../../state/app_state.dart';
+import '../../widgets/liquid_glass.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -56,99 +57,152 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        child: SafeArea(
-          child: Center(
-            // Scroll-safe: on very small screens the content scrolls instead
-            // of overflowing (RenderFlex vertical overflow).
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ScaleTransition(
-                    scale: _scale,
-                    child: Container(
-                      width: 108,
-                      height: 108,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.18),
-                            blurRadius: 30,
-                            offset: const Offset(0, 14),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Image.asset(
-                          'assets/images/tmc_logo.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  FadeTransition(
-                    opacity: _fade,
+      body: DecoratedBox(
+        decoration: BoxDecoration(gradient: AppColors.premiumGradient),
+        child: Stack(
+          children: [
+            // Ambient light pools.
+            Positioned(
+              top: -120,
+              right: -90,
+              child: _Glow(
+                size: 340,
+                color: Colors.white.withValues(alpha: 0.16),
+              ),
+            ),
+            Positioned(
+              bottom: -140,
+              left: -110,
+              child: _Glow(
+                size: 380,
+                color: AppColors.gold.withValues(alpha: 0.18),
+              ),
+            ),
+            Positioned.fill(
+              child: SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 24),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          'TMCEBMS',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Trinidad Municipal College',
-                          style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              fontSize: 14),
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.16),
-                            borderRadius: BorderRadius.circular(AppRadius.pill),
-                            border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.25)),
-                          ),
-                          child: const Text(
-                            'Smart Equipment Borrowing & Tracking',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                        ScaleTransition(
+                          scale: _scale,
+                          child: GlassPanel(
+                            blur: 24,
+                            radius: 36,
+                            padding: const EdgeInsets.all(10),
+                            tint: Colors.white.withValues(alpha: 0.24),
+                            borderColor: Colors.white.withValues(alpha: 0.40),
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.20),
+                                blurRadius: 36,
+                                offset: const Offset(0, 16),
+                              ),
+                            ],
+                            child: Container(
+                              width: 104,
+                              height: 104,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Image.asset(
+                                  'assets/images/tmc_logo.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        FadeTransition(
+                          opacity: _fade,
+                          child: Column(
+                            children: [
+                              const Text(
+                                'TMCEBMS',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 31,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.6,
+                                ),
+                              ),
+                              const SizedBox(height: 7),
+                              Text(
+                                'Trinidad Municipal College',
+                                style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 22),
+                              GlassPanel(
+                                blur: 14,
+                                radius: AppRadius.pill,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 9),
+                                tint: Colors.white.withValues(alpha: 0.16),
+                                borderColor:
+                                    Colors.white.withValues(alpha: 0.28),
+                                shadows: const [],
+                                child: const Text(
+                                  'Smart Equipment Borrowing & Tracking',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 56),
+                        FadeTransition(
+                          opacity: _fade,
+                          child: const SizedBox(
+                            width: 26,
+                            height: 26,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2.4, color: Colors.white),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 56),
-                  FadeTransition(
-                    opacity: _fade,
-                    child: const SizedBox(
-                      width: 26,
-                      height: 26,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2.4, color: Colors.white),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Glow extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _Glow({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color, color.withValues(alpha: 0)],
           ),
         ),
       ),

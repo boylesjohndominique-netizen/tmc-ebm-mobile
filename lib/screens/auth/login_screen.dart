@@ -99,7 +99,8 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: (constraints.maxHeight - 48).clamp(0.0, double.infinity),
+                  minHeight:
+                      (constraints.maxHeight - 48).clamp(0.0, double.infinity),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +117,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(
-                              colors: [AppColors.primary, AppColors.primaryDeep],
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryDeep
+                              ],
                             ).createShader(bounds),
                             child: const Text(
                               'Welcome back',
@@ -132,7 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 8),
                           Text(
                             'Sign in to continue.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
                                   fontSize: 14,
                                   height: 1.5,
                                 ),
@@ -157,10 +164,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   margin: const EdgeInsets.only(bottom: 16),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.danger.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    color: AppColors.danger
+                                        .withValues(alpha: 0.08),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
                                     border: Border.all(
-                                      color: AppColors.danger.withValues(alpha: 0.3),
+                                      color: AppColors.danger
+                                          .withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Row(
@@ -193,20 +203,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                       child: TextFormField(
                                         controller: _identifierController,
                                         focusNode: _identifierFocus,
-                                        keyboardType: TextInputType.emailAddress,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
                                         autofillHints: const [
                                           AutofillHints.username,
                                           AutofillHints.email,
                                         ],
                                         onFieldSubmitted: (_) =>
-                                            FocusScope.of(context).requestFocus(_passwordFocus),
-                                        textInputAction: TextInputAction.next,                        decoration: _dec(
-                          'Enter your username or email',
-                          Icons.person_outline_rounded,
-                        ),
-                                        validator: (v) => (v == null || v.trim().isEmpty)
-                                            ? 'This field is required'
-                                            : null,
+                                            FocusScope.of(context)
+                                                .requestFocus(_passwordFocus),
+                                        textInputAction: TextInputAction.next,
+                                        decoration: _dec(
+                                          'Enter your username or email',
+                                          Icons.person_outline_rounded,
+                                        ),
+                                        validator: (v) =>
+                                            (v == null || v.trim().isEmpty)
+                                                ? 'This field is required'
+                                                : null,
                                       ),
                                     ),
                                   ],
@@ -226,22 +240,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                       controller: _passwordController,
                                       focusNode: _passwordFocus,
                                       obscureText: _obscure,
-                                      autofillHints: const [AutofillHints.password],
+                                      autofillHints: const [
+                                        AutofillHints.password
+                                      ],
                                       textInputAction: TextInputAction.done,
                                       onFieldSubmitted: (_) => _submit(),
                                       decoration: InputDecoration(
                                         hintText: 'Enter your password',
-                                        prefixIcon: const Icon(Icons.lock_outline_rounded),
+                                        prefixIcon: const Icon(
+                                            Icons.lock_outline_rounded),
                                         suffixIcon: IconButton(
                                           icon: Icon(_obscure
                                               ? Icons.visibility_off_rounded
                                               : Icons.visibility_rounded),
-                                          onPressed: () =>
-                                              setState(() => _obscure = !_obscure),
+                                          onPressed: () => setState(
+                                              () => _obscure = !_obscure),
                                         ),
                                       ),
-                                      validator: (v) =>
-                                          (v == null || v.isEmpty) ? 'Password is required' : null,
+                                      validator: (v) => (v == null || v.isEmpty)
+                                          ? 'Password is required'
+                                          : null,
                                     ),
                                   ],
                                 ),
@@ -250,26 +268,30 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               // ── Remember me switch + forgot password ──
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Flexible(
                                     child: InkWell(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                                      onTap: () =>
-                                          setState(() => _rememberMe = !_rememberMe),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
+                                      onTap: () => setState(
+                                          () => _rememberMe = !_rememberMe),
                                       child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Switch(
+                                            Switch.adaptive(
                                               value: _rememberMe,
-                                              onChanged: (v) =>
-                                                  setState(() => _rememberMe = v),
-                                              activeTrackColor: AppColors.primary,
-                                              activeThumbColor: Colors.white,
+                                              onChanged: (v) => setState(
+                                                  () => _rememberMe = v),
+                                              activeTrackColor:
+                                                  AppColors.primary,
                                               materialTapTargetSize:
-                                                  MaterialTapTargetSize.shrinkWrap,
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
                                             ),
                                             Flexible(
                                               child: Text(
@@ -279,7 +301,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 style: TextStyle(
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.w500,
-                                                  color: AppColors.textSecondary,
+                                                  color:
+                                                      AppColors.textSecondary,
                                                 ),
                                               ),
                                             ),
@@ -290,8 +313,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   Flexible(
                                     child: TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pushNamed('/forgot-password'),
+                                      onPressed: () => Navigator.of(context)
+                                          .pushNamed('/forgot-password'),
                                       child: const Text(
                                         'Forgot Password?',
                                         maxLines: 1,
@@ -316,10 +339,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 children: [
                                   const Expanded(child: Divider()),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12),
                                     child: Text(
                                       'or',
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ),
                                   const Expanded(child: Divider()),
@@ -330,8 +355,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 label: 'Create an account',
                                 outlined: true,
                                 icon: Icons.person_add_alt_1_rounded,
-                                onPressed: () =>
-                                    Navigator.of(context).pushNamed('/register'),
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamed('/register'),
                               ),
                             ],
                           ),
@@ -347,10 +372,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Text(
                           'Borrow smart. Return on time.',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.1,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 0.1,
+                                  ),
                         ),
                       ),
                     ),

@@ -98,7 +98,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (res.success) {
       setState(() {
         _codeSent = true;
-        _successMessage = 'A 6-digit password reset code has been sent to your Gmail.';
+        _successMessage =
+            'A 6-digit password reset code has been sent to your Gmail.';
       });
       _startTimer();
     } else {
@@ -154,10 +155,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
-              Icon(Icons.check_circle_rounded, color: AppColors.success, size: 28),
+              Icon(Icons.check_circle_rounded,
+                  color: AppColors.success, size: 28),
               SizedBox(width: 10),
               Expanded(child: Text('Password Reset Successful')),
             ],
@@ -171,7 +174,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Navigator.of(ctx).pop();
                 Navigator.of(context).pop();
               },
-              child: const Text('Back to Login', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('Back to Login',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -183,21 +187,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_codeSent ? 'Enter Reset Code' : 'Forgot Password'),
-      ),
-      body: AmbientBackground(
-        child: SafeArea(
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(_codeSent ? 'Enter Reset Code' : 'Forgot Password'),
+        ),
+        body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) => SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(24),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: (constraints.maxHeight - 48).clamp(0.0, double.infinity),
+                  minHeight:
+                      (constraints.maxHeight - 48).clamp(0.0, double.infinity),
                 ),
-                child: _codeSent ? _buildResetForm(context) : _buildEmailForm(context),
+                child: _codeSent
+                    ? _buildResetForm(context)
+                    : _buildEmailForm(context),
               ),
             ),
           ),
@@ -222,11 +230,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: AppShadows.primaryGlow,
             ),
-            child: const Icon(Icons.lock_reset_rounded, color: Colors.white, size: 30),
+            child: const Icon(Icons.lock_reset_rounded,
+                color: Colors.white, size: 30),
           ),
         ),
         const SizedBox(height: 20),
-
         Entrance(
           delay: 60,
           child: Column(
@@ -250,13 +258,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 6),
               Text(
                 "Enter your registered email to receive a reset code.",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(height: 1.5),
               ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-
         Entrance(
           delay: 120,
           child: AmbientFormCard(
@@ -273,22 +283,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.danger.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                        border: Border.all(
+                            color: AppColors.danger.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 20),
+                          const Icon(Icons.error_outline_rounded,
+                              color: AppColors.danger, size: 20),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               _error!,
-                              style: const TextStyle(color: AppColors.danger, fontSize: 13),
+                              style: const TextStyle(
+                                  color: AppColors.danger, fontSize: 13),
                             ),
                           ),
                         ],
                       ),
                     ),
-
                   const FieldLabel('Gmail / Email Address'),
                   const SizedBox(height: 8),
                   FocusGlow(
@@ -305,9 +317,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Email is required';
-                        final regex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
-                        if (!regex.hasMatch(v.trim())) return 'Enter a valid email address';
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Email is required';
+                        }
+                        final regex =
+                            RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+                        if (!regex.hasMatch(v.trim())) {
+                          return 'Enter a valid email address';
+                        }
                         return null;
                       },
                     ),
@@ -324,7 +341,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
         const SizedBox(height: 24),
-
         Entrance(
           delay: 200,
           child: Center(
@@ -361,7 +377,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
         const SizedBox(height: 20),
-
         Entrance(
           delay: 60,
           child: Column(
@@ -385,13 +400,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 6),
               Text(
                 "Enter the code sent to ${_emailController.text.trim()} and choose a new password.",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(height: 1.5),
               ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-
         Entrance(
           delay: 120,
           child: AmbientFormCard(
@@ -408,14 +425,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.danger.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                        border: Border.all(
+                            color: AppColors.danger.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         _error!,
-                        style: const TextStyle(color: AppColors.danger, fontSize: 13),
+                        style: const TextStyle(
+                            color: AppColors.danger, fontSize: 13),
                       ),
                     ),
-
                   if (_successMessage != null)
                     Container(
                       width: double.infinity,
@@ -424,14 +442,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                        border: Border.all(
+                            color: AppColors.success.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         _successMessage!,
-                        style: const TextStyle(color: AppColors.success, fontSize: 13),
+                        style: const TextStyle(
+                            color: AppColors.success, fontSize: 13),
                       ),
                     ),
-
                   const FieldLabel('6-Digit Reset Code'),
                   const SizedBox(height: 8),
                   FocusGlow(
@@ -465,7 +484,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   const FieldLabel('New Password'),
                   const SizedBox(height: 8),
                   FocusGlow(
@@ -478,8 +496,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         hintText: 'At least 8 characters',
                         prefixIcon: const Icon(Icons.lock_outline_rounded),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          icon: Icon(_obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                       ),
                       validator: (v) {
@@ -491,7 +512,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   const FieldLabel('Confirm New Password'),
                   const SizedBox(height: 8),
                   FocusGlow(
@@ -504,8 +524,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         hintText: 'Re-enter new password',
                         prefixIcon: const Icon(Icons.lock_reset_rounded),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                          icon: Icon(_obscureConfirm
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () => setState(
+                              () => _obscureConfirm = !_obscureConfirm),
                         ),
                       ),
                       validator: (v) {
@@ -517,19 +540,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   CustomButton(
                     label: 'Update Password',
                     onPressed: _resetPassword,
                     loading: _loading,
                   ),
                   const SizedBox(height: 16),
-
                   Center(
                     child: _resendSeconds > 0
                         ? Text(
                             'Resend code in ${_resendSeconds}s',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: Colors.grey),
                           )
                         : Pressable(
                             onTap: _loading ? null : _resendCode,

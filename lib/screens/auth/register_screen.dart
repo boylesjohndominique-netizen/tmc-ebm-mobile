@@ -140,10 +140,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
-      body: AmbientBackground(
-        child: SafeArea(
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: const Text('Create Account')),
+        body: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -188,9 +189,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           TextFormField(
                             key: _fieldKeys[0],
                             controller: _fullNameController,
-                            decoration: _dec('Enter your full name', Icons.badge_outlined),
-                            validator: (v) =>
-                                (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
+                            decoration: _dec(
+                                'Enter your full name', Icons.badge_outlined),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Full name is required'
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           const FieldLabel('Student / Employee ID'),
@@ -198,10 +201,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           TextFormField(
                             key: _fieldKeys[1],
                             controller: _idNumberController,
-                            decoration:
-                                _dec('Enter your ID number', Icons.confirmation_number_outlined),
-                            validator: (v) =>
-                                (v == null || v.trim().isEmpty) ? 'ID number is required' : null,
+                            decoration: _dec('Enter your ID number',
+                                Icons.confirmation_number_outlined),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'ID number is required'
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           const FieldLabel('Email Address'),
@@ -211,11 +215,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             autofillHints: const [AutofillHints.email],
-                            decoration: _dec('Enter your email', Icons.email_outlined),
+                            decoration:
+                                _dec('Enter your email', Icons.email_outlined),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Email is required';
-                              final regex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
-                              if (!regex.hasMatch(v.trim())) return 'Enter a valid email address';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Email is required';
+                              }
+                              final regex =
+                                  RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+                              if (!regex.hasMatch(v.trim())) {
+                                return 'Enter a valid email address';
+                              }
                               return null;
                             },
                           ),
@@ -226,9 +236,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             key: _fieldKeys[3],
                             controller: _usernameController,
                             autofillHints: const [AutofillHints.newUsername],
-                            decoration: _dec('Enter your username', Icons.alternate_email_rounded),
-                            validator: (v) =>
-                                (v == null || v.trim().length < 4) ? 'Minimum 4 characters' : null,
+                            decoration: _dec('Enter your username',
+                                Icons.alternate_email_rounded),
+                            validator: (v) => (v == null || v.trim().length < 4)
+                                ? 'Minimum 4 characters'
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           const FieldLabel('Contact Number'),
@@ -237,11 +249,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             key: _fieldKeys[4],
                             controller: _contactController,
                             keyboardType: TextInputType.phone,
-                            decoration: _dec('Enter your contact number', Icons.phone_outlined),
+                            decoration: _dec('Enter your contact number',
+                                Icons.phone_outlined),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Contact number is required';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Contact number is required';
+                              }
                               final regex = RegExp(r'^[0-9]{10,11}$');
-                              if (!regex.hasMatch(v.trim())) return 'Enter a valid contact number';
+                              if (!regex.hasMatch(v.trim())) {
+                                return 'Enter a valid contact number';
+                              }
                               return null;
                             },
                           ),
@@ -256,16 +273,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                               hintText: 'Enter your password',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              prefixIcon:
+                                  const Icon(Icons.lock_outline_rounded),
                               suffixIcon: IconButton(
                                 icon: Icon(_obscure1
                                     ? Icons.visibility_off_rounded
                                     : Icons.visibility_rounded),
-                                onPressed: () => setState(() => _obscure1 = !_obscure1),
+                                onPressed: () =>
+                                    setState(() => _obscure1 = !_obscure1),
                               ),
                             ),
-                            validator: (v) =>
-                                (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
+                            validator: (v) => (v == null || v.length < 6)
+                                ? 'Minimum 6 characters'
+                                : null,
                           ),
 
                           // ── Live password strength meter ────────────────
@@ -286,22 +306,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onFieldSubmitted: (_) => _submit(),
                             decoration: InputDecoration(
                               hintText: 'Re-enter your password',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              prefixIcon:
+                                  const Icon(Icons.lock_outline_rounded),
                               suffixIcon: IconButton(
                                 icon: Icon(_obscure2
                                     ? Icons.visibility_off_rounded
                                     : Icons.visibility_rounded),
-                                onPressed: () => setState(() => _obscure2 = !_obscure2),
+                                onPressed: () =>
+                                    setState(() => _obscure2 = !_obscure2),
                               ),
                             ),
-                            validator: (v) =>
-                                (v != _passwordController.text) ? 'Passwords do not match' : null,
+                            validator: (v) => (v != _passwordController.text)
+                                ? 'Passwords do not match'
+                                : null,
                           ),
                           const SizedBox(height: 24),
 
                           // ── Primary CTA ───────────────────────────────────
                           CustomButton(
-                              label: 'Create Account', onPressed: _submit, loading: _loading),
+                              label: 'Create Account',
+                              onPressed: _submit,
+                              loading: _loading),
                           const SizedBox(height: 14),
 
                           // ── Divider + secondary CTA ───────────────────────
@@ -309,8 +334,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             children: [
                               const Expanded(child: Divider()),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                child: Text('or', style: Theme.of(context).textTheme.bodySmall),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('or',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall),
                               ),
                               const Expanded(child: Divider()),
                             ],
@@ -340,7 +368,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final score = _passwordScore(pw);
     final index = (score - 1).clamp(0, 3);
     const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const colors = [AppColors.danger, AppColors.warning, AppColors.success, AppColors.primary];
+    const colors = [
+      AppColors.danger,
+      AppColors.warning,
+      AppColors.success,
+      AppColors.primary
+    ];
     final color = colors[index];
     final activeBars = score.clamp(1, 4);
 

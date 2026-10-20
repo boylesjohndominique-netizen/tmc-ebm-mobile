@@ -8,7 +8,6 @@ import '../../widgets/auth_surface.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/pressable.dart';
 
-
 class VerifyEmailScreen extends StatefulWidget {
   final String email;
 
@@ -115,7 +114,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       _successMessage = null;
     });
 
-    final res = await ApiService.instance.resendVerification(email: widget.email);
+    final res =
+        await ApiService.instance.resendVerification(email: widget.email);
 
     if (!mounted) return;
     setState(() => _resending = false);
@@ -134,23 +134,25 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Verify Email'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Verify Email'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
-      ),
-      body: AmbientBackground(
-        child: SafeArea(
+        body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) => SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(24),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: (constraints.maxHeight - 48).clamp(0.0, double.infinity),
+                  minHeight:
+                      (constraints.maxHeight - 48).clamp(0.0, double.infinity),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +166,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: AppShadows.primaryGlow,
                         ),
-                        child: const Icon(Icons.mark_email_unread_rounded, color: Colors.white, size: 32),
+                        child: const Icon(Icons.mark_email_unread_rounded,
+                            color: Colors.white, size: 32),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -177,7 +180,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                         children: [
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(
-                              colors: [AppColors.primary, AppColors.primaryDeep],
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryDeep
+                              ],
                             ).createShader(bounds),
                             child: const Text(
                               'Check your inbox',
@@ -193,9 +199,14 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                           const SizedBox(height: 8),
                           RichText(
                             text: TextSpan(
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(height: 1.5),
                               children: [
-                                const TextSpan(text: "We've sent a 6-digit verification code and link to\n"),
+                                const TextSpan(
+                                    text:
+                                        "We've sent a 6-digit verification code and link to\n"),
                                 TextSpan(
                                   text: widget.email,
                                   style: const TextStyle(
@@ -224,48 +235,62 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                                 margin: const EdgeInsets.only(bottom: 16),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: AppColors.danger.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                                  color:
+                                      AppColors.danger.withValues(alpha: 0.1),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.md),
+                                  border: Border.all(
+                                      color: AppColors.danger
+                                          .withValues(alpha: 0.3)),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 20),
+                                    const Icon(Icons.error_outline_rounded,
+                                        color: AppColors.danger, size: 20),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         _error!,
-                                        style: const TextStyle(color: AppColors.danger, fontSize: 13),
+                                        style: const TextStyle(
+                                            color: AppColors.danger,
+                                            fontSize: 13),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-
                             if (_successMessage != null)
                               Container(
                                 width: double.infinity,
                                 margin: const EdgeInsets.only(bottom: 16),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: AppColors.success.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                                  color:
+                                      AppColors.success.withValues(alpha: 0.1),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.md),
+                                  border: Border.all(
+                                      color: AppColors.success
+                                          .withValues(alpha: 0.3)),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.check_circle_outline_rounded, color: AppColors.success, size: 20),
+                                    const Icon(
+                                        Icons.check_circle_outline_rounded,
+                                        color: AppColors.success,
+                                        size: 20),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         _successMessage!,
-                                        style: const TextStyle(color: AppColors.success, fontSize: 13),
+                                        style: const TextStyle(
+                                            color: AppColors.success,
+                                            fontSize: 13),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-
                             const FieldLabel('6-Digit Verification Code'),
                             const SizedBox(height: 8),
                             FocusGlow(
@@ -289,7 +314,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                                     color: Colors.grey.withValues(alpha: 0.4),
                                   ),
                                   counterText: '',
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                                  contentPadding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                 ),
                                 onChanged: (val) {
                                   if (val.length == 6) {
@@ -299,20 +325,20 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                               ),
                             ),
                             const SizedBox(height: 24),
-
                             CustomButton(
                               label: 'Verify Code',
                               onPressed: _verifyCode,
                               loading: _loading,
                             ),
-
                             const SizedBox(height: 16),
-
                             Center(
                               child: _secondsRemaining > 0
                                   ? Text(
                                       'Resend code in ${_secondsRemaining}s',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
                                             color: Colors.grey,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -320,7 +346,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                                   : Pressable(
                                       onTap: _resending ? null : _resendCode,
                                       child: Text(
-                                        _resending ? 'Sending...' : 'Resend Code',
+                                        _resending
+                                            ? 'Sending...'
+                                            : 'Resend Code',
                                         style: const TextStyle(
                                           color: AppColors.primary,
                                           fontWeight: FontWeight.w600,
@@ -341,21 +369,29 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor.withValues(alpha: 0.6),
+                          color: Theme.of(context)
+                              .cardColor
+                              .withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(AppRadius.lg),
                           border: Border.all(
-                            color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: 0.5),
                           ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+                            const Icon(Icons.info_outline_rounded,
+                                color: AppColors.primary, size: 20),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'You can either enter the 6-digit code above or click the direct verification link in the email sent to your Gmail account.',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(height: 1.4),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(height: 1.4),
                               ),
                             ),
                           ],
