@@ -8,6 +8,7 @@ import '../../widgets/equipment_icon.dart';
 import '../../widgets/liquid_glass.dart';
 import '../../widgets/status_badge.dart';
 import '../returns/borrowed_equipment_screen.dart';
+import '../borrowing/borrowing_receipt_screen.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
   final String transactionId;
@@ -33,7 +34,8 @@ class TransactionDetailsScreen extends StatelessWidget {
     }
 
     final currentTxn = txn;
-    final showBottomAction = currentTxn.canReturn ||
+    final showBottomAction =
+        currentTxn.canReturn ||
         (currentTxn.status == RequestStatus.approved &&
             currentTxn.returnStatus == ReturnStatus.returnPending);
 
@@ -109,7 +111,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Return request submitted — awaiting admin confirmation.',
+                                'Return requested. Admin approval and staff inspection are required before it is confirmed.',
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
@@ -173,6 +175,65 @@ class TransactionDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 22),
 
+            if (currentTxn.receipt != null) ...[
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Receipt ${currentTxn.transactionCode}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text('Pickup: ${currentTxn.pickupStatus ?? "Awaiting"}'),
+                    const SizedBox(height: 8),
+                    FilledButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BorrowingReceiptScreen(
+                            transactionId: currentTxn.transactionId,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.qr_code_rounded),
+                      label: const Text('View / save receipt'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
+
+            for (final receipt in currentTxn.returnReceipts) ...[
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Return receipt ${receipt.transactionCode}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text('${receipt.status} · Staff: ${receipt.pickupStatus}'),
+                    const SizedBox(height: 8),
+                    FilledButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BorrowingReceiptScreen(
+                            transactionId: currentTxn.transactionId,
+                            isReturnReceipt: true,
+                            returnReceiptCode: receipt.transactionCode,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.qr_code_rounded),
+                      label: const Text('View / save return receipt'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
             _Section(
               title: 'Equipment Information',
               rows: {

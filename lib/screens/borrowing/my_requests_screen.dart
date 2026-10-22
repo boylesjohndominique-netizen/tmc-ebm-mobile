@@ -10,6 +10,7 @@ import '../../widgets/pressable.dart';
 import '../../widgets/status_badge.dart';
 import '../history/transaction_details_screen.dart';
 import '../returns/borrowed_equipment_screen.dart';
+import 'borrowing_receipt_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   const MyRequestsScreen({super.key});
@@ -144,7 +145,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                             ),
                             onCancel: txn.status == RequestStatus.pending
                                 ? () =>
-                                    _confirmCancel(context, txn.transactionId)
+                                      _confirmCancel(context, txn.transactionId)
                                 : null,
                             onReturn: txn.canReturn
                                 ? () => showReturnEquipmentDialog(context, txn)
@@ -187,8 +188,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             onPressed: () async {
               Navigator.of(ctx).pop();
               setState(() => _cancellingId = transactionId);
-              final error =
-                  await context.read<AppState>().cancelRequest(transactionId);
+              final error = await context.read<AppState>().cancelRequest(
+                transactionId,
+              );
               if (!mounted) return;
               setState(() => _cancellingId = null);
               ScaffoldMessenger.of(this.context).showSnackBar(
@@ -228,12 +230,12 @@ class _RequestTile extends StatelessWidget {
   });
 
   Color get _statusColor => switch (txn.status) {
-        RequestStatus.pending => AppColors.warning,
-        RequestStatus.approved => AppColors.success,
-        RequestStatus.rejected => AppColors.danger,
-        RequestStatus.completed => AppColors.primary,
-        RequestStatus.cancelled => AppColors.neutral,
-      };
+    RequestStatus.pending => AppColors.warning,
+    RequestStatus.approved => AppColors.success,
+    RequestStatus.rejected => AppColors.danger,
+    RequestStatus.completed => AppColors.primary,
+    RequestStatus.cancelled => AppColors.neutral,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -271,6 +273,49 @@ class _RequestTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
+            if (txn.transactionCode.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Code: ${txn.transactionCode}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            if (txn.receipt != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => BorrowingReceiptScreen(
+                        transactionId: txn.transactionId,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.qr_code_rounded, size: 18),
+                  label: Text(
+                    'Receipt · Pickup: ${txn.pickupStatus ?? "Awaiting"}',
+                  ),
+                ),
+              ),
+            if (txn.returnReceipts.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => BorrowingReceiptScreen(
+                        transactionId: txn.transactionId,
+                        isReturnReceipt: true,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.assignment_return_outlined, size: 18),
+                  label: Text(
+                    'Return receipt · ${txn.returnReceipts.first.status}',
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.only(left: 31),
               child: Row(

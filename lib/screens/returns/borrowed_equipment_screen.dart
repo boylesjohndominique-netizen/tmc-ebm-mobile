@@ -89,14 +89,16 @@ class BorrowedEquipmentScreen extends StatelessWidget {
                                     '${txn.equipmentName} × ${txn.quantity}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
                                     'Borrowed ${dateFormat.format(txn.borrowingDate)}',
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -109,8 +111,9 @@ class BorrowedEquipmentScreen extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: dueColor.withValues(alpha: 0.14),
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.pill),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
                               ),
                               child: Text(
                                 dueLabel,
@@ -156,8 +159,9 @@ class BorrowedEquipmentScreen extends StatelessWidget {
                                     horizontal: 15,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -184,9 +188,9 @@ Future<bool> showReturnEquipmentDialog(
   if (remarks == null || !context.mounted) return false;
 
   final error = await context.read<AppState>().submitReturnRequest(
-        txn.transactionId,
-        remarks: remarks.isEmpty ? null : remarks,
-      );
+    txn.transactionId,
+    remarks: remarks.isEmpty ? null : remarks,
+  );
   if (!context.mounted) return false;
 
   ScaffoldMessenger.of(context).showSnackBar(
@@ -230,7 +234,7 @@ class _ReturnEquipmentDialogState extends State<_ReturnEquipmentDialog> {
 
     final message = isEarly
         ? 'You are returning "${txn.equipmentName}" $daysLeft day${daysLeft == 1 ? '' : 's'} ahead of the expected return date (${dateFormat.format(txn.returnDate)}).'
-        : 'Confirm that you are returning "${txn.equipmentName}" to the Equipment Office.';
+        : 'Request to return "${txn.equipmentName}" to the Equipment Office. Admin approval issues a receipt; staff must inspect and confirm the physical return.';
 
     return GlassDialog(
       icon: Icons.assignment_return_rounded,
@@ -258,7 +262,7 @@ class _ReturnEquipmentDialogState extends State<_ReturnEquipmentDialog> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Early return — no overdue fee applies.',
+                      'Fees are based on when staff receive the equipment, not when you submit this request.',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -292,11 +296,12 @@ class _ReturnEquipmentDialogState extends State<_ReturnEquipmentDialog> {
         TextButton(
           onPressed: () {
             final typed = _noteController.text.trim();
-            final remarks =
-                typed.isNotEmpty ? typed : (isEarly ? 'Early return' : '');
+            final remarks = typed.isNotEmpty
+                ? typed
+                : (isEarly ? 'Early return' : '');
             Navigator.of(context).pop(remarks);
           },
-          child: Text(isEarly ? 'Return Early' : 'Confirm'),
+          child: const Text('Submit request'),
         ),
       ],
     );
