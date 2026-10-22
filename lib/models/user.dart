@@ -43,6 +43,7 @@ class AppUser {
   /// (backend `id_submitted_at`). Survives app reinstalls, unlike the
   /// local pending cache.
   final bool hasSubmittedId;
+  final String? idRejectionReason;
 
   AppUser({
     required this.id,
@@ -57,6 +58,7 @@ class AppUser {
     this.accountStatus = 'Active',
     this.isIdVerified = false,
     this.hasSubmittedId = false,
+    this.idRejectionReason,
   });
 
   bool get isPending => accountStatus == 'Pending';

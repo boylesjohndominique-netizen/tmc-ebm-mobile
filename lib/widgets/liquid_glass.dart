@@ -28,22 +28,15 @@ class TmcBackgroundImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final hasCustomOverlay = overlayGradient != null;
-    final effectiveOpacity = imageOpacity ?? (dark ? 0.24 : 0.16);
-    final effectiveOverlay = overlayGradient ??
+    final effectiveOpacity = imageOpacity ?? (dark ? 0.70 : 0.55);
+    final effectiveOverlay =
+        overlayGradient ??
         LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: dark
-              ? const [
-                  Color(0xE018202F),
-                  Color(0xD41B2436),
-                  Color(0xE8161E2C),
-                ]
-              : const [
-                  Color(0xEBF2F5FA),
-                  Color(0xE0EEF2F8),
-                  Color(0xEDF0F4FA),
-                ],
+              ? const [Color(0x9918202F), Color(0x731B2436), Color(0xAD161E2C)]
+              : const [Color(0xB3F2F5FA), Color(0x8CEEF2F8), Color(0xBFF0F4FA)],
           stops: const [0.0, 0.5, 1.0],
         );
 
@@ -107,8 +100,9 @@ class LiquidBackground extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 DecoratedBox(
-                  decoration:
-                      BoxDecoration(gradient: AppColors.ambientGradient),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.ambientGradient,
+                  ),
                 ),
                 const TmcBackgroundImage(),
                 if (orbs) ...[
@@ -117,8 +111,9 @@ class LiquidBackground extends StatelessWidget {
                     right: -120,
                     child: _Orb(
                       size: 360,
-                      color: AppColors.primary
-                          .withValues(alpha: dark ? 0.18 : 0.10),
+                      color: AppColors.primary.withValues(
+                        alpha: dark ? 0.18 : 0.10,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -126,8 +121,9 @@ class LiquidBackground extends StatelessWidget {
                     left: -190,
                     child: _Orb(
                       size: 380,
-                      color:
-                          AppColors.gold.withValues(alpha: dark ? 0.10 : 0.08),
+                      color: AppColors.gold.withValues(
+                        alpha: dark ? 0.10 : 0.08,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -135,8 +131,9 @@ class LiquidBackground extends StatelessWidget {
                     right: -120,
                     child: _Orb(
                       size: 360,
-                      color:
-                          AppColors.info.withValues(alpha: dark ? 0.14 : 0.08),
+                      color: AppColors.info.withValues(
+                        alpha: dark ? 0.14 : 0.08,
+                      ),
                     ),
                   ),
                 ],
@@ -211,7 +208,7 @@ class LiquidScaffold extends StatelessWidget {
 
 /// The signature Liquid Glass surface.
 ///
-/// A translucent, blurred layer with a glossy highlight, hairline border and
+/// A translucent, blurred layer with a light-mode highlight and
 /// soft depth. Use [blur] = 0 for repeated list tiles to keep rendering cheap;
 /// reserve real backdrop blur for navigation, headers, sheets and heroes.
 class GlassPanel extends StatelessWidget {
@@ -244,12 +241,13 @@ class GlassPanel extends StatelessWidget {
     final borderRadius = BorderRadius.circular(radius);
     final fill =
         tint ?? (strong ? AppColors.glassFillStrong : AppColors.glassFill);
-    final effectiveGradient = gradient ??
+    final effectiveGradient =
+        gradient ??
         LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.glassHighlight.withValues(alpha: isDark ? 0.12 : 0.55),
+            isDark ? fill : AppColors.glassHighlight.withValues(alpha: 0.55),
             fill,
             fill,
           ],
@@ -348,7 +346,8 @@ class GlassIconButton extends StatelessWidget {
           Icon(
             icon,
             size: iconSize,
-            color: iconColor ??
+            color:
+                iconColor ??
                 (active ? AppColors.primary : AppColors.textPrimary),
           ),
           if (badge != null) Positioned(top: 6, right: 7, child: badge!),
@@ -423,8 +422,10 @@ class GlassChip extends StatelessWidget {
             if (count != null) ...[
               const SizedBox(width: 6),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 1.5,
+                ),
                 decoration: BoxDecoration(
                   color: selected
                       ? AppColors.onPrimary.withValues(alpha: 0.22)
@@ -470,10 +471,9 @@ class GlassSectionHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(letterSpacing: -0.4),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(letterSpacing: -0.4),
           ),
         ),
         if (actionLabel != null)
@@ -573,10 +573,9 @@ class GlassDialog extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   message!,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(height: 1.5),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(height: 1.5),
                 ),
               ],
               if (content != null) ...[

@@ -42,6 +42,7 @@ AppUser mapUser(Map<String, dynamic> j) {
         (j['is_id_verified'] as bool?) ??
         ((j['account_status'] as String?) == 'Active'),
     hasSubmittedId: j['id_submitted_at'] != null,
+    idRejectionReason: j['id_rejection_reason'] as String?,
   );
 }
 

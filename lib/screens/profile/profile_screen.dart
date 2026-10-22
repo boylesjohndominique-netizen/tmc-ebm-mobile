@@ -77,8 +77,9 @@ class ProfileScreen extends StatelessWidget {
                   _LabeledDetailRow(
                     icon: Icons.phone_outlined,
                     label: 'Contact Number',
-                    value:
-                        user.contactNumber.isEmpty ? '—' : user.contactNumber,
+                    value: user.contactNumber.isEmpty
+                        ? '—'
+                        : user.contactNumber,
                     muted: user.contactNumber.isEmpty,
                   ),
                   const Divider(height: 1, indent: 46),
@@ -154,8 +155,9 @@ class _IdentityHeaderState extends State<_IdentityHeader> {
       );
       if (file == null || !mounted) return;
       setState(() => _uploadingPhoto = true);
-      final error =
-          await context.read<AppState>().updateProfilePhoto(file.path);
+      final error = await context.read<AppState>().updateProfilePhoto(
+        file.path,
+      );
       if (!mounted) return;
       setState(() => _uploadingPhoto = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -279,24 +281,14 @@ class _IdentityHeaderState extends State<_IdentityHeader> {
                                   ),
                                 )
                               : hasAvatar
-                                  ? ClipOval(
-                                      child: Image.network(
-                                        user.avatarUrl!,
-                                        headers: ApiConfig.mediaHeaders,
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Text(
-                                          user.initials,
-                                          style: const TextStyle(
-                                            color: AppColors.primary,
-                                            fontSize: 27,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  : Text(
+                              ? ClipOval(
+                                  child: Image.network(
+                                    user.avatarUrl!,
+                                    headers: ApiConfig.mediaHeaders,
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Text(
                                       user.initials,
                                       style: const TextStyle(
                                         color: AppColors.primary,
@@ -304,6 +296,16 @@ class _IdentityHeaderState extends State<_IdentityHeader> {
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),
+                                  ),
+                                )
+                              : Text(
+                                  user.initials,
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 27,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -555,7 +557,9 @@ class _VerificationCardState extends State<_VerificationCard> {
 
   Future<void> _submit() async {
     if (_idFrontPath == null || _idBackPath == null) {
-      setState(() => _error = 'Capture both sides of your ID to continue.');
+      setState(
+        () => _error = 'Add photos of both sides of your ID to continue.',
+      );
       return;
     }
     setState(() {
@@ -564,49 +568,50 @@ class _VerificationCardState extends State<_VerificationCard> {
     });
 
     final error = await context.read<AppState>().submitIdVerification(
-          idFrontPath: _idFrontPath!,
-          idBackPath: _idBackPath!,
-        );
+      idFrontPath: _idFrontPath!,
+      idBackPath: _idBackPath!,
+    );
 
     if (!mounted) return;
     setState(() {
       _loading = false;
       _error = error;
+      if (error == null) {
+        _idFrontPath = null;
+        _idBackPath = null;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return switch (widget.status) {
-      IdVerificationStatus.notSubmitted => _buildCapture(context),
+      IdVerificationStatus.notSubmitted ||
+      IdVerificationStatus.rejected => _buildCapture(context),
       IdVerificationStatus.pending => const _Card(
-          child: _StateRow(
-            icon: Icons.hourglass_top_rounded,
-            tint: AppColors.warning,
-            label: 'Under review',
-            trailing: _Pill('Pending', AppColors.warning),
-          ),
+        child: _StateRow(
+          icon: Icons.hourglass_top_rounded,
+          tint: AppColors.warning,
+          label: 'Under review',
+          trailing: _Pill('Pending', AppColors.warning),
         ),
-      IdVerificationStatus.rejected => const _Card(
-          child: _StateRow(
-            icon: Icons.cancel_outlined,
-            tint: AppColors.danger,
-            label: 'ID rejected',
-            trailing: _Pill('Rejected', AppColors.danger),
-          ),
-        ),
+      ),
       IdVerificationStatus.approved => const _Card(
-          child: _StateRow(
-            icon: Icons.verified_outlined,
-            tint: AppColors.success,
-            label: 'ID verified',
-            trailing: _Pill('Verified', AppColors.success),
-          ),
+        child: _StateRow(
+          icon: Icons.verified_outlined,
+          tint: AppColors.success,
+          label: 'ID verified',
+          trailing: _Pill('Verified', AppColors.success),
         ),
+      ),
     };
   }
 
   Widget _buildCapture(BuildContext context) {
+    final rejectionReason = context
+        .watch<AppState>()
+        .currentUser
+        ?.idRejectionReason;
     return _Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -630,6 +635,18 @@ class _VerificationCardState extends State<_VerificationCard> {
               ],
             ),
             const SizedBox(height: 14),
+            if (widget.status == IdVerificationStatus.rejected) ...[
+              Text(
+                'ID verification rejected. Reason: ${rejectionReason ?? 'Please submit new ID photos.'}',
+                style: const TextStyle(color: AppColors.danger, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Add new front and back photos of your ID and submit them for review.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 14),
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -684,7 +701,9 @@ class _VerificationCardState extends State<_VerificationCard> {
             ],
             const SizedBox(height: 12),
             CustomButton(
-              label: 'Submit',
+              label: widget.status == IdVerificationStatus.rejected
+                  ? 'Resubmit ID'
+                  : 'Submit',
               onPressed: _submit,
               loading: _loading,
             ),

@@ -75,9 +75,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final first = _firstNameController.text.trim();
     final middle = _middleNameController.text.trim();
     final last = _lastNameController.text.trim();
-    return [first, if (middle.isNotEmpty) middle, last]
-        .where((p) => p.isNotEmpty)
-        .join(' ');
+    return [
+      first,
+      if (middle.isNotEmpty) middle,
+      last,
+    ].where((p) => p.isNotEmpty).join(' ');
   }
 
   @override
@@ -204,7 +206,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final code = _emailCodeController.text.trim();
     if (code.length != 6) {
       setState(
-          () => _emailStepError = 'Please enter the complete 6-digit code.');
+        () => _emailStepError = 'Please enter the complete 6-digit code.',
+      );
       return;
     }
     if (_verifyingCode) return;
@@ -349,8 +352,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.success.withValues(alpha: 0.14),
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
                             ),
                             child: const Text(
                               'Verified',
@@ -462,7 +466,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_idFrontPath == null || _idBackPath == null) {
       setState(() {
         _idError =
-            'Please capture both Front and Back ID photos, or tap "Continue Without ID" to submit later in Profile.';
+            'Please add both Front and Back ID photos, or tap "Continue Without ID" to submit later in Profile.';
       });
       return;
     }
@@ -474,9 +478,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     final error = await context.read<AppState>().submitIdVerification(
-          idFrontPath: _idFrontPath!,
-          idBackPath: _idBackPath!,
-        );
+      idFrontPath: _idFrontPath!,
+      idBackPath: _idBackPath!,
+    );
 
     if (!mounted) return;
     setState(() => _submittingId = false);
@@ -580,9 +584,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         stepSubtitles[_step],
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontSize: 13.5,
-                              height: 1.4,
-                            ),
+                          fontSize: 13.5,
+                          height: 1.4,
+                        ),
                       ),
                     ],
                   ),
@@ -646,8 +650,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           TextFormField(
             controller: _middleNameController,
             textInputAction: TextInputAction.next,
-            decoration:
-                _dec('Enter your middle name (optional)', Icons.badge_outlined),
+            decoration: _dec(
+              'Enter your middle name (optional)',
+              Icons.badge_outlined,
+            ),
           ),
           const SizedBox(height: 16),
           const FieldLabel('Last Name'),
@@ -668,8 +674,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               final previewUsername = value.text.trim();
               return Container(
                 width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primarySoft,
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -688,9 +696,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ? 'Your default username will be your first name.'
                             : 'Default username: @$previewUsername',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                   ],
@@ -813,10 +821,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             autofillHints: const [AutofillHints.email],
             decoration: _dec('Enter your email', Icons.email_outlined).copyWith(
               suffixIcon: verified
-                  ? const Icon(
-                      Icons.verified_rounded,
-                      color: AppColors.success,
-                    )
+                  ? const Icon(Icons.verified_rounded, color: AppColors.success)
                   : null,
             ),
             validator: (v) {
@@ -936,14 +941,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             CustomButton(
               label: _codeSent
                   ? (_resendSeconds > 0
-                      ? 'Resend Code (${_resendSeconds}s)'
-                      : 'Resend Verification Code')
+                        ? 'Resend Code (${_resendSeconds}s)'
+                        : 'Resend Verification Code')
                   : 'Send Verification Code',
               outlined: _codeSent,
               icon: Icons.send_rounded,
               loading: _sendingCode,
-              onPressed:
-                  (_codeSent && _resendSeconds > 0) ? null : _sendEmailCode,
+              onPressed: (_codeSent && _resendSeconds > 0)
+                  ? null
+                  : _sendEmailCode,
             ),
             if (_codeSent) ...[
               const SizedBox(height: 18),
@@ -1102,9 +1108,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Text(
                     'Choose whether to submit your school ID now or later in Profile & Settings. Until an admin verifies your ID, you can browse equipment freely but cannot request to borrow equipment.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          height: 1.4,
-                          color: AppColors.textPrimary,
-                        ),
+                      height: 1.4,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -1164,11 +1170,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Welcome, $_fullName! Capture the front and back of your school ID below. You can still enter the app even while unverified — borrowing equipment simply requires admin verification.',
+                  'Welcome, $_fullName! Take photos of the front and back of your school ID or choose them from your gallery. Make sure all text is readable. You can still enter the app even while unverified — borrowing equipment simply requires admin verification.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        height: 1.4,
-                        color: AppColors.textPrimary,
-                      ),
+                    height: 1.4,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -1306,8 +1312,9 @@ class _StepProgressIndicator extends StatelessWidget {
             height: 6,
             margin: EdgeInsets.only(right: index < totalSteps - 1 ? 8 : 0),
             decoration: BoxDecoration(
-              gradient:
-                  (isCompleted || isActive) ? AppColors.premiumGradient : null,
+              gradient: (isCompleted || isActive)
+                  ? AppColors.premiumGradient
+                  : null,
               color: (isCompleted || isActive)
                   ? null
                   : AppColors.divider.withValues(alpha: 0.6),

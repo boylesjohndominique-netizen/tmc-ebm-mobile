@@ -108,23 +108,29 @@ class AppState extends ChangeNotifier {
   void _setTransactions(List<BorrowingTransaction> items) {
     _transactions = List<BorrowingTransaction>.unmodifiable(items);
     _pendingAndApproved = List<BorrowingTransaction>.unmodifiable(
-      _transactions.where((t) =>
-          t.status == RequestStatus.pending ||
-          t.status == RequestStatus.approved),
+      _transactions.where(
+        (t) =>
+            t.status == RequestStatus.pending ||
+            t.status == RequestStatus.approved,
+      ),
     );
     _currentlyBorrowed = List<BorrowingTransaction>.unmodifiable(
       _transactions.where((t) => t.isCurrentlyBorrowed),
     );
     _borrowingHistory = List<BorrowingTransaction>.unmodifiable(
-      _transactions.where((t) =>
-          t.status == RequestStatus.completed ||
-          t.status == RequestStatus.rejected ||
-          t.status == RequestStatus.cancelled),
+      _transactions.where(
+        (t) =>
+            t.status == RequestStatus.completed ||
+            t.status == RequestStatus.rejected ||
+            t.status == RequestStatus.cancelled,
+      ),
     );
     _returnHistory = List<BorrowingTransaction>.unmodifiable(
-      _transactions.where((t) =>
-          t.returnStatus == ReturnStatus.completed ||
-          t.returnStatus == ReturnStatus.returnConfirmed),
+      _transactions.where(
+        (t) =>
+            t.returnStatus == ReturnStatus.completed ||
+            t.returnStatus == ReturnStatus.returnConfirmed,
+      ),
     );
     _overdueCount = _transactions.where((t) => t.isOverdue).length;
   }
@@ -161,6 +167,9 @@ class AppState extends ChangeNotifier {
   ///   - otherwise → notSubmitted
   IdVerificationStatus get idVerificationStatus {
     if (currentUser?.isIdVerified == true) return IdVerificationStatus.approved;
+    if (currentUser?.idRejectionReason != null) {
+      return IdVerificationStatus.rejected;
+    }
     // Server-side submission marker wins over the local cache (survives
     // reinstalls and reflects submissions made from other devices).
     if (currentUser?.hasSubmittedId == true) {
@@ -193,9 +202,16 @@ class AppState extends ChangeNotifier {
     }
 
     _idVerification[id] = IdVerificationStatus.pending;
+    final fresh = res.data?['user'];
+    if (fresh is Map<String, dynamic>) {
+      currentUser = mapUser(fresh);
+      await _persistUser();
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
-        _idVerificationPrefix + id, IdVerificationStatus.pending.name);
+      _idVerificationPrefix + id,
+      IdVerificationStatus.pending.name,
+    );
     notifyListeners();
     return null;
   }
@@ -293,6 +309,10 @@ class AppState extends ChangeNotifier {
         'email_verified_at': currentUser!.emailVerified ? 'verified' : null,
         'account_status': currentUser?.accountStatus,
         'is_id_verified': currentUser?.isIdVerified ?? false,
+        'id_submitted_at': currentUser?.hasSubmittedId == true
+            ? 'submitted'
+            : null,
+        'id_rejection_reason': currentUser?.idRejectionReason,
       }),
     );
   }
@@ -450,7 +470,9 @@ class AppState extends ChangeNotifier {
 
   /// Returns null on success, or an error message.
   Future<String?> changePassword(
-      String currentPassword, String newPassword) async {
+    String currentPassword,
+    String newPassword,
+  ) async {
     final res = await ApiService.instance.changePassword(
       currentPassword: currentPassword,
       password: newPassword,
@@ -464,7 +486,8 @@ class AppState extends ChangeNotifier {
   void _handleAccountBanned({String? reason, String? login}) {
     _accountBanned = true;
     if (reason != null && reason.isNotEmpty) _banReason = reason;
-    _bannedLogin = login ??
+    _bannedLogin =
+        login ??
         _bannedLogin ??
         currentUser?.username ??
         (currentUser?.email.isNotEmpty == true ? currentUser?.email : null);
@@ -476,7 +499,8 @@ class AppState extends ChangeNotifier {
   /// an error message. Works without a session (the account is looked up by
   /// username/email on the server).
   Future<String?> submitBanAppeal(String message) async {
-    final login = _bannedLogin ??
+    final login =
+        _bannedLogin ??
         currentUser?.username ??
         (currentUser?.email.isNotEmpty == true ? currentUser?.email : null);
     if (login == null || login.isEmpty) {

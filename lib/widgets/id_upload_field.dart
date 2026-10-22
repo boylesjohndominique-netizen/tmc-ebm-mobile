@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../app/motion.dart';
 import '../app/theme.dart';
+import 'liquid_glass.dart';
 
 /// A tappable capture slot for one side of an ID (front or back).
 ///
@@ -26,24 +27,51 @@ class IdPhotoField extends StatelessWidget {
     this.errorText,
   });
 
-  Future<void> _capture(BuildContext context) async {
+  Future<void> _selectPhoto(BuildContext context) async {
+    final source = await showGlassSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const GlassSheetHandle(),
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: const Text('Take a photo'),
+            onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: const Text('Choose from gallery'),
+            onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+    if (source == null || !context.mounted) return;
+
     final picker = ImagePicker();
     try {
       final photo = await picker.pickImage(
-        source: ImageSource.camera,
+        source: source,
         maxWidth: 1600,
         imageQuality: 80,
       );
-      if (photo != null) {
+      if (photo != null && context.mounted) {
         onChanged(photo.path);
       }
     } catch (_) {
-      // Camera unavailable or permission denied — keep current state; the
+      // Source unavailable or permission denied — keep current state; the
       // slot stays tappable so the user can retry.
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Could not open the camera. Please try again.')),
+          SnackBar(
+            content: Text(
+              source == ImageSource.camera
+                  ? 'Could not open the camera. Please try again.'
+                  : 'Could not open the gallery. Please try again.',
+            ),
+          ),
         );
       }
     }
@@ -54,12 +82,14 @@ class IdPhotoField extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove photo?'),
-        content:
-            Text('The $label photo will be removed from your registration.'),
+        content: Text(
+          'The $label photo will be removed from your registration.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
@@ -89,7 +119,7 @@ class IdPhotoField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: () => _capture(context),
+          onTap: () => _selectPhoto(context),
           child: AnimatedContainer(
             duration: AppMotion.responsive(context, AppMotion.normal),
             curve: AppMotion.emphasized,
@@ -116,7 +146,9 @@ class IdPhotoField extends StatelessWidget {
                           bottom: 0,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 8),
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -126,22 +158,26 @@ class IdPhotoField extends StatelessWidget {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.check_circle_rounded,
-                                    color: AppColors.success, size: 18),
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.success,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 6),
                                 const Expanded(
                                   child: Text(
-                                    'Captured',
+                                    'Selected',
                                     style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600),
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                                 _IconAction(
                                   icon: Icons.refresh_rounded,
-                                  tooltip: 'Retake',
-                                  onTap: () => _capture(context),
+                                  tooltip: 'Change photo',
+                                  onTap: () => _selectPhoto(context),
                                 ),
                                 const SizedBox(width: 4),
                                 _IconAction(
@@ -160,11 +196,14 @@ class IdPhotoField extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.photo_camera_outlined,
-                          color: AppColors.primary, size: 28),
+                      const Icon(
+                        Icons.photo_camera_outlined,
+                        color: AppColors.primary,
+                        size: 28,
+                      ),
                       const SizedBox(height: 10),
                       Text(
-                        hint ?? 'Tap to take a photo',
+                        hint ?? 'Tap to add a photo',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -173,9 +212,11 @@ class IdPhotoField extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Camera will open — make sure all text is readable',
+                        'Camera or gallery',
                         style: TextStyle(
-                            fontSize: 11, color: AppColors.textTertiary),
+                          fontSize: 11,
+                          color: AppColors.textTertiary,
+                        ),
                       ),
                     ],
                   ),
@@ -185,8 +226,11 @@ class IdPhotoField extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  color: AppColors.danger, size: 14),
+              const Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.danger,
+                size: 14,
+              ),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
