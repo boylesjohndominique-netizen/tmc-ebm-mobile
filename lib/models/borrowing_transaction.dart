@@ -1,3 +1,5 @@
+import 'borrowing_receipt.dart';
+
 enum RequestStatus { pending, approved, rejected, completed, cancelled }
 
 extension RequestStatusLabel on RequestStatus {
@@ -36,6 +38,10 @@ extension ReturnStatusLabel on ReturnStatus {
 
 class BorrowingTransaction {
   final String transactionId;
+  final String transactionCode;
+  final String? pickupStatus;
+  final BorrowingReceipt? receipt;
+  final List<BorrowingReceipt> returnReceipts;
   final String equipmentId;
   final String equipmentName;
   final String assetId;
@@ -55,6 +61,10 @@ class BorrowingTransaction {
 
   BorrowingTransaction({
     required this.transactionId,
+    this.transactionCode = '',
+    this.pickupStatus,
+    this.receipt,
+    this.returnReceipts = const [],
     required this.equipmentId,
     required this.equipmentName,
     required this.assetId,
@@ -83,10 +93,12 @@ class BorrowingTransaction {
 
   bool get canReturn =>
       status == RequestStatus.approved &&
+      pickupStatus == 'Received' &&
       returnStatus == ReturnStatus.notReturned;
 
   bool get isCurrentlyBorrowed =>
       status == RequestStatus.approved &&
+      pickupStatus == 'Received' &&
       (returnStatus == ReturnStatus.notReturned ||
           returnStatus == ReturnStatus.returnPending);
 

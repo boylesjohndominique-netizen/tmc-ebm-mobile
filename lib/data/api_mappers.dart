@@ -1,4 +1,5 @@
 import '../models/borrowing_transaction.dart';
+import '../models/borrowing_receipt.dart';
 import '../models/equipment.dart';
 import '../models/notification_item.dart';
 import '../models/user.dart';
@@ -18,9 +19,11 @@ AppUser mapUser(Map<String, dynamic> j) {
   final first = (j['first_name'] as String?) ?? '';
   final middle = (j['middle_name'] as String?) ?? '';
   final last = (j['last_name'] as String?) ?? '';
-  final full = [first, if (middle.isNotEmpty) middle, last]
-      .where((p) => p.isNotEmpty)
-      .join(' ');
+  final full = [
+    first,
+    if (middle.isNotEmpty) middle,
+    last,
+  ].where((p) => p.isNotEmpty).join(' ');
 
   final rawId = (j['id_number'] as String?) ?? '';
   return AppUser(
@@ -35,7 +38,8 @@ AppUser mapUser(Map<String, dynamic> j) {
     emailVerified: j['email_verified_at'] != null,
     accountStatus: (j['account_status'] as String?) ?? 'Active',
     // Falls back to Active-status for older payloads that predate the flag.
-    isIdVerified: (j['is_id_verified'] as bool?) ??
+    isIdVerified:
+        (j['is_id_verified'] as bool?) ??
         ((j['account_status'] as String?) == 'Active'),
     hasSubmittedId: j['id_submitted_at'] != null,
   );
@@ -49,16 +53,17 @@ Equipment mapEquipment(Map<String, dynamic> j) {
   final rawGallery = j['images'];
   final galleryUrls = rawGallery is List
       ? rawGallery
-          .whereType<String>()
-          .map(ApiConfig.equipmentMediaUrl)
-          .whereType<String>()
-          .toList()
+            .whereType<String>()
+            .map(ApiConfig.equipmentMediaUrl)
+            .whereType<String>()
+            .toList()
       : const <String>[];
 
   return Equipment(
     id: (j['id'] ?? '').toString(),
     name: (j['name'] as String?) ?? 'Unknown',
-    category: ((j['category'] as Map<String, dynamic>?)?['name'] as String?) ??
+    category:
+        ((j['category'] as Map<String, dynamic>?)?['name'] as String?) ??
         'General',
     description: (j['description'] as String?) ?? '',
     condition: switch ((j['condition'] as String?)?.toLowerCase()) {
@@ -86,8 +91,11 @@ BorrowingTransaction mapBorrowing(Map<String, dynamic> j) {
 
   // A borrowing request may contain several items; the UI shows them joined.
   final name = items
-      .map((i) => ((i as Map<String, dynamic>)['equipment']
-          as Map<String, dynamic>?)?['name'])
+      .map(
+        (i) =>
+            ((i as Map<String, dynamic>)['equipment']
+                as Map<String, dynamic>?)?['name'],
+      )
       .whereType<String>()
       .join(', ');
   final quantity = items.fold<int>(
@@ -96,21 +104,46 @@ BorrowingTransaction mapBorrowing(Map<String, dynamic> j) {
         sum + (((i as Map<String, dynamic>)['quantity'] as num?)?.toInt() ?? 0),
   );
 
-  final returns = (j['returns'] as List?) ?? const [];
-  final latestReturn =
-      returns.isNotEmpty && returns.first is Map<String, dynamic>
-          ? returns.first as Map<String, dynamic>
-          : null;
+  final returns =
+      ((j['returns'] as List?) ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .toList()
+        ..sort(
+          (a, b) => (int.tryParse('${b['id']}') ?? 0).compareTo(
+            int.tryParse('${a['id']}') ?? 0,
+          ),
+        );
+  final latestReturn = returns.isEmpty ? null : returns.first;
   final returnStatus = _mapReturnStatus(
-      (latestReturn?['status'] as String?), j['status'] as String?);
+    (latestReturn?['status'] as String?),
+    j['status'] as String?,
+  );
 
   return BorrowingTransaction(
     transactionId: (j['id'] ?? '').toString(),
-    equipmentId:
-        ((firstItem['equipment_id'] ?? equipment?['id'] ?? '')).toString(),
+    transactionCode: '${j['transaction_code'] ?? ''}',
+    pickupStatus: j.containsKey('pickup_status')
+        ? j['pickup_status'] as String?
+        : (j['status'] == 'Approved' || j['status'] == 'Completed'
+              ? 'Received'
+              : null),
+    receipt: j['receipt'] is Map<String, dynamic>
+        ? BorrowingReceipt.fromJson(j['receipt'] as Map<String, dynamic>)
+        : null,
+    returnReceipts: returns
+        .where((item) => item['receipt'] is Map<String, dynamic>)
+        .map(
+          (item) => BorrowingReceipt.fromJson(
+            item['receipt'] as Map<String, dynamic>,
+          ),
+        )
+        .toList(growable: false),
+    equipmentId: ((firstItem['equipment_id'] ?? equipment?['id'] ?? ''))
+        .toString(),
     equipmentName: name.isNotEmpty ? name : 'Equipment',
     assetId: equipment?['asset_id']?.toString() ?? '',
-    category: ((equipment?['category'] as Map<String, dynamic>?)?['name']
+    category:
+        ((equipment?['category'] as Map<String, dynamic>?)?['name']
             as String?) ??
         '',
     quantity: quantity > 0
@@ -126,24 +159,27 @@ BorrowingTransaction mapBorrowing(Map<String, dynamic> j) {
     purpose: (j['remarks'] as String?) ?? '',
     notes: '',
     requestDate: _parseDate(j['created_at']),
-    approvalDate: j['status'] != 'Pending' ? _parseDate(j['updated_at']) : null,
+    approvalDate: j['approved_at'] != null
+        ? _parseDate(j['approved_at'])
+        : (j['status'] != 'Pending' ? _parseDate(j['updated_at']) : null),
     status: _mapRequestStatus(j['status'] as String?),
     returnStatus: returnStatus,
   );
 }
 
 RequestStatus _mapRequestStatus(String? s) => switch (s) {
-      'Pending' => RequestStatus.pending,
-      'Approved' => RequestStatus.approved,
-      'Rejected' => RequestStatus.rejected,
-      'Completed' => RequestStatus.completed,
-      'Cancelled' => RequestStatus.cancelled,
-      _ => RequestStatus.pending,
-    };
+  'Pending' => RequestStatus.pending,
+  'Approved' => RequestStatus.approved,
+  'Rejected' => RequestStatus.rejected,
+  'Completed' => RequestStatus.completed,
+  'Cancelled' => RequestStatus.cancelled,
+  _ => RequestStatus.pending,
+};
 
 ReturnStatus _mapReturnStatus(String? s, String? borrowingStatus) {
   switch (s) {
     case 'Pending':
+    case 'Approved':
       return ReturnStatus.returnPending;
     case 'Confirmed':
       return ReturnStatus.returnConfirmed;
@@ -174,17 +210,17 @@ double? _parseNum(dynamic v) {
 // ---------------------------------------------------------------------------
 
 AppNotification mapNotification(Map<String, dynamic> j) => AppNotification(
-      id: (j['id'] ?? '').toString(),
-      title: (j['title'] as String?) ?? 'Notification',
-      message: (j['message'] as String?) ?? '',
-      type: switch ((j['type'] as String?)?.toLowerCase()) {
-        'success' => NotificationType.approval,
-        'request' => NotificationType.reminder,
-        'return' => NotificationType.reminder,
-        'error' => NotificationType.rejection,
-        'warning' => NotificationType.overdue,
-        _ => NotificationType.system,
-      },
-      date: _parseDate(j['created_at']),
-      isRead: j['read_at'] != null,
-    );
+  id: (j['id'] ?? '').toString(),
+  title: (j['title'] as String?) ?? 'Notification',
+  message: (j['message'] as String?) ?? '',
+  type: switch ((j['type'] as String?)?.toLowerCase()) {
+    'success' => NotificationType.approval,
+    'request' => NotificationType.reminder,
+    'return' => NotificationType.reminder,
+    'error' => NotificationType.rejection,
+    'warning' => NotificationType.overdue,
+    _ => NotificationType.system,
+  },
+  date: _parseDate(j['created_at']),
+  isRead: j['read_at'] != null,
+);

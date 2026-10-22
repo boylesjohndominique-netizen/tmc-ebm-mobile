@@ -8,54 +8,55 @@ import 'package:tmcebms/models/user.dart';
 /// Fakes mirroring the real Laravel API responses (see MobileController),
 /// so the mapper layer can be tested without a running backend.
 Map<String, dynamic> fakeUserJson({String status = 'Active'}) => {
-      'id': 8,
-      'role_id': 1,
-      'first_name': 'Juan',
-      'middle_name': null,
-      'last_name': 'Dela Cruz',
-      'id_number': '24-123456',
-      'username': 'juan.delacruz',
-      'email': 'juan@tmc.edu',
-      'contact_number': '09171234567',
-      'email_verified_at': '2026-09-27T05:39:20.000000Z',
-      'account_status': status,
-    };
+  'id': 8,
+  'role_id': 1,
+  'first_name': 'Juan',
+  'middle_name': null,
+  'last_name': 'Dela Cruz',
+  'id_number': '24-123456',
+  'username': 'juan.delacruz',
+  'email': 'juan@tmc.edu',
+  'contact_number': '09171234567',
+  'email_verified_at': '2026-09-27T05:39:20.000000Z',
+  'account_status': status,
+};
 
 Map<String, dynamic> fakeEquipmentJson({int available = 15}) => {
-      'id': 1,
-      'name': 'Laptop',
-      'description': 'College laptop for academic activities.',
-      'quantity': 20,
-      'available_quantity': available,
-      'condition': 'Good',
-      'status': 'Available',
-      'category': {'id': 1, 'name': 'Information Technology'},
-    };
+  'id': 1,
+  'name': 'Laptop',
+  'description': 'College laptop for academic activities.',
+  'quantity': 20,
+  'available_quantity': available,
+  'condition': 'Good',
+  'status': 'Available',
+  'category': {'id': 1, 'name': 'Information Technology'},
+};
 
-Map<String, dynamic> fakeBorrowingJson(
-        {String status = 'Pending', List<Map<String, dynamic>>? returns}) =>
+Map<String, dynamic> fakeBorrowingJson({
+  String status = 'Pending',
+  List<Map<String, dynamic>>? returns,
+}) => {
+  'id': 13,
+  'borrowing_date': '2026-09-27T00:00:00.000000Z',
+  'expected_return_date': '2026-09-30T00:00:00.000000Z',
+  'status': status,
+  'remarks': 'Capstone defense equipment',
+  'processed_by': null,
+  'created_at': '2026-09-27T05:40:46.000000Z',
+  'updated_at': '2026-09-27T05:40:46.000000Z',
+  'items': [
     {
-      'id': 13,
-      'borrowing_date': '2026-09-27T00:00:00.000000Z',
-      'expected_return_date': '2026-09-30T00:00:00.000000Z',
-      'status': status,
-      'remarks': 'Capstone defense equipment',
-      'processed_by': null,
-      'created_at': '2026-09-27T05:40:46.000000Z',
-      'updated_at': '2026-09-27T05:40:46.000000Z',
-      'items': [
-        {
-          'id': 21,
-          'equipment_id': 1,
-          'quantity': 2,
-          'equipment': {
-            ...fakeEquipmentJson(),
-            'category': {'id': 1, 'name': 'Information Technology'},
-          },
-        },
-      ],
-      if (returns != null) 'returns': returns,
-    };
+      'id': 21,
+      'equipment_id': 1,
+      'quantity': 2,
+      'equipment': {
+        ...fakeEquipmentJson(),
+        'category': {'id': 1, 'name': 'Information Technology'},
+      },
+    },
+  ],
+  if (returns != null) 'returns': returns,
+};
 
 void main() {
   group('mapUser', () {
@@ -97,31 +98,126 @@ void main() {
     });
 
     test('availability reflects stock', () {
-      expect(mapEquipment(fakeEquipmentJson(available: 0)).availabilityStatus,
-          'Unavailable');
-      expect(mapEquipment(fakeEquipmentJson(available: 2)).availabilityStatus,
-          'Limited');
+      expect(
+        mapEquipment(fakeEquipmentJson(available: 0)).availabilityStatus,
+        'Unavailable',
+      );
+      expect(
+        mapEquipment(fakeEquipmentJson(available: 2)).availabilityStatus,
+        'Limited',
+      );
     });
 
-    test('maps main profile image and additional description gallery images',
-        () {
-      final eq = mapEquipment({
-        ...fakeEquipmentJson(),
-        'image': 'equipment-images/main-laptop.jpg',
-        'images': [
-          'equipment-images/side-angle.jpg',
-          'equipment-images/ports-closeup.jpg',
-        ],
-      });
-      expect(eq.imageUrl, endsWith('/api/equipment-media/main-laptop.jpg'));
-      expect(eq.galleryUrls.length, 2);
-      expect(eq.galleryUrls.first,
-          endsWith('/api/equipment-media/side-angle.jpg'));
-      expect(eq.allPhotos.length, 3);
-    });
+    test(
+      'maps main profile image and additional description gallery images',
+      () {
+        final eq = mapEquipment({
+          ...fakeEquipmentJson(),
+          'image': 'equipment-images/main-laptop.jpg',
+          'images': [
+            'equipment-images/side-angle.jpg',
+            'equipment-images/ports-closeup.jpg',
+          ],
+        });
+        expect(eq.imageUrl, endsWith('/api/equipment-media/main-laptop.jpg'));
+        expect(eq.galleryUrls.length, 2);
+        expect(
+          eq.galleryUrls.first,
+          endsWith('/api/equipment-media/side-angle.jpg'),
+        );
+        expect(eq.allPhotos.length, 3);
+      },
+    );
   });
 
   group('mapBorrowing', () {
+    test(
+      'approved return stays on loan and newest return determines status',
+      () {
+        final txn = mapBorrowing({
+          ...fakeBorrowingJson(status: 'Approved'),
+          'pickup_status': 'Received',
+          'returns': [
+            {
+              'id': 10,
+              'status': 'Rejected',
+              'receipt': {
+                'kind': 'return',
+                'transaction_code': '111111111111',
+                'status': 'Rejected',
+              },
+            },
+            {
+              'id': 12,
+              'status': 'Approved',
+              'receipt': {
+                'kind': 'return',
+                'transaction_code': '222222222222',
+                'status': 'Approved',
+                'handover_status': 'Awaiting',
+                'qr_payload': 'TMCEBMS:RETURN:${'a' * 64}',
+                'handover_starts_at': '2026-10-22T01:00:00Z',
+                'handover_ends_at': '2026-10-22T03:00:00Z',
+              },
+            },
+          ],
+        });
+        expect(txn.returnStatus, ReturnStatus.returnPending);
+        expect(txn.isCurrentlyBorrowed, isTrue);
+        expect(txn.canReturn, isFalse);
+        expect(txn.actualReturnDate, isNull);
+        expect(txn.returnReceipts.length, 2);
+        expect(txn.returnReceipts.first.transactionCode, '222222222222');
+        expect(txn.returnReceipts.first.isReturn, isTrue);
+        expect(txn.returnReceipts.first.pickupStatus, 'Awaiting');
+        expect(txn.returnReceipts.first.pickupEndsAt?.isUtc, isTrue);
+      },
+    );
+    test('approval awaits staff pickup before borrowing or returns begin', () {
+      final txn = mapBorrowing({
+        ...fakeBorrowingJson(status: 'Approved'),
+        'transaction_code': '123456789012',
+        'pickup_status': 'Awaiting',
+        'approved_at': '2026-09-27T05:40:46.000000Z',
+        'receipt': {
+          'transaction_code': '123456789012',
+          'qr_payload': 'TMCEBMS:${'a' * 64}',
+          'status': 'Approved',
+          'pickup_status': 'Awaiting',
+          'borrower': {'name': 'Juan Dela Cruz', 'id_number': '24-123456'},
+          'pickup_starts_at': '2026-09-27T01:00:00Z',
+          'pickup_ends_at': '2026-09-27T03:00:00Z',
+          'items': [
+            {'equipment_id': 1, 'name': 'Laptop', 'quantity': 2},
+            {'equipment_id': 2, 'name': 'Projector', 'quantity': 1},
+          ],
+        },
+      });
+      expect(txn.transactionCode, '123456789012');
+      expect(txn.canReturn, isFalse);
+      expect(txn.isCurrentlyBorrowed, isFalse);
+      expect(txn.isOverdue, isFalse);
+      expect(txn.receipt?.borrower['id_number'], '24-123456');
+      expect(txn.receipt?.items.length, 2);
+      expect(txn.receipt?.qrPayload, 'TMCEBMS:${'a' * 64}');
+      expect(txn.receipt?.pickupEndsAt?.isUtc, isTrue);
+    });
+
+    test('only staff-received equipment can be returned', () {
+      final received = mapBorrowing({
+        ...fakeBorrowingJson(status: 'Approved'),
+        'pickup_status': 'Received',
+      });
+      expect(received.canReturn, isTrue);
+      expect(received.isCurrentlyBorrowed, isTrue);
+      final rejected = mapBorrowing({
+        ...fakeBorrowingJson(status: 'Rejected'),
+        'pickup_status': 'Rejected',
+      });
+      expect(rejected.canReturn, isFalse);
+      expect(rejected.isCurrentlyBorrowed, isFalse);
+    });
+
     test('maps a pending request with items', () {
       final txn = mapBorrowing(fakeBorrowingJson());
       expect(txn.transactionId, '13');
@@ -133,38 +229,50 @@ void main() {
     });
 
     test('return status follows the attached return request', () {
-      final pending = mapBorrowing(fakeBorrowingJson(
-        status: 'Approved',
-        returns: [
-          {'id': 4, 'status': 'Pending', 'returned_at': null},
-        ],
-      ));
+      final pending = mapBorrowing(
+        fakeBorrowingJson(
+          status: 'Approved',
+          returns: [
+            {'id': 4, 'status': 'Pending', 'returned_at': null},
+          ],
+        ),
+      );
       expect(pending.returnStatus, ReturnStatus.returnPending);
       expect(pending.isCurrentlyBorrowed, isTrue);
 
-      final confirmed = mapBorrowing(fakeBorrowingJson(
-        status: 'Completed',
-        returns: [
-          {
-            'id': 4,
-            'status': 'Confirmed',
-            'returned_at': '2026-09-28T10:00:00.000000Z',
-          },
-        ],
-      ));
+      final confirmed = mapBorrowing(
+        fakeBorrowingJson(
+          status: 'Completed',
+          returns: [
+            {
+              'id': 4,
+              'status': 'Confirmed',
+              'returned_at': '2026-09-28T10:00:00.000000Z',
+            },
+          ],
+        ),
+      );
       expect(confirmed.returnStatus, ReturnStatus.returnConfirmed);
       expect(confirmed.actualReturnDate, isNotNull);
     });
 
     test('status mapping covers the admin lifecycle', () {
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Approved')).status,
-          RequestStatus.approved);
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Rejected')).status,
-          RequestStatus.rejected);
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Completed')).status,
-          RequestStatus.completed);
-      expect(mapBorrowing(fakeBorrowingJson(status: 'Cancelled')).status,
-          RequestStatus.cancelled);
+      expect(
+        mapBorrowing(fakeBorrowingJson(status: 'Approved')).status,
+        RequestStatus.approved,
+      );
+      expect(
+        mapBorrowing(fakeBorrowingJson(status: 'Rejected')).status,
+        RequestStatus.rejected,
+      );
+      expect(
+        mapBorrowing(fakeBorrowingJson(status: 'Completed')).status,
+        RequestStatus.completed,
+      );
+      expect(
+        mapBorrowing(fakeBorrowingJson(status: 'Cancelled')).status,
+        RequestStatus.cancelled,
+      );
     });
   });
 
