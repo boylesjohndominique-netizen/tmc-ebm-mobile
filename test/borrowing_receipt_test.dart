@@ -34,6 +34,7 @@ Map<String, dynamic> receiptJson() => {
       'category': 'AV',
       'condition': 'Good',
       'description': 'HDMI projector with remote',
+      'pickup_location': 'AV Office, Building A, Room 102',
     },
   ],
 };
@@ -214,6 +215,12 @@ void main() {
           );
           expect(find.text('Save image'), findsOneWidget);
           expect(find.text('Export PDF'), findsOneWidget);
+          expect(
+            find.text(
+              'School pickup location: AV Office, Building A, Room 102',
+            ),
+            findsOneWidget,
+          );
           expect(tester.takeException(), isNull);
         },
       );

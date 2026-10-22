@@ -8,6 +8,7 @@ import '../../state/app_state.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/equipment_icon.dart';
+import '../../widgets/equipment_borrowing_info.dart';
 import '../../widgets/liquid_glass.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/status_badge.dart';
@@ -106,15 +107,14 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
     final safePhotoIndex = allPhotos.isEmpty
         ? 0
         : _activePhotoIndex.clamp(0, allPhotos.length - 1);
-    final inUseCount =
-        (equipment.totalQuantity - equipment.availableQuantity).clamp(
-      0,
-      equipment.totalQuantity,
-    );
+    final inUseCount = (equipment.totalQuantity - equipment.availableQuantity)
+        .clamp(0, equipment.totalQuantity);
     final stockRatio = equipment.totalQuantity <= 0
         ? 0.0
-        : (equipment.availableQuantity / equipment.totalQuantity)
-            .clamp(0.0, 1.0);
+        : (equipment.availableQuantity / equipment.totalQuantity).clamp(
+            0.0,
+            1.0,
+          );
 
     return LiquidScaffold(
       appBar: AppBar(
@@ -180,8 +180,9 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                                   ),
                                 ),
                                 child: ClipRRect(
-                                  borderRadius:
-                                      BorderRadius.circular(selected ? 9 : 11),
+                                  borderRadius: BorderRadius.circular(
+                                    selected ? 9 : 11,
+                                  ),
                                   child: Image.network(
                                     allPhotos[idx],
                                     headers: ApiConfig.mediaHeaders,
@@ -242,8 +243,9 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: AppColors.primarySoft,
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.pill),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.pill,
+                                    ),
                                   ),
                                   child: Text(
                                     equipment.category,
@@ -264,9 +266,7 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                             const SizedBox(height: 10),
                             Text(
                               equipment.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
+                              style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: -0.5,
@@ -285,6 +285,8 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
 
             // ── Stock & Specifications Card ────────────────────────────────
             const GlassSectionLabel('Inventory & Condition'),
+            EquipmentBorrowingInfo(equipment: equipment),
+            const SizedBox(height: 16),
             const SizedBox(height: 8),
             GlassCard(
               padding: const EdgeInsets.all(18),
@@ -350,8 +352,9 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                     child: LinearProgressIndicator(
                       value: stockRatio,
                       minHeight: 8,
-                      backgroundColor:
-                          AppColors.divider.withValues(alpha: 0.55),
+                      backgroundColor: AppColors.divider.withValues(
+                        alpha: 0.55,
+                      ),
                       valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                     ),
                   ),
@@ -370,14 +373,13 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                     ? equipment.description.trim()
                     : 'No additional description provided for this equipment.',
                 style: equipment.description.trim().isNotEmpty
-                    ? Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(height: 1.55)
+                    ? Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(height: 1.55)
                     : Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textTertiary,
-                          fontStyle: FontStyle.italic,
-                        ),
+                        color: AppColors.textTertiary,
+                        fontStyle: FontStyle.italic,
+                      ),
               ),
             ),
             const SizedBox(height: 20),
@@ -433,9 +435,9 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                     Expanded(
                       child: Text(
                         'Requests are reviewed by the Equipment Office. Please present your school ID upon pickup.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              height: 1.4,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(height: 1.4),
                       ),
                     ),
                   ],
@@ -451,20 +453,20 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
           label: pending
               ? 'Verification Required to Borrow'
               : (equipment.isAvailable
-                  ? 'Request Equipment'
-                  : 'Currently Unavailable'),
+                    ? 'Request Equipment'
+                    : 'Currently Unavailable'),
           icon: pending
               ? Icons.lock_outline_rounded
               : (equipment.isAvailable
-                  ? Icons.assignment_add
-                  : Icons.block_rounded),
+                    ? Icons.assignment_add
+                    : Icons.block_rounded),
           onPressed: canRequest
               ? () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          RequestEquipmentScreen(equipmentId: equipment.id),
-                    ),
-                  )
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        RequestEquipmentScreen(equipmentId: equipment.id),
+                  ),
+                )
               : null,
         ),
       ),
@@ -766,8 +768,10 @@ class _EquipmentPhotoViewerDialogState
                 height: 76,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   itemCount: widget.photos.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 10),
                   itemBuilder: (context, idx) {

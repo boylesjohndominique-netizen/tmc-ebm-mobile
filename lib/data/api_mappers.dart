@@ -75,6 +75,9 @@ Equipment mapEquipment(Map<String, dynamic> j) {
     availableQuantity: (j['available_quantity'] as num?)?.toInt() ?? 0,
     imageUrl: ApiConfig.equipmentMediaUrl(j['image'] as String?),
     galleryUrls: galleryUrls,
+    pickupLocation: (j['pickup_location'] as String?) ?? '',
+    minBorrowingDays: (j['min_borrowing_days'] as num?)?.toInt(),
+    maxBorrowingDays: (j['max_borrowing_days'] as num?)?.toInt(),
   );
 }
 

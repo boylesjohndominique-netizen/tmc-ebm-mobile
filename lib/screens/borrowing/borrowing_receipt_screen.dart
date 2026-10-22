@@ -246,6 +246,11 @@ class _BorrowingReceiptScreenState extends State<BorrowingReceiptScreen> {
                                         Text(
                                           'Condition: ${item['condition'] ?? '-'}',
                                         ),
+                                        if ('${item['pickup_location'] ?? ''}'
+                                            .isNotEmpty)
+                                          Text(
+                                            'School pickup location: ${item['pickup_location']}',
+                                          ),
                                         if ('${item['description'] ?? ''}'
                                             .isNotEmpty)
                                           Text('${item['description']}'),

@@ -129,6 +129,8 @@ class ReceiptExporter {
               ),
               if ('${item['description'] ?? ''}'.isNotEmpty)
                 pw.Text('${item['description']}'),
+              if ('${item['pickup_location'] ?? ''}'.isNotEmpty)
+                pw.Text('School pickup location: ${item['pickup_location']}'),
             ],
           ),
           pw.SizedBox(height: 12),

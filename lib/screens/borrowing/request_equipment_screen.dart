@@ -3,8 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../app/theme.dart';
 import '../../state/app_state.dart';
+import '../../models/equipment.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/equipment_icon.dart';
+import '../../widgets/equipment_borrowing_info.dart';
 import '../../widgets/liquid_glass.dart';
 import '../../widgets/pressable.dart';
 
@@ -33,35 +35,51 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     super.dispose();
   }
 
-  Future<void> _pickBorrowDate(DateTime firstAllowed) async {
+  Future<void> _pickBorrowDate(Equipment equipment) async {
+    final firstAllowed = Equipment.schoolToday;
+    final lastAllowed = firstAllowed.add(const Duration(days: 180));
     final picked = await showDatePicker(
       context: context,
-      initialDate: firstAllowed,
+      initialDate:
+          _borrowDate != null &&
+              !_borrowDate!.isBefore(firstAllowed) &&
+              !_borrowDate!.isAfter(lastAllowed)
+          ? _borrowDate!
+          : firstAllowed,
       firstDate: firstAllowed,
-      lastDate: DateTime.now().add(const Duration(days: 180)),
+      lastDate: lastAllowed,
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     setState(() {
       _borrowDate = picked;
-      if (_returnDate != null && _returnDate!.isBefore(_borrowDate!)) {
+      if (_returnDate != null &&
+          !equipment.allowsBorrowingPeriod(picked, _returnDate!)) {
         _returnDate = null;
       }
     });
   }
 
-  Future<void> _pickReturnDate() async {
+  Future<void> _pickReturnDate(Equipment equipment) async {
     if (_borrowDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Please select a borrowing date first.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a borrowing date first.')),
+      );
       return;
     }
+    final firstAllowed = equipment.firstReturnDate(_borrowDate!);
+    final lastAllowed = equipment.lastReturnDate(_borrowDate!);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _borrowDate!.add(const Duration(days: 1)),
-      firstDate: _borrowDate!,
-      lastDate: _borrowDate!.add(const Duration(days: 90)),
+      initialDate:
+          _returnDate != null &&
+              !_returnDate!.isBefore(firstAllowed) &&
+              !_returnDate!.isAfter(lastAllowed)
+          ? _returnDate!
+          : firstAllowed,
+      firstDate: firstAllowed,
+      lastDate: lastAllowed,
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     setState(() => _returnDate = picked);
   }
 
@@ -74,7 +92,8 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Your account must be verified by an administrator before you can borrow equipment.'),
+            'Your account must be verified by an administrator before you can borrow equipment.',
+          ),
           backgroundColor: Color(0xFFF59E0B),
           duration: Duration(seconds: 4),
         ),
@@ -83,18 +102,23 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     }
 
     if (_borrowDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Select a borrowing date.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Select a borrowing date.')));
       return;
     }
     if (_returnDate == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Select a return date.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Select a return date.')));
       return;
     }
     if (_quantity > available) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Requested quantity exceeds availability.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Requested quantity exceeds availability.'),
+        ),
+      );
       return;
     }
 
@@ -103,6 +127,16 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
     final equipment = appState.equipmentById(widget.equipmentId);
     if (equipment == null) {
       setState(() => _loading = false);
+      return;
+    }
+    if (_borrowDate!.isBefore(Equipment.schoolToday) ||
+        !equipment.allowsBorrowingPeriod(_borrowDate!, _returnDate!)) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Select dates within the allowed loan duration.'),
+        ),
+      );
       return;
     }
 
@@ -184,8 +218,11 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.verified_user_outlined,
-                            color: AppColors.warning, size: 20),
+                        const Icon(
+                          Icons.verified_user_outlined,
+                          color: AppColors.warning,
+                          size: 20,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -231,8 +268,10 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 2),
-                            Text('${equipment.availableQuantity} available',
-                                style: Theme.of(context).textTheme.bodyMedium),
+                            Text(
+                              '${equipment.availableQuantity} available',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                           ],
                         ),
                       ),
@@ -245,8 +284,10 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                 const GlassSectionLabel('Quantity to Borrow'),
                 const SizedBox(height: 10),
                 GlassCard(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -276,13 +317,15 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                 // ── Dates ───────────────────────────────────────────────
                 const GlassSectionLabel('Schedule'),
                 const SizedBox(height: 10),
+                EquipmentBorrowingInfo(equipment: equipment),
+                const SizedBox(height: 10),
                 _DateSelector(
                   icon: Icons.login_rounded,
                   label: _borrowDate == null
                       ? 'Select borrowing date'
                       : _dateFormat.format(_borrowDate!),
                   hasValue: _borrowDate != null,
-                  onTap: () => _pickBorrowDate(DateTime.now()),
+                  onTap: () => _pickBorrowDate(equipment),
                 ),
                 const SizedBox(height: 10),
                 _DateSelector(
@@ -291,7 +334,7 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                       ? 'Select return date'
                       : _dateFormat.format(_returnDate!),
                   hasValue: _returnDate != null,
-                  onTap: _pickReturnDate,
+                  onTap: () => _pickReturnDate(equipment),
                 ),
                 const SizedBox(height: 22),
 
@@ -335,11 +378,16 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.receipt_long_rounded,
-                                size: 16, color: AppColors.primary),
+                            const Icon(
+                              Icons.receipt_long_rounded,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
                             const SizedBox(width: 7),
-                            Text('Request Summary',
-                                style: Theme.of(context).textTheme.titleSmall),
+                            Text(
+                              'Request Summary',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 9),
@@ -358,6 +406,9 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                           '${_dateFormat.format(_borrowDate!)} → ${_dateFormat.format(_returnDate!)}',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
+                        Text(
+                          'Loan duration: ${Equipment.borrowingDays(_borrowDate!, _returnDate!)} days',
+                        ),
                       ],
                     ),
                   ),
@@ -367,7 +418,7 @@ class _RequestEquipmentScreenState extends State<RequestEquipmentScreen> {
                   icon: isPending
                       ? Icons.lock_outline_rounded
                       : Icons.send_rounded,
-                  onPressed: isPending
+                  onPressed: isPending || !equipment.isAvailable
                       ? null
                       : () => _submit(equipment.availableQuantity),
                   loading: _loading,
@@ -408,7 +459,7 @@ class _DateSelector extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool hasValue;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   const _DateSelector({
     required this.icon,
     required this.label,
@@ -438,13 +489,17 @@ class _DateSelector extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
-                  color:
-                      hasValue ? AppColors.textPrimary : AppColors.textTertiary,
+                  color: hasValue
+                      ? AppColors.textPrimary
+                      : AppColors.textTertiary,
                 ),
               ),
             ),
-            Icon(Icons.expand_more_rounded,
-                size: 20, color: AppColors.textTertiary),
+            Icon(
+              Icons.expand_more_rounded,
+              size: 20,
+              color: AppColors.textTertiary,
+            ),
           ],
         ),
       ),
