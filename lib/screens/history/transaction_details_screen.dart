@@ -111,7 +111,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Return requested. Admin approval and staff inspection are required before it is confirmed.',
+                                'Return requested. Staff inspect the equipment and payment; the admin must verify their decision before completion.',
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,

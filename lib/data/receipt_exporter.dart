@@ -47,6 +47,15 @@ class ReceiptExporter {
       'Verified student ID': receipt.verifiedStudentId,
     if (receipt.conditionOnReturn.isNotEmpty)
       'Inspected condition': receipt.conditionOnReturn,
+    if (receipt.conditionNotes.isNotEmpty)
+      'Equipment problem': receipt.conditionNotes,
+    if (receipt.isReturn) 'Overdue payment': receipt.paymentStatus,
+    if (receipt.adminVerifiedAt != null)
+      'Admin verified': date(receipt.adminVerifiedAt, time: true),
+    if (receipt.adminVerifierName.isNotEmpty)
+      'Verified by': receipt.adminVerifierName,
+    if (receipt.adminRemarks.isNotEmpty)
+      'Admin verification notes': receipt.adminRemarks,
     if (receipt.returnedAt != null)
       'Returned at': date(receipt.returnedAt, time: true),
     if ((receipt.overdueFee ?? 0) > 0)

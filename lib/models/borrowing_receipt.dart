@@ -3,6 +3,11 @@ class BorrowingReceipt {
   final String borrowingTransactionCode;
   final String verifiedStudentId;
   final String conditionOnReturn;
+  final String conditionNotes;
+  final String paymentStatus;
+  final String adminRemarks;
+  final String adminVerifierName;
+  final DateTime? adminVerifiedAt;
   final DateTime? returnedAt;
   final double? overdueFee;
   final String transactionCode;
@@ -30,6 +35,11 @@ class BorrowingReceipt {
       borrowingTransactionCode = '${json['borrowing_transaction_code'] ?? ''}',
       verifiedStudentId = '${json['verified_student_id'] ?? ''}',
       conditionOnReturn = '${json['condition_on_return'] ?? ''}',
+      conditionNotes = '${json['condition_notes'] ?? ''}',
+      paymentStatus = '${json['payment_status'] ?? 'Not assessed'}',
+      adminRemarks = '${json['admin_remarks'] ?? ''}',
+      adminVerifierName = '${json['admin_verifier_name'] ?? ''}',
+      adminVerifiedAt = DateTime.tryParse('${json['admin_verified_at'] ?? ''}'),
       returnedAt = DateTime.tryParse('${json['returned_at'] ?? ''}'),
       overdueFee = double.tryParse('${json['overdue_fee'] ?? ''}'),
       transactionCode = '${json['transaction_code'] ?? ''}',
@@ -74,6 +84,6 @@ class BorrowingReceipt {
       isReturn ? 'Equipment return receipt' : 'Equipment approval receipt';
   String get handoverLabel => isReturn ? 'Return' : 'Pickup';
   String get instructions => isReturn
-      ? 'Present this receipt and your student ID to equipment staff during the return window. Only staff can confirm the return after inspecting all equipment and accessories. Times are shown in your device time zone.'
+      ? 'Present this receipt and your student ID during the return window. Staff record the equipment condition, overdue-fee payment and their decision. The administrator must verify the staff findings before the return is complete. Times are shown in your device time zone.'
       : 'Present this receipt and your student ID to equipment staff during the pickup window. Approval reserves equipment; staff must verify your identity and inspect equipment before handover. Times are shown in your device time zone.';
 }

@@ -183,6 +183,7 @@ ReturnStatus _mapReturnStatus(String? s, String? borrowingStatus) {
   switch (s) {
     case 'Pending':
     case 'Approved':
+    case 'Awaiting Verification':
       return ReturnStatus.returnPending;
     case 'Confirmed':
       return ReturnStatus.returnConfirmed;

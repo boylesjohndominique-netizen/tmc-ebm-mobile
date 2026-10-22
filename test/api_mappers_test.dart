@@ -131,6 +131,35 @@ void main() {
   });
 
   group('mapBorrowing', () {
+    test('staff acceptance stays pending until admin verifies the return', () {
+      final txn = mapBorrowing({
+        ...fakeBorrowingJson(status: 'Approved'),
+        'pickup_status': 'Received',
+        'returns': [
+          {
+            'id': 20,
+            'status': 'Awaiting Verification',
+            'returned_at': null,
+            'overdue_fee': 20,
+            'receipt': {
+              'kind': 'return',
+              'status': 'Awaiting Verification',
+              'handover_status': 'Accepted',
+              'condition_on_return': 'Good',
+              'payment_status': 'Paid',
+              'overdue_fee': 20,
+              'admin_verified_at': null,
+            },
+          },
+        ],
+      });
+      expect(txn.returnStatus, ReturnStatus.returnPending);
+      expect(txn.isCurrentlyBorrowed, isTrue);
+      expect(txn.canReturn, isFalse);
+      expect(txn.actualReturnDate, isNull);
+      expect(txn.returnReceipts.first.paymentStatus, 'Paid');
+      expect(txn.returnReceipts.first.adminVerifiedAt, isNull);
+    });
     test(
       'approved return stays on loan and newest return determines status',
       () {

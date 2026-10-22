@@ -66,11 +66,32 @@ Map<String, dynamic> returnReceiptJson() => {
   'handover_starts_at': '2026-10-22T01:00:00Z',
   'handover_ends_at': '2026-10-22T03:00:00Z',
   'borrowing_transaction_code': '123456789012',
+  'condition_on_return': 'Damaged',
+  'condition_notes': 'Cracked projector lens',
+  'overdue_fee': 20,
+  'payment_status': 'Not paid',
 };
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  test(
+    'return export includes condition problems, payment and admin verification',
+    () {
+      final receipt = BorrowingReceipt.fromJson({
+        ...returnReceiptJson(),
+        'admin_verified_at': '2026-10-22T05:00:00Z',
+        'admin_verifier_name': 'Admin Tester',
+        'admin_remarks': 'Verified staff rejection.',
+      });
+      final details = ReceiptExporter.details(receipt);
+      expect(details['Equipment problem'], 'Cracked projector lens');
+      expect(details['Overdue payment'], 'Not paid');
+      expect(details['Overdue fee'], 'PHP 20.00');
+      expect(details['Verified by'], 'Admin Tester');
+      expect(details['Admin verification notes'], 'Verified staff rejection.');
+    },
+  );
   test(
     'PDF export produces a complete document for a multi-item receipt',
     () async {
